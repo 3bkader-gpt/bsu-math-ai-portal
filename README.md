@@ -3,22 +3,21 @@
 # 🎓 BSU Math AI Portal (`bsu-math-ai-portal`)
 
 ### Autonomous Academic Lecture Intelligence & Multimodal Delivery Platform
-**Department of Mathematics & Computer Science • Faculty of Science • Beni-Suef University**
+**Department of Mathematics • Faculty of Education (General) • Beni-Suef University**
+*(2nd Year • 1st Term • 12 Official Academic Courses & Assigned Faculty)*
 
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Frontend-Next.js%2016%20App%20Router-black.svg?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
 [![TailwindCSS](https://img.shields.io/badge/Styling-TailwindCSS%20v4-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Google NotebookLM](https://img.shields.io/badge/AI%20Engine-NotebookLM%20Audio%20%26%20Video-4285F4.svg?logo=google&logoColor=white)](https://notebooklm.google.com/)
-[![Supabase](https://img.shields.io/badge/Database-Supabase%20Postgres-3ECF8E.svg?logo=supabase&logoColor=white)](https://supabase.com/)
-[![Telegram](https://img.shields.io/badge/CDN-Telegram%20Telethon%20Storage-26A5E4.svg?logo=telegram&logoColor=white)](https://telegram.org/)
 [![KaTeX](https://img.shields.io/badge/Math-KaTeX%20LaTeX%20Renderer-00d1b2.svg)](https://katex.org/)
-[![Design Standard](https://img.shields.io/badge/Craft-Impeccable%20Style-5B5BD6.svg)](https://impeccable.style/)
+[![Dual Edition](https://img.shields.io/badge/Design-Dual%20Edition%20(Boys%20%26%20Girls)-f43f5e.svg)](https://github.com/3bkader-gpt/bsu-math-ai-portal)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Decoupled AI Processing Pipeline • Egyptian Arabic Audio Podcasts • Blackboard Video Walkthroughs • KaTeX Mathematical Engine • Multi-Doctor Syllabus Tracks**
+**Dual-Edition Experience (Boys & Girls) • Egyptian Arabic Audio Podcasts • Blackboard Video Walkthroughs • KaTeX Mathematical Engine • Multi-Doctor Syllabus Tracks**
 
-[System Architecture](#-system-architecture) • [Key Features](#-key-features) • [Mathematical Typography](#-mathematical-typography--katex) • [Tech Stack](#-technology-stack) • [Quick Start](#-quick-start) • [Security](#-security--defensive-hardening)
+[System Architecture](#-system-architecture) • [Dual-Edition Design System](#-dual-edition-design-system) • [12 Official Courses](#-12-official-academic-courses) • [Key Features](#-key-features) • [Quick Start](#-quick-start)
 
 </div>
 

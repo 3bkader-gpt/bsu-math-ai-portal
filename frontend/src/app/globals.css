@@ -1,53 +1,121 @@
 @import "tailwindcss";
 
-:root {
-  /* LIGHT MODE TOKENS (Academic Editorial Journal Style) */
-  --bg-page: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-surface-elevated: #f1f5f9;
-  --bg-surface-translucent: rgba(255, 255, 255, 0.9);
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --border-subtle: #e2e8f0;
-  --border-prominent: #cbd5e1;
-  --border-interactive: #93c5fd;
-  --accent-primary: #1d4ed8;
-  --accent-primary-hover: #1e40af;
-  --accent-cyan: #0284c7;
+/* ========================================================
+   DUAL-EDITION ACADEMIC THEME SYSTEM (جامعة بني سويف)
+   1. BOYS EDITION (شبابي):
+      - Light: Oxford Teal & Vanilla Latte Paper (#184E4E / #F5EFE1)
+      - Dark: Stealth Obsidian & Cyber Emerald (#2DD4BF / #0B0F14)
+   2. GIRLS EDITION (بناتي):
+      - Light: Cozy Dusty Rose & Oat Milk (#C46D82 / #FAF5F0)
+      - Dark: Midnight Blackberry & Glowing Soft Rose (#E5839C / #150F16)
+   ======================================================== */
+
+/* DEFAULT / BOYS LIGHT */
+:root,
+html[data-persona="boys"]:not(.dark),
+html[data-persona="boys"][data-mode="light"],
+html:not([data-persona]):not(.dark) {
+  --bg-page: #F5EFE1;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #FAF5EA;
+  --bg-surface-translucent: rgba(255, 255, 255, 0.92);
+  --text-primary: #162828;
+  --text-secondary: #244040;
+  --text-muted: #526E6E;
+  --border-subtle: #E3D7C1;
+  --border-prominent: #D9C8AC;
+  --border-interactive: #184E4E;
+  --accent-primary: #184E4E;
+  --accent-primary-hover: #113838;
+  --accent-cyan: #0D9488;
   --accent-emerald: #059669;
-  --accent-amber: #d97706;
-  --accent-rose: #e11d48;
-  --math-formula-color: #0f172a;
-  --math-block-bg: #f8fafc;
-  --math-block-border: #cbd5e1;
-  --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04);
-  --card-shadow-hover: 0 12px 28px -4px rgba(15, 23, 42, 0.1), 0 2px 6px -1px rgba(15, 23, 42, 0.05);
+  --accent-amber: #C8963E;
+  --accent-rose: #BE123C;
+  --math-formula-color: #184E4E;
+  --math-block-bg: #FAF5EA;
+  --math-block-border: #D9C8AC;
+  --card-shadow: 0 4px 20px -2px rgba(24, 78, 78, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  --card-shadow-hover: 0 12px 28px -4px rgba(24, 78, 78, 0.14), 0 2px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.dark {
-  /* DARK MODE TOKENS (Deep Academic Midnight OLED) */
-  --bg-page: #080c16;
-  --bg-surface: #0f172a;
-  --bg-surface-elevated: #1e293b;
-  --bg-surface-translucent: rgba(15, 23, 42, 0.85);
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-prominent: rgba(255, 255, 255, 0.18);
-  --border-interactive: rgba(56, 189, 248, 0.4);
-  --accent-primary: #3b82f6;
-  --accent-primary-hover: #60a5fa;
-  --accent-cyan: #38bdf8;
-  --accent-emerald: #10b981;
-  --accent-amber: #f59e0b;
-  --accent-rose: #f43f5e;
-  --math-formula-color: #38bdf8;
-  --math-block-bg: rgba(15, 23, 42, 0.7);
-  --math-block-border: rgba(56, 189, 248, 0.25);
-  --card-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
-  --card-shadow-hover: 0 20px 48px -10px rgba(56, 189, 248, 0.15), inset 0 1px 2px 0 rgba(255, 255, 255, 0.15);
+/* BOYS DARK (Stealth Obsidian & Cyber Emerald) */
+.dark,
+html[data-persona="boys"].dark,
+html[data-persona="boys"][data-mode="dark"],
+html:not([data-persona]).dark {
+  --bg-page: #0B0F14;
+  --bg-surface: #131922;
+  --bg-surface-elevated: #1C2533;
+  --bg-surface-translucent: rgba(19, 25, 34, 0.92);
+  --text-primary: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --border-subtle: #1E2B3A;
+  --border-prominent: #2B3B4E;
+  --border-interactive: #2DD4BF;
+  --accent-primary: #2DD4BF;
+  --accent-primary-hover: #5EEAD4;
+  --accent-cyan: #38BDF8;
+  --accent-emerald: #10B981;
+  --accent-amber: #F59E0B;
+  --accent-rose: #F43F5E;
+  --math-formula-color: #5EEAD4;
+  --math-block-bg: #0E1724;
+  --math-block-border: #1E3A5F;
+  --card-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.06);
+  --card-shadow-hover: 0 20px 48px -10px rgba(45, 212, 191, 0.15), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* GIRLS LIGHT (Cozy Dusty Rose & Oat Milk) */
+html[data-persona="girls"]:not(.dark),
+html[data-persona="girls"][data-mode="light"] {
+  --bg-page: #FAF5F0;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #FFF7F9;
+  --bg-surface-translucent: rgba(255, 255, 255, 0.93);
+  --text-primary: #381D26;
+  --text-secondary: #57303D;
+  --text-muted: #875565;
+  --border-subtle: #F4D7DE;
+  --border-prominent: #F2CBD5;
+  --border-interactive: #C46D82;
+  --accent-primary: #C46D82;
+  --accent-primary-hover: #A85266;
+  --accent-cyan: #E07A9E;
+  --accent-emerald: #059669;
+  --accent-amber: #E08A5E;
+  --accent-rose: #BE123C;
+  --math-formula-color: #381D26;
+  --math-block-bg: #FFF7F9;
+  --math-block-border: #F2CBD5;
+  --card-shadow: 0 4px 20px -2px rgba(196, 109, 130, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.03);
+  --card-shadow-hover: 0 12px 28px -4px rgba(196, 109, 130, 0.18), 0 2px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* GIRLS DARK (Midnight Blackberry & Glowing Soft Rose) */
+html[data-persona="girls"].dark,
+html[data-persona="girls"][data-mode="dark"] {
+  --bg-page: #150F16;
+  --bg-surface: #211422;
+  --bg-surface-elevated: #2E1B2F;
+  --bg-surface-translucent: rgba(33, 20, 34, 0.92);
+  --text-primary: #FCEEF2;
+  --text-secondary: #E8D0D8;
+  --text-muted: #B38E9B;
+  --border-subtle: #3E233B;
+  --border-prominent: #5A3356;
+  --border-interactive: #E5839C;
+  --accent-primary: #E5839C;
+  --accent-primary-hover: #F0A1B4;
+  --accent-cyan: #F7B299;
+  --accent-emerald: #34D399;
+  --accent-amber: #FBBF24;
+  --accent-rose: #FB7185;
+  --math-formula-color: #FDE2E8;
+  --math-block-bg: #2A192A;
+  --math-block-border: #4E2A49;
+  --card-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.06);
+  --card-shadow-hover: 0 20px 48px -10px rgba(229, 131, 156, 0.2), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12);
 }
 
 body {
@@ -59,19 +127,35 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Subtle background textures: light vs dark */
-body.light, :root:not(.dark) body {
+/* Subtle persona-aligned background ambient textures */
+html[data-persona="boys"]:not(.dark) body,
+html:not([data-persona]):not(.dark) body {
   background-image: 
-    radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.03) 0%, transparent 40%),
-    radial-gradient(circle at 90% 20%, rgba(2, 132, 199, 0.03) 0%, transparent 40%),
-    radial-gradient(circle at 50% 90%, rgba(5, 150, 105, 0.02) 0%, transparent 50%);
+    radial-gradient(circle at 10% 10%, rgba(24, 78, 78, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 90% 20%, rgba(200, 150, 62, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(24, 78, 78, 0.03) 0%, transparent 50%);
 }
 
-.dark body {
+html[data-persona="boys"].dark body,
+html:not([data-persona]).dark body {
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 45%),
-    radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.05) 0%, transparent 45%),
-    radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+    radial-gradient(circle at 10% 20%, rgba(45, 212, 191, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(56, 189, 248, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
+}
+
+html[data-persona="girls"]:not(.dark) body {
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(196, 109, 130, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 20%, rgba(247, 178, 153, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(196, 109, 130, 0.03) 0%, transparent 50%);
+}
+
+html[data-persona="girls"].dark body {
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(229, 131, 156, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(249, 179, 159, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(229, 131, 156, 0.04) 0%, transparent 50%);
 }
 
 /* Semantic Surface Classes */

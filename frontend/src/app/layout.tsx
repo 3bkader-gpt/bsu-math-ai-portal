@@ -18,8 +18,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "بوابة قسم الرياضيات الذكية | جامعة بني سويف",
-  description: "المنصة الأكاديمية الذكية لإنتاج وبث المحتوى الجامعي المعزز بالذكاء الاصطناعي",
+  title: "بوابة الرياضيات والذكاء الاصطناعي | كلية التربية جامعة بني سويف",
+  description: "المنصة الأكاديمية المزدوجة لشعبة رياضيات - الفرقة الثانية، كلية التربية (عام) جامعة بني سويف",
   icons: {
     icon: "/favicon.ico",
   },
@@ -31,8 +31,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} ${outfit.variable}`}>
-      <body className="min-h-screen antialiased transition-colors duration-200 selection:bg-blue-500/20 selection:text-blue-700">
+    <html lang="ar" dir="rtl" className={`${cairo.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var persona = localStorage.getItem('bsu_portal_persona') || 'boys';
+                  var mode = localStorage.getItem('bsu_portal_mode');
+                  if (!mode) {
+                    var oldTheme = localStorage.getItem('bsu_math_theme');
+                    mode = oldTheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                  }
+                  document.documentElement.setAttribute('data-persona', persona);
+                  document.documentElement.setAttribute('data-mode', mode);
+                  if (mode === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-screen antialiased transition-colors duration-200">
         {children}
       </body>
     </html>

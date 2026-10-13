@@ -39,7 +39,104 @@ interface Subject {
   has_prompt: boolean;
   lecture_count: number;
   doctors?: string[];
+  canonicalDoctor?: string;
+  icon?: string;
 }
+
+export interface CanonicalCourse {
+  canonicalName: string;
+  doctor: string;
+  icon: string;
+  aliases: string[];
+  fallbackId: number;
+}
+
+export const CANONICAL_COURSES: CanonicalCourse[] = [
+  {
+    canonicalName: 'هندسة تفاضلية',
+    doctor: 'د/ سيد',
+    icon: '📐',
+    aliases: ['هندسه تفاضلية', 'هندسة تفاضلية', 'تفاضلية'],
+    fallbackId: 11,
+  },
+  {
+    canonicalName: 'مقدمة في نظرية العدد والمنطق',
+    doctor: 'د/ محمد حسين',
+    icon: '🔢',
+    aliases: ['نظريه عدد ومنطق', 'نظرية العدد والمنطق', 'عدد ومنطق', 'مقدمة في نظرية العدد والمنطق'],
+    fallbackId: 10,
+  },
+  {
+    canonicalName: 'معادلات تفاضلية',
+    doctor: 'د/ حسين',
+    icon: '∫',
+    aliases: ['معادلات تفاضلية', 'معادلات'],
+    fallbackId: 9,
+  },
+  {
+    canonicalName: 'ديناميكا (٢)',
+    doctor: 'د/ مروة ذكري',
+    icon: '🚀',
+    aliases: ['ديناميكا 2', 'ديناميكا (٢)', 'ديناميكا'],
+    fallbackId: 6,
+  },
+  {
+    canonicalName: 'استاتيكا (٢)',
+    doctor: 'د/ ايه',
+    icon: '⚖️',
+    aliases: ['استاتيكا2', 'استاتيكا (٢)', 'استاتيكا'],
+    fallbackId: 2,
+  },
+  {
+    canonicalName: 'كهربية ومغناطيسية وتيار متردد',
+    doctor: 'د/ حسن سيد',
+    icon: '⚡',
+    aliases: ['كهربيه مغناطيسية وتيار متردد', 'كهربية ومغناطيسية', 'كهربيه'],
+    fallbackId: 8,
+  },
+  {
+    canonicalName: 'عملي فيزياء',
+    doctor: 'د/ سيد',
+    icon: '🔬',
+    aliases: ['عملي فيزياء', 'فيزياء عملي'],
+    fallbackId: 101,
+  },
+  {
+    canonicalName: 'التعليم وريادة الأعمال',
+    doctor: 'د/ مروة + د/ وليد',
+    icon: '💼',
+    aliases: ['تعليم ورياده اعمال', 'التعليم وريادة الأعمال', 'ريادة أعمال'],
+    fallbackId: 4,
+  },
+  {
+    canonicalName: 'تدريس مصغر',
+    doctor: 'د/ عبدالرحمن برعي',
+    icon: '🎓',
+    aliases: ['تدريس مصغر'],
+    fallbackId: 3,
+  },
+  {
+    canonicalName: 'تكنولوجيا التعليم',
+    doctor: 'د/ ايمان',
+    icon: '💻',
+    aliases: ['تكنولوجيا والتحول الرقمي', 'تكنولوجيا التعليم', 'تكنولوجيا'],
+    fallbackId: 5,
+  },
+  {
+    canonicalName: 'إدارة المعرفة',
+    doctor: 'د/ عزام',
+    icon: '📚',
+    aliases: ['اداره معرفه', 'إدارة المعرفة'],
+    fallbackId: 1,
+  },
+  {
+    canonicalName: 'فلسفة وتاريخ الرياضيات',
+    doctor: 'د/ طه ابراهيم',
+    icon: '🏛️',
+    aliases: ['فلسفه وتاريخ رياضيات', 'فلسفة وتاريخ الرياضيات', 'فلسفة'],
+    fallbackId: 7,
+  },
+];
 
 interface LectureAsset {
   id: number;
@@ -113,20 +210,53 @@ export default function Home() {
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
+  // Build Unified 12 Courses from Backend + Canonical Registry
+  const mergeSubjects = (backendSubjects: any[]): Subject[] => {
+    return CANONICAL_COURSES.map((course) => {
+      // Find matching backend subject by aliases or fallbackId
+      const found = backendSubjects.find(
+        (b) =>
+          course.aliases.some((a) => a.trim().toLowerCase() === (b.name || '').trim().toLowerCase()) ||
+          b.id === course.fallbackId
+      );
+
+      const doctorsList = found?.doctors && found.doctors.length > 0 
+        ? found.doctors 
+        : [course.doctor];
+
+      return {
+        id: found?.id ?? course.fallbackId,
+        name: course.canonicalName,
+        has_prompt: found?.has_prompt ?? true,
+        lecture_count: found?.lecture_count ?? 0,
+        doctors: doctorsList,
+        canonicalDoctor: course.doctor,
+        icon: course.icon,
+      };
+    });
+  };
+
   // 1. Fetch Subjects on Mount
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/subjects')
       .then(res => res.json())
       .then(data => {
-        setSubjects(data);
-        const diff = data.find((s: Subject) => s.name === 'هندسه تفاضلية');
+        const unified = mergeSubjects(data);
+        setSubjects(unified);
+        const diff = unified.find((s) => s.name === 'هندسة تفاضلية');
         if (diff) {
           setActiveSubjectId(diff.id);
-        } else if (data.length > 0) {
-          setActiveSubjectId(data[0].id);
+        } else if (unified.length > 0) {
+          setActiveSubjectId(unified[0].id);
         }
       })
-      .catch(err => console.error('Error loading subjects:', err));
+      .catch(err => {
+        console.error('Error loading subjects:', err);
+        // Fallback to offline canonical list so the app is 100% resilient
+        const fallbackUnified = mergeSubjects([]);
+        setSubjects(fallbackUnified);
+        setActiveSubjectId(fallbackUnified[0].id);
+      });
   }, []);
 
   // 2. Fetch Subject Lectures when activeSubjectId changes
@@ -135,9 +265,15 @@ export default function Home() {
     setSelectedDoctor('الكل');
     setIsLoadingLectures(true);
     fetch(`http://127.0.0.1:8000/api/subjects/${activeSubjectId}/lectures`)
-      .then(res => res.json())
-      .then(data => setSubjectLectures(data))
-      .catch(err => console.error('Error loading lectures:', err))
+      .then(res => {
+        if (!res.ok) return [];
+        return res.json();
+      })
+      .then(data => setSubjectLectures(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error('Error loading lectures:', err);
+        setSubjectLectures([]);
+      })
       .finally(() => setIsLoadingLectures(false));
   }, [activeSubjectId]);
 
@@ -305,9 +441,11 @@ export default function Home() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Filter subjects by search
+  // Filter subjects by search (name, canonical doctor, or doctor track)
   const filteredSubjects = subjects.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase())
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (s.canonicalDoctor && s.canonicalDoctor.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (s.doctors && s.doctors.some(d => d.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
   const activeSubject = subjects.find(s => s.id === activeSubjectId);
@@ -315,7 +453,13 @@ export default function Home() {
   const videoAsset = activeBundle?.assets.find(a => a.asset_type === 'video');
 
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-200">
+    <div
+      style={{
+        backgroundColor: 'var(--bg-page)',
+        color: 'var(--text-primary)',
+      }}
+      className="min-h-screen flex flex-col transition-colors duration-200"
+    >
       
       {/* Top Academic Header */}
       <header
@@ -355,12 +499,25 @@ export default function Home() {
                 </span>
               </div>
               <p className="text-[11px] sm:text-sm font-medium mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
-                {content.header.faculty} • {content.header.subtitle}
+                {content.header.faculty} • {content.header.major}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Link
+              href="/design-lab"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs hover:scale-105"
+              style={{
+                backgroundColor: 'var(--bg-surface-elevated)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--accent-primary)',
+              }}
+              title="معاينة مختبر التصميم المزدوج (شبابي / بناتي)"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>مختبر التصميم</span>
+            </Link>
             <ThemeToggle />
           </div>
         </div>
@@ -450,22 +607,37 @@ export default function Home() {
                     isActive ? 'ring-2 ring-blue-500/30' : 'hover:border-blue-400 hover:scale-[1.01]'
                   }`}
                 >
-                  <div
-                    style={{
-                      backgroundColor: 'var(--bg-surface-elevated)',
-                      borderColor: 'var(--border-prominent)',
-                      color: 'var(--accent-primary)',
-                    }}
-                    className="w-9 h-9 rounded-xl border flex items-center justify-center mb-3 font-bold text-xs shadow-sm"
-                  >
-                    {sub.name.slice(0, 2)}
+                  <div>
+                    <div
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-prominent)',
+                        color: 'var(--accent-primary)',
+                      }}
+                      className="w-10 h-10 rounded-xl border flex items-center justify-center mb-3 font-bold text-lg shadow-sm"
+                    >
+                      {sub.icon || sub.name.slice(0, 2)}
+                    </div>
+                    <h4 className="font-bold text-sm sm:text-base line-clamp-2 leading-snug" style={{ color: 'var(--text-primary)' }}>
+                      {sub.name}
+                    </h4>
+                    {sub.canonicalDoctor && (
+                      <span
+                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md mt-1.5 truncate max-w-full"
+                        style={{
+                          backgroundColor: 'var(--bg-surface-elevated)',
+                          color: 'var(--accent-primary)',
+                        }}
+                      >
+                        {sub.canonicalDoctor.includes('مروة') || sub.canonicalDoctor.includes('ايه') || sub.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {sub.canonicalDoctor}
+                      </span>
+                    )}
                   </div>
-                  <h4 className="font-bold text-sm sm:text-base line-clamp-2 leading-snug" style={{ color: 'var(--text-primary)' }}>
-                    {sub.name}
-                  </h4>
                   <div className="mt-3 flex items-center justify-between text-xs" style={{ color: 'var(--text-muted)' }}>
                     <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>
-                      {content.subjectsSection.lectureCountFormat.replace('{count}', sub.lecture_count.toString())}
+                      {sub.lecture_count > 0 
+                        ? content.subjectsSection.lectureCountFormat.replace('{count}', sub.lecture_count.toString())
+                        : 'مقرر دراسي'}
                     </span>
                     <ChevronLeft className="w-4 h-4 opacity-70" />
                   </div>
@@ -488,13 +660,39 @@ export default function Home() {
             className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b"
             style={{ borderColor: 'var(--border-subtle)' }}
           >
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--accent-primary)' }}>
-                {content.lecturesSection.sectionBadge}
-              </span>
-              <h3 className="text-2xl sm:text-3xl font-black mt-1" style={{ color: 'var(--text-primary)' }}>
-                {activeSubject?.name || content.lecturesSection.defaultPrompt}
-              </h3>
+            <div className="flex items-center gap-3">
+              <div
+                style={{
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  borderColor: 'var(--border-prominent)',
+                  color: 'var(--accent-primary)',
+                }}
+                className="w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm shrink-0"
+              >
+                {activeSubject?.icon || '📐'}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--accent-primary)' }}>
+                    {content.lecturesSection.sectionBadge}
+                  </span>
+                  {activeSubject?.canonicalDoctor && (
+                    <span
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-prominent)',
+                        color: 'var(--accent-primary)',
+                      }}
+                    >
+                      {activeSubject.canonicalDoctor.includes('مروة') || activeSubject.canonicalDoctor.includes('ايه') || activeSubject.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {activeSubject.canonicalDoctor}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-black mt-1" style={{ color: 'var(--text-primary)' }}>
+                  {activeSubject?.name || content.lecturesSection.defaultPrompt}
+                </h3>
+              </div>
             </div>
             <div className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>
               {content.lecturesSection.availableFormat.replace('{count}', subjectLectures.length.toString())}
@@ -1093,9 +1291,9 @@ export default function Home() {
                               )}
                             </div>
 
-                            {/* Question Statement Body with Large Typography */}
+                            {/* Question Statement Body with Large Bold Typography */}
                             <div
-                              className="text-base sm:text-2xl font-bold leading-relaxed"
+                              className="text-lg sm:text-2xl font-extrabold leading-relaxed"
                               style={{ color: 'var(--text-primary)' }}
                             >
                               <MathRenderer text={q.question} />
@@ -1111,8 +1309,8 @@ export default function Home() {
                                 className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border text-sm sm:text-base leading-relaxed flex items-start gap-3 animate-in fade-in"
                               >
                                 <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                                <div className="flex-1" style={{ color: 'var(--text-primary)' }}>
-                                  <span className="font-bold text-amber-600 dark:text-amber-400">{content.quizTab.hintPrefix}</span>
+                                <div className="flex-1 font-bold" style={{ color: 'var(--text-primary)' }}>
+                                  <span className="font-extrabold text-amber-600 dark:text-amber-400">{content.quizTab.hintPrefix}</span>
                                   <MathRenderer text={q.hint} />
                                 </div>
                               </div>
@@ -1183,7 +1381,7 @@ export default function Home() {
                                       >
                                         {optionLabels[optIdx] || optIdx + 1}
                                       </span>
-                                      <div className="flex-1 text-right font-medium">
+                                      <div className="flex-1 text-right font-bold text-sm sm:text-lg">
                                         <MathRenderer text={opt} />
                                       </div>
                                     </div>
@@ -1208,11 +1406,11 @@ export default function Home() {
                                 }}
                                 className="p-5 sm:p-6 rounded-2xl border text-sm sm:text-base leading-relaxed space-y-2 animate-in fade-in shadow-sm"
                               >
-                                <div className="font-bold flex items-center gap-2" style={{ color: 'var(--accent-primary)' }}>
+                                <div className="font-extrabold flex items-center gap-2" style={{ color: 'var(--accent-primary)' }}>
                                   <Sparkles className="w-5 h-5" />
                                   <span>{content.quizTab.explanationTitle}</span>
                                 </div>
-                                <div style={{ color: 'var(--text-secondary)' }}>
+                                <div className="font-bold" style={{ color: 'var(--text-primary)' }}>
                                   {q.hint ? (
                                     <MathRenderer text={q.hint} />
                                   ) : (
