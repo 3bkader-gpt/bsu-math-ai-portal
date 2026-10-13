@@ -685,13 +685,13 @@ export default function Home() {
               {isGirls ? (
                 <span className="text-xl sm:text-2xl">🎀</span>
               ) : (
-                <span className="text-xl sm:text-2xl">⚡</span>
+                <GraduationCap className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: 'var(--accent-primary)' }} />
               )}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="font-extrabold text-sm sm:text-xl tracking-tight truncate" style={{ color: 'var(--text-primary)' }}>
-                  {isGirls ? 'بوابة الرياضيات الذكية • نوتس & روقان 🎀' : 'بوابة الرياضيات والذكاء الاصطناعي • فورمة المنهج ⚡'}
+                <h1 className="font-extrabold text-base sm:text-xl tracking-tight whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                  {isGirls ? 'منصة المنهج 🎀' : 'منصة المنهج'}
                 </h1>
                 <span
                   style={{
@@ -704,8 +704,9 @@ export default function Home() {
                   {isGirls ? "🎀 You're Just A Baby Girl" : '⚡ يا حبيب أخوك • شبابي'}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-sm font-medium mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
-                {isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات ⚡'}
+              <p className="text-[11px] sm:text-sm font-medium mt-0.5 leading-snug whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+                <span className="sm:hidden">تربية بني سويف • تانية رياضيات</span>
+                <span className="hidden sm:inline">{isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}</span>
               </p>
             </div>
           </div>
