@@ -77,27 +77,27 @@ export const THEME_PALETTES = {
     '--card-shadow-hover': '0 12px 28px -4px rgba(196, 109, 130, 0.18), 0 2px 6px -1px rgba(0, 0, 0, 0.05)',
   },
   'girls-dark': {
-    '--bg-page': '#150F16',
-    '--bg-surface': '#211422',
-    '--bg-surface-elevated': '#2E1B2F',
-    '--bg-surface-translucent': 'rgba(33, 20, 34, 0.92)',
-    '--text-primary': '#FCEEF2',
-    '--text-secondary': '#E8D0D8',
-    '--text-muted': '#B38E9B',
-    '--border-subtle': '#3E233B',
-    '--border-prominent': '#5A3356',
-    '--border-interactive': '#E5839C',
-    '--accent-primary': '#E5839C',
-    '--accent-primary-hover': '#F0A1B4',
-    '--accent-cyan': '#F7B299',
+    '--bg-page': '#0D0811',
+    '--bg-surface': '#1A0F1E',
+    '--bg-surface-elevated': '#28162F',
+    '--bg-surface-translucent': 'rgba(26, 15, 30, 0.94)',
+    '--text-primary': '#FFF1F5',
+    '--text-secondary': '#EED2DC',
+    '--text-muted': '#BA9AA8',
+    '--border-subtle': 'rgba(244, 114, 182, 0.18)',
+    '--border-prominent': 'rgba(244, 114, 182, 0.38)',
+    '--border-interactive': '#FF6584',
+    '--accent-primary': '#FF6584',
+    '--accent-primary-hover': '#FF87A2',
+    '--accent-cyan': '#38BDF8',
     '--accent-emerald': '#34D399',
     '--accent-amber': '#FBBF24',
     '--accent-rose': '#FB7185',
-    '--math-formula-color': '#FDE2E8',
-    '--math-block-bg': '#2A192A',
-    '--math-block-border': '#4E2A49',
-    '--card-shadow': '0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.06)',
-    '--card-shadow-hover': '0 20px 48px -10px rgba(229, 131, 156, 0.2), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12)',
+    '--math-formula-color': '#FFE4EC',
+    '--math-block-bg': '#221227',
+    '--math-block-border': '#4E234B',
+    '--card-shadow': '0 16px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 1px 0 rgba(255, 255, 255, 0.08)',
+    '--card-shadow-hover': '0 20px 48px -10px rgba(255, 101, 132, 0.3), 0 0 25px rgba(255, 101, 132, 0.18)',
   },
 };
 
@@ -213,7 +213,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
             color: !isGirls ? (isDark ? '#0B0F14' : '#FFFFFF') : undefined,
           }}
         >
-          <span>👨‍🎓</span>
+          <span>⚡</span>
           <span>شبابي</span>
         </button>
 
@@ -227,11 +227,11 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
           }`}
           style={{
-            backgroundColor: isGirls ? (isDark ? '#E5839C' : '#C46D82') : 'transparent',
-            color: isGirls ? (isDark ? '#150F16' : '#FFFFFF') : undefined,
+            backgroundColor: isGirls ? (isDark ? '#FF6584' : '#C46D82') : 'transparent',
+            color: isGirls ? (isDark ? '#0D0811' : '#FFFFFF') : undefined,
           }}
         >
-          <span>👩‍🎓</span>
+          <span>🎀</span>
           <span>بناتي</span>
         </button>
       </div>

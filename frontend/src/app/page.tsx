@@ -138,6 +138,101 @@ export const CANONICAL_COURSES: CanonicalCourse[] = [
   },
 ];
 
+export interface SubjectStyleConfig {
+  girlsIcon: string;
+  badgeTag: string;
+  darkBadge: string;
+  lightBadge: string;
+  glowColor: string;
+}
+
+export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
+  'هندسة تفاضلية': {
+    girlsIcon: '🎀 📐',
+    badgeTag: 'منحنيات وفضاء 🎀',
+    darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
+    lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
+    glowColor: '#FB7185',
+  },
+  'مقدمة في نظرية العدد والمنطق': {
+    girlsIcon: '🌸 🔢',
+    badgeTag: 'أعداد ومنطق 🌸',
+    darkBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-950/60',
+    lightBadge: 'bg-amber-100 text-amber-800 border-amber-200',
+    glowColor: '#F59E0B',
+  },
+  'معادلات تفاضلية': {
+    girlsIcon: '✨ ∫',
+    badgeTag: 'معادلات وتفاضل ✨',
+    darkBadge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40 shadow-sm shadow-fuchsia-950/60',
+    lightBadge: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
+    glowColor: '#D946EF',
+  },
+  'ديناميكا (٢)': {
+    girlsIcon: '🍓 🚀',
+    badgeTag: 'حركة وطاقة 🍓',
+    darkBadge: 'bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-sm shadow-pink-950/60',
+    lightBadge: 'bg-pink-100 text-pink-700 border-pink-200',
+    glowColor: '#F43F5E',
+  },
+  'استاتيكا (٢)': {
+    girlsIcon: '🌷 ⚖️',
+    badgeTag: 'اتزان وقوى 🌷',
+    darkBadge: 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-950/60',
+    lightBadge: 'bg-purple-100 text-purple-800 border-purple-200',
+    glowColor: '#A855F7',
+  },
+  'كهربية ومغناطيسية وتيار متردد': {
+    girlsIcon: '💖 ⚡',
+    badgeTag: 'دوائر وتيار 💖',
+    darkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
+    lightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    glowColor: '#06B6D4',
+  },
+  'عملي فيزياء': {
+    girlsIcon: '🪞 🔬',
+    badgeTag: 'معمل وتجارب 🪞',
+    darkBadge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-950/60',
+    lightBadge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    glowColor: '#10B981',
+  },
+  'التعليم وريادة الأعمال': {
+    girlsIcon: '🧸 💼',
+    badgeTag: 'بيزنس ومشاريع 🧸',
+    darkBadge: 'bg-orange-500/20 text-orange-300 border-orange-500/40 shadow-sm shadow-orange-950/60',
+    lightBadge: 'bg-orange-100 text-orange-800 border-orange-200',
+    glowColor: '#F97316',
+  },
+  'تدريس مصغر': {
+    girlsIcon: '🍰 🎓',
+    badgeTag: 'شرح ومهارات 🍰',
+    darkBadge: 'bg-rose-400/20 text-rose-300 border-rose-400/40 shadow-sm shadow-rose-950/60',
+    lightBadge: 'bg-rose-50 text-rose-600 border-rose-200',
+    glowColor: '#EC4899',
+  },
+  'تكنولوجيا التعليم': {
+    girlsIcon: '🌸 💻',
+    badgeTag: 'ديجيتال وتطوير 🌸',
+    darkBadge: 'bg-violet-500/20 text-violet-300 border-violet-500/40 shadow-sm shadow-violet-950/60',
+    lightBadge: 'bg-violet-100 text-violet-800 border-violet-200',
+    glowColor: '#6366F1',
+  },
+  'إدارة المعرفة': {
+    girlsIcon: '☕ 📚',
+    badgeTag: 'تنظيم ونوتس ☕',
+    darkBadge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm shadow-yellow-950/60',
+    lightBadge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    glowColor: '#EAB308',
+  },
+  'فلسفة وتاريخ الرياضيات': {
+    girlsIcon: '✨ 🏛️',
+    badgeTag: 'علماء وتاريخ ✨',
+    darkBadge: 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-sm shadow-teal-950/60',
+    lightBadge: 'bg-teal-100 text-teal-800 border-teal-200',
+    glowColor: '#14B8A6',
+  },
+};
+
 interface LectureAsset {
   id: number;
   asset_type: string;
@@ -181,6 +276,30 @@ interface Flashcard {
 }
 
 export default function Home() {
+  const [currentPersona, setCurrentPersona] = useState<'boys' | 'girls'>('boys');
+  const [currentMode, setCurrentMode] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    try {
+      const p = (localStorage.getItem('bsu_portal_persona') as 'boys' | 'girls') || 'boys';
+      const m = (localStorage.getItem('bsu_portal_mode') as 'light' | 'dark') || 
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      setCurrentPersona(p);
+      setCurrentMode(m);
+    } catch {}
+
+    const handleThemeChange = (e: any) => {
+      if (e.detail?.persona) setCurrentPersona(e.detail.persona);
+      if (e.detail?.mode) setCurrentMode(e.detail.mode);
+    };
+
+    window.addEventListener('bsu_theme_changed', handleThemeChange);
+    return () => window.removeEventListener('bsu_theme_changed', handleThemeChange);
+  }, []);
+
+  const isGirls = currentPersona === 'girls';
+  const isDark = currentMode === 'dark';
+
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [activeSubjectId, setActiveSubjectId] = useState<number | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<string>('الكل');
@@ -489,31 +608,39 @@ export default function Home() {
           <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
             <div
               style={{
-                backgroundColor: 'var(--bg-surface-elevated)',
-                borderColor: 'var(--border-prominent)',
+                backgroundColor: isGirls 
+                  ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC') 
+                  : 'var(--bg-surface-elevated)',
+                borderColor: isGirls 
+                  ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5') 
+                  : 'var(--border-prominent)',
               }}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl border flex items-center justify-center shadow-sm shrink-0"
             >
-              <GraduationCap className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: 'var(--accent-primary)' }} />
+              {isGirls ? (
+                <span className="text-xl sm:text-2xl">🎀</span>
+              ) : (
+                <GraduationCap className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: 'var(--accent-primary)' }} />
+              )}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="font-extrabold text-sm sm:text-xl tracking-tight truncate" style={{ color: 'var(--text-primary)' }}>
-                  {content.header.siteTitle}
+                  {isGirls ? 'بوابة الرياضيات الذكية • نوتس & روقان 🎀' : content.header.siteTitle}
                 </h1>
                 <span
                   style={{
-                    backgroundColor: 'var(--bg-surface-elevated)',
-                    borderColor: 'var(--border-prominent)',
-                    color: 'var(--accent-primary)',
+                    backgroundColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.15)' : '#FFF0F3') : 'var(--bg-surface-elevated)',
+                    borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : 'var(--border-prominent)',
+                    color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : 'var(--accent-primary)',
                   }}
                   className="hidden md:inline-block px-2.5 py-0.5 text-[11px] font-bold rounded-full border shrink-0"
                 >
-                  {content.header.university}
+                  {isGirls ? '🎀 I AM JUST A GIRL' : content.header.university}
                 </span>
               </div>
               <p className="text-[11px] sm:text-sm font-medium mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
-                {content.header.faculty} • {content.header.major}
+                {isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : `${content.header.faculty} • ${content.header.major}`}
               </p>
             </div>
           </div>
@@ -533,28 +660,41 @@ export default function Home() {
           <div
             style={{
               backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-subtle)',
+              borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : 'var(--border-subtle)',
               color: 'var(--accent-primary)',
               boxShadow: 'var(--card-shadow)',
             }}
             className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-sm font-bold shadow-sm"
           >
-            <BookMarked className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>{content.hero.badge}</span>
+            {isGirls ? (
+              <>
+                <span className="text-sm">🎀</span>
+                <span>مساحتك الرايقة للمذاكرة والروقان • I AM JUST A GIRL ✨</span>
+              </>
+            ) : (
+              <>
+                <BookMarked className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>{content.hero.badge}</span>
+              </>
+            )}
           </div>
 
           <h2
             className="text-2xl sm:text-5xl font-black tracking-tight leading-snug"
             style={{ color: 'var(--text-primary)' }}
           >
-            {content.hero.title}
+            {isGirls
+              ? 'محاضرات الرياضة مشروحة بروقان.. كويزات ونوتس كيوت تظبطلك المذاكرة 🌸'
+              : content.hero.title}
           </h2>
 
           <p
             className="text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed"
             style={{ color: 'var(--text-secondary)' }}
           >
-            {content.hero.description}
+            {isGirls
+              ? 'شرح مبسط وهادي يفهمك كل مسألة خطوة بخطوة، مع كويزات تفاعلية، وكروت فلاش كاردز ونوتس تلملك المنهج في ثواني بكل هدوء وتركيز 🎀✨'
+              : content.hero.description}
           </p>
 
           <div className="max-w-md mx-auto relative pt-1 sm:pt-2">
@@ -562,13 +702,13 @@ export default function Home() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={content.hero.searchPlaceholder}
+              placeholder={isGirls ? 'ابحثي عن أي مادة أو دكتور... 🌸 (مثلاً: د/ سيد، هندسة تفاضلية، د/ مروة...)' : content.hero.searchPlaceholder}
               style={{
                 backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-prominent)',
+                borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F2CBD5') : 'var(--border-prominent)',
                 color: 'var(--text-primary)',
               }}
-              className="w-full pr-11 pl-4 py-3 sm:py-4 rounded-2xl text-sm sm:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400"
+              className="w-full pr-11 pl-4 py-3 sm:py-4 rounded-2xl text-sm sm:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all placeholder:text-slate-400"
             />
             <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute right-4 top-[20px] sm:top-[26px] pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           </div>
@@ -583,11 +723,11 @@ export default function Home() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
-                <BookOpen className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
-                <span>{content.subjectsSection.title} {content.subjectsSection.totalCountFormat.replace('{count}', filteredSubjects.length.toString())}</span>
+                {isGirls ? <span className="text-2xl">🌸</span> : <BookOpen className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />}
+                <span>{isGirls ? 'مواد الترم الأول' : content.subjectsSection.title} ({filteredSubjects.length} مواد معتمدة)</span>
               </h3>
               <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
-                {content.subjectsSection.subtitle}
+                {isGirls ? 'اختاري المادة واستمتعي بالمحاضرات والشرح والزتونة 🎀' : content.subjectsSection.subtitle}
               </p>
             </div>
           </div>
@@ -595,29 +735,65 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
             {filteredSubjects.map((sub) => {
               const isActive = sub.id === activeSubjectId;
+              const style = SUBJECT_THEME_STYLES[sub.name] || {
+                girlsIcon: `🌸 ${sub.icon || '📚'}`,
+                badgeTag: 'مقرر دراسي 🌸',
+                darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
+                lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
+                glowColor: '#FB7185',
+              };
+
               return (
                 <button
                   key={sub.id}
                   onClick={() => setActiveSubjectId(sub.id)}
                   style={{
-                    backgroundColor: isActive ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
-                    borderColor: isActive ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                    boxShadow: 'var(--card-shadow)',
+                    backgroundColor: isActive 
+                      ? 'var(--bg-surface-elevated)' 
+                      : 'var(--bg-surface)',
+                    borderColor: isActive 
+                      ? (isGirls ? style.glowColor : 'var(--accent-primary)') 
+                      : 'var(--border-subtle)',
+                    boxShadow: isActive 
+                      ? (isGirls && isDark ? `0 0 25px ${style.glowColor}33, var(--card-shadow-hover)` : 'var(--card-shadow-hover)')
+                      : 'var(--card-shadow)',
                   }}
-                  className={`p-4 sm:p-5 rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer ${
-                    isActive ? 'ring-2 ring-blue-500/30' : 'hover:border-blue-400 hover:scale-[1.01]'
+                  className={`relative p-4 sm:p-5 rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer group ${
+                    isActive 
+                      ? 'ring-2 scale-[1.02]' 
+                      : 'hover:scale-[1.01]'
                   }`}
                 >
+                  {/* Girls cute active sticker tag */}
+                  {isActive && isGirls && (
+                    <div className="absolute -top-2.5 right-3 z-10">
+                      <span
+                        className="text-[10px] font-extrabold px-2 py-0.5 rounded-full border shadow-sm flex items-center gap-1"
+                        style={{
+                          backgroundColor: isDark ? '#28162F' : '#FFF0F3',
+                          borderColor: style.glowColor,
+                          color: style.glowColor,
+                        }}
+                      >
+                        🎀 المختارة
+                      </span>
+                    </div>
+                  )}
+
                   <div>
                     <div
-                      style={{
+                      className={`w-11 h-11 rounded-2xl border flex items-center justify-center mb-3 font-bold text-lg shadow-sm transition-transform duration-200 group-hover:scale-105 ${
+                        isGirls
+                          ? isDark ? style.darkBadge : style.lightBadge
+                          : 'border-slate-300 dark:border-slate-700'
+                      }`}
+                      style={!isGirls ? {
                         backgroundColor: 'var(--bg-surface-elevated)',
                         borderColor: 'var(--border-prominent)',
                         color: 'var(--accent-primary)',
-                      }}
-                      className="w-10 h-10 rounded-xl border flex items-center justify-center mb-3 font-bold text-lg shadow-sm"
+                      } : undefined}
                     >
-                      {sub.icon || sub.name.slice(0, 2)}
+                      {isGirls ? style.girlsIcon : (sub.icon || sub.name.slice(0, 2))}
                     </div>
                     <h4 className="font-bold text-sm sm:text-base line-clamp-2 leading-snug" style={{ color: 'var(--text-primary)' }}>
                       {sub.name}
@@ -626,21 +802,30 @@ export default function Home() {
                       <span
                         className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md mt-1.5 truncate max-w-full"
                         style={{
-                          backgroundColor: 'var(--bg-surface-elevated)',
-                          color: 'var(--accent-primary)',
+                          backgroundColor: isGirls 
+                            ? (isDark ? 'rgba(255, 101, 132, 0.12)' : '#FFF0F3') 
+                            : 'var(--bg-surface-elevated)',
+                          color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : 'var(--accent-primary)',
+                          borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.25)' : '#F4D7DE') : undefined,
+                          borderWidth: isGirls ? '1px' : '0px',
                         }}
                       >
-                        {sub.canonicalDoctor.includes('مروة') || sub.canonicalDoctor.includes('ايه') || sub.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {sub.canonicalDoctor}
+                        {sub.canonicalDoctor.includes('مروة') || sub.canonicalDoctor.includes('ايه') || sub.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {sub.canonicalDoctor} {isGirls ? '🌸' : ''}
                       </span>
                     )}
                   </div>
                   <div className="mt-3 flex items-center justify-between text-xs" style={{ color: 'var(--text-muted)' }}>
-                    <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>
-                      {sub.lecture_count > 0 
-                        ? content.subjectsSection.lectureCountFormat.replace('{count}', sub.lecture_count.toString())
-                        : 'مقرر دراسي'}
+                    <span 
+                      className="font-semibold" 
+                      style={{ color: isGirls ? style.glowColor : 'var(--accent-primary)' }}
+                    >
+                      {isGirls 
+                        ? style.badgeTag 
+                        : (sub.lecture_count > 0 
+                            ? content.subjectsSection.lectureCountFormat.replace('{count}', sub.lecture_count.toString())
+                            : 'مقرر دراسي')}
                     </span>
-                    <ChevronLeft className="w-4 h-4 opacity-70" />
+                    <ChevronLeft className="w-4 h-4 opacity-70 transition-transform group-hover:-translate-x-1" />
                   </div>
                 </button>
               );
@@ -664,39 +849,48 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <div
                 style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderColor: 'var(--border-prominent)',
-                  color: 'var(--accent-primary)',
+                  backgroundColor: isGirls 
+                    ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC')
+                    : 'var(--bg-surface-elevated)',
+                  borderColor: isGirls 
+                    ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5')
+                    : 'var(--border-prominent)',
+                  color: isGirls ? (isDark ? '#FF87A2' : '#C46D82') : 'var(--accent-primary)',
                 }}
                 className="w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm shrink-0"
               >
-                {activeSubject?.icon || '📐'}
+                {isGirls 
+                  ? (SUBJECT_THEME_STYLES[activeSubject?.name || '']?.girlsIcon || '🎀') 
+                  : (activeSubject?.icon || '📐')}
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--accent-primary)' }}>
-                    {content.lecturesSection.sectionBadge}
+                    {isGirls ? '🌸 المادة اللي اخترتيها يا شطورة' : content.lecturesSection.sectionBadge}
                   </span>
                   {activeSubject?.canonicalDoctor && (
                     <span
                       className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border"
                       style={{
-                        backgroundColor: 'var(--bg-surface-elevated)',
-                        borderColor: 'var(--border-prominent)',
-                        color: 'var(--accent-primary)',
+                        backgroundColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.15)' : '#FFF0F3') : 'var(--bg-surface-elevated)',
+                        borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : 'var(--border-prominent)',
+                        color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : 'var(--accent-primary)',
                       }}
                     >
-                      {activeSubject.canonicalDoctor.includes('مروة') || activeSubject.canonicalDoctor.includes('ايه') || activeSubject.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {activeSubject.canonicalDoctor}
+                      {activeSubject.canonicalDoctor.includes('مروة') || activeSubject.canonicalDoctor.includes('ايه') || activeSubject.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {activeSubject.canonicalDoctor} {isGirls ? '🌸' : ''}
                     </span>
                   )}
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-black mt-1" style={{ color: 'var(--text-primary)' }}>
-                  {activeSubject?.name || content.lecturesSection.defaultPrompt}
+                <h3 className="text-2xl sm:text-3xl font-black mt-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                  <span>{activeSubject?.name || content.lecturesSection.defaultPrompt}</span>
+                  {isGirls && <span className="text-xl">✨</span>}
                 </h3>
               </div>
             </div>
-            <div className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>
-              {content.lecturesSection.availableFormat.replace('{count}', displayedLectures.length.toString())}
+            <div className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+              {isGirls ? '☕ متاح' : ''}
+              <span>{displayedLectures.length} محاضرات</span>
+              {isGirls ? 'بروقان' : ''}
             </div>
           </div>
 
@@ -768,13 +962,17 @@ export default function Home() {
                         <div className="flex items-start gap-4">
                           <div
                             style={{
-                              backgroundColor: isReady ? 'var(--accent-primary)' : 'var(--bg-surface)',
-                              color: isReady ? '#ffffff' : 'var(--text-muted)',
-                              borderColor: 'var(--border-subtle)',
+                              backgroundColor: isReady 
+                                ? (isGirls ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC') : 'var(--accent-primary)')
+                                : 'var(--bg-surface)',
+                              color: isReady 
+                                ? (isGirls ? (isDark ? '#FF87A2' : '#C46D82') : '#ffffff')
+                                : 'var(--text-muted)',
+                              borderColor: isGirls && isReady ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5') : 'var(--border-subtle)',
                             }}
                             className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shrink-0 border shadow-md"
                           >
-                            {lec.lecture_num}
+                            {isGirls ? `🌸 ${lec.lecture_num}` : lec.lecture_num}
                           </div>
                           <div>
                             {lec.doctor && (
@@ -787,17 +985,17 @@ export default function Home() {
                                     color: lec.doctor.includes('مروة') ? '#ec4899' : '#3b82f6',
                                   }}
                                 >
-                                  {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor}
+                                  {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor} {isGirls ? '🌸' : ''}
                                 </span>
                               </div>
                             )}
-                            <h4 className="font-extrabold text-lg sm:text-xl transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400" style={{ color: 'var(--text-primary)' }}>
+                            <h4 className="font-extrabold text-lg sm:text-xl transition-colors group-hover:text-pink-500 dark:group-hover:text-pink-400" style={{ color: 'var(--text-primary)' }}>
                               {lec.title}
                             </h4>
                             <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
                               {isReady 
-                                ? (lec.stage_info || content.lecturesSection.completedStage) 
-                                : content.lecturesSection.processingStage}
+                                ? (isGirls ? 'المحاضرة جاهزة ومية مية للمذاكرة 🎀✨' : (lec.stage_info || content.lecturesSection.completedStage)) 
+                                : (isGirls ? 'بنجهزهالك يا شطورة بروقان ⏳' : content.lecturesSection.processingStage)}
                             </p>
                           </div>
                         </div>
@@ -809,10 +1007,19 @@ export default function Home() {
                         style={{ borderColor: 'var(--border-subtle)' }}
                       >
                         <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                          <Headphones className="w-4 h-4 text-blue-500" />
-                          <Video className="w-4 h-4 text-purple-500" />
-                          <HelpCircle className="w-4 h-4 text-cyan-500" />
-                          <FileText className="w-4 h-4 text-emerald-500" />
+                          <span className="flex items-center gap-1 text-pink-400">
+                            <Headphones className="w-4 h-4" />
+                            {isGirls ? 'بودكاست 🌸' : ''}
+                          </span>
+                          <span className="flex items-center gap-1 text-purple-400">
+                            <Video className="w-4 h-4" />
+                          </span>
+                          <span className="flex items-center gap-1 text-amber-400">
+                            <HelpCircle className="w-4 h-4" />
+                          </span>
+                          <span className="flex items-center gap-1 text-emerald-400">
+                            <FileText className="w-4 h-4" />
+                          </span>
                           <span className="mr-1">{content.lecturesSection.resourcesFormat.replace('{count}', lec.assets_count.toString())}</span>
                         </div>
 
@@ -820,15 +1027,15 @@ export default function Home() {
                           disabled={!isReady}
                           style={{
                             backgroundColor: isReady ? 'var(--accent-primary)' : 'var(--bg-surface)',
-                            color: isReady ? '#ffffff' : 'var(--text-muted)',
+                            color: isReady ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-muted)',
                             borderColor: 'var(--border-subtle)',
                           }}
                           className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 border shadow-sm ${
-                            isReady ? 'hover:opacity-95 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+                            isReady ? 'hover:opacity-95 cursor-pointer shadow-pink-500/20' : 'opacity-70 cursor-not-allowed'
                           }`}
                         >
                           {isReady ? <Play className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                          <span>{isReady ? content.lecturesSection.openLectureButton : content.lecturesSection.processingButton}</span>
+                          <span>{isReady ? (isGirls ? 'افتحي المحاضرة 🎀' : content.lecturesSection.openLectureButton) : (isGirls ? 'بتتجهز يا شطورة ⏳' : content.lecturesSection.processingButton)}</span>
                         </button>
                       </div>
                     </div>
@@ -909,60 +1116,60 @@ export default function Home() {
                 onClick={() => setActiveTab('audio')}
                 style={{
                   backgroundColor: activeTab === 'audio' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'audio' ? '#ffffff' : 'var(--text-secondary)',
+                  color: activeTab === 'audio' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Headphones className="w-4 h-4" />
-                <span>{content.modal.tabs.audio}</span>
+                <span>{isGirls ? '🌸 بودكاست روقان' : content.modal.tabs.audio}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('video')}
                 style={{
                   backgroundColor: activeTab === 'video' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'video' ? '#ffffff' : 'var(--text-secondary)',
+                  color: activeTab === 'video' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Video className="w-4 h-4" />
-                <span>{content.modal.tabs.video}</span>
+                <span>{isGirls ? '🎬 فيديو الشرح' : content.modal.tabs.video}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('quiz')}
                 style={{
                   backgroundColor: activeTab === 'quiz' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'quiz' ? '#ffffff' : 'var(--text-secondary)',
+                  color: activeTab === 'quiz' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <HelpCircle className="w-4 h-4" />
-                <span>{content.modal.tabs.quiz} ({quizQuestions.length})</span>
+                <span>{isGirls ? '🧁 اختبري شطارتك' : content.modal.tabs.quiz} ({quizQuestions.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('guide')}
                 style={{
                   backgroundColor: activeTab === 'guide' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'guide' ? '#ffffff' : 'var(--text-secondary)',
+                  color: activeTab === 'guide' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <FileText className="w-4 h-4" />
-                <span>{content.modal.tabs.guide}</span>
+                <span>{isGirls ? '🎀 النوتس والزتونة' : content.modal.tabs.guide}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('flashcards')}
                 style={{
                   backgroundColor: activeTab === 'flashcards' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'flashcards' ? '#ffffff' : 'var(--text-secondary)',
+                  color: activeTab === 'flashcards' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Layers className="w-4 h-4" />
-                <span>{content.modal.tabs.flashcards} ({flashcards.length})</span>
+                <span>{isGirls ? '🪞 فلاش كاردز' : content.modal.tabs.flashcards} ({flashcards.length})</span>
               </button>
             </div>
 
@@ -1251,17 +1458,19 @@ export default function Home() {
                                 >
                                   {content.quizTab.questionHeaderFormat.replace('{number}', q.number.toString()).replace('{total}', quizQuestions.length.toString())}
                                 </span>
-                                {isAnswered && (
-                                  <span
-                                    style={{
-                                      backgroundColor: selectedOpt === q.correctIndex ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-                                      color: selectedOpt === q.correctIndex ? 'var(--accent-emerald)' : 'var(--accent-rose)',
-                                    }}
-                                    className="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold"
-                                  >
-                                    {selectedOpt === q.correctIndex ? content.quizTab.correctFeedback : content.quizTab.wrongFeedback}
-                                  </span>
-                                )}
+                                  {isAnswered && (
+                                    <span
+                                      style={{
+                                        backgroundColor: selectedOpt === q.correctIndex ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
+                                        color: selectedOpt === q.correctIndex ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+                                      }}
+                                      className="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold"
+                                    >
+                                      {selectedOpt === q.correctIndex 
+                                        ? (isGirls ? 'شطورة يا بطلة! إجابة صحيحة 🎀✨' : content.quizTab.correctFeedback) 
+                                        : (isGirls ? 'حاولي تاني يا شطورة، كل غلطة بتعلمنا 🌸' : content.quizTab.wrongFeedback)}
+                                    </span>
+                                  )}
                               </div>
 
                               {q.hint && (
