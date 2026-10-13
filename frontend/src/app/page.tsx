@@ -144,6 +144,11 @@ export interface SubjectStyleConfig {
   darkBadge: string;
   lightBadge: string;
   glowColor: string;
+  boysCharm: string;
+  boysBadgeTag: string;
+  boysDarkBadge: string;
+  boysLightBadge: string;
+  boysGlowColor: string;
 }
 
 export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
@@ -153,6 +158,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
     lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
     glowColor: '#FB7185',
+    boysCharm: '⚡',
+    boysBadgeTag: 'منحنيات وفضاء ⚡',
+    boysDarkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
+    boysLightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    boysGlowColor: '#06B6D4',
   },
   'مقدمة في نظرية العدد والمنطق': {
     charm: '🌸',
@@ -160,6 +170,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-950/60',
     lightBadge: 'bg-amber-100 text-amber-800 border-amber-200',
     glowColor: '#F59E0B',
+    boysCharm: '🧠',
+    boysBadgeTag: 'منطق وبرهان 🧠',
+    boysDarkBadge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 shadow-sm shadow-indigo-950/60',
+    boysLightBadge: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    boysGlowColor: '#6366F1',
   },
   'معادلات تفاضلية': {
     charm: '✨',
@@ -167,6 +182,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40 shadow-sm shadow-fuchsia-950/60',
     lightBadge: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
     glowColor: '#D946EF',
+    boysCharm: '🔥',
+    boysBadgeTag: 'تكاملات حيتان 🔥',
+    boysDarkBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-950/60',
+    boysLightBadge: 'bg-amber-100 text-amber-800 border-amber-200',
+    boysGlowColor: '#F59E0B',
   },
   'ديناميكا (٢)': {
     charm: '🍓',
@@ -174,6 +194,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-sm shadow-pink-950/60',
     lightBadge: 'bg-pink-100 text-pink-700 border-pink-200',
     glowColor: '#F43F5E',
+    boysCharm: '🚀',
+    boysBadgeTag: 'سرعة وتسارع 🚀',
+    boysDarkBadge: 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-sm shadow-blue-950/60',
+    boysLightBadge: 'bg-blue-100 text-blue-800 border-blue-200',
+    boysGlowColor: '#3B82F6',
   },
   'استاتيكا (٢)': {
     charm: '🌷',
@@ -181,6 +206,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-950/60',
     lightBadge: 'bg-purple-100 text-purple-800 border-purple-200',
     glowColor: '#A855F7',
+    boysCharm: '⚙️',
+    boysBadgeTag: 'اتزان واحتكاك ⚙️',
+    boysDarkBadge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-950/60',
+    boysLightBadge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    boysGlowColor: '#10B981',
   },
   'كهربية ومغناطيسية وتيار متردد': {
     charm: '💖',
@@ -188,6 +218,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
     lightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
     glowColor: '#06B6D4',
+    boysCharm: '⚡',
+    boysBadgeTag: 'تيار ومجالات ⚡',
+    boysDarkBadge: 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-sm shadow-teal-950/60',
+    boysLightBadge: 'bg-teal-100 text-teal-800 border-teal-200',
+    boysGlowColor: '#14B8A6',
   },
   'عملي فيزياء': {
     charm: '🪞',
@@ -195,6 +230,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-950/60',
     lightBadge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     glowColor: '#10B981',
+    boysCharm: '🔬',
+    boysBadgeTag: 'معمل وتجارب 🔬',
+    boysDarkBadge: 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm shadow-sky-950/60',
+    boysLightBadge: 'bg-sky-100 text-sky-800 border-sky-200',
+    boysGlowColor: '#0EA5E9',
   },
   'التعليم وريادة الأعمال': {
     charm: '🧸',
@@ -202,6 +242,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-orange-500/20 text-orange-300 border-orange-500/40 shadow-sm shadow-orange-950/60',
     lightBadge: 'bg-orange-100 text-orange-800 border-orange-200',
     glowColor: '#F97316',
+    boysCharm: '🏆',
+    boysBadgeTag: 'بيزنس وستارتب 🏆',
+    boysDarkBadge: 'bg-orange-500/20 text-orange-300 border-orange-500/40 shadow-sm shadow-orange-950/60',
+    boysLightBadge: 'bg-orange-100 text-orange-800 border-orange-200',
+    boysGlowColor: '#F97316',
   },
   'تدريس مصغر': {
     charm: '🍰',
@@ -209,6 +254,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-rose-400/20 text-rose-300 border-rose-400/40 shadow-sm shadow-rose-950/60',
     lightBadge: 'bg-rose-50 text-rose-600 border-rose-200',
     glowColor: '#EC4899',
+    boysCharm: '🎯',
+    boysBadgeTag: 'إلقاء وتدريب 🎯',
+    boysDarkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
+    boysLightBadge: 'bg-rose-100 text-rose-800 border-rose-200',
+    boysGlowColor: '#F43F5E',
   },
   'تكنولوجيا التعليم': {
     charm: '🌸',
@@ -216,6 +266,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-violet-500/20 text-violet-300 border-violet-500/40 shadow-sm shadow-violet-950/60',
     lightBadge: 'bg-violet-100 text-violet-800 border-violet-200',
     glowColor: '#6366F1',
+    boysCharm: '💻',
+    boysBadgeTag: 'ذكاء وتطوير 💻',
+    boysDarkBadge: 'bg-violet-500/20 text-violet-300 border-violet-500/40 shadow-sm shadow-violet-950/60',
+    boysLightBadge: 'bg-violet-100 text-violet-800 border-violet-200',
+    boysGlowColor: '#8B5CF6',
   },
   'إدارة المعرفة': {
     charm: '☕',
@@ -223,6 +278,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm shadow-yellow-950/60',
     lightBadge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     glowColor: '#EAB308',
+    boysCharm: '🧠',
+    boysBadgeTag: 'سيستم وتنظيم 🧠',
+    boysDarkBadge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm shadow-yellow-950/60',
+    boysLightBadge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    boysGlowColor: '#EAB308',
   },
   'فلسفة وتاريخ الرياضيات': {
     charm: '✨',
@@ -230,6 +290,11 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-sm shadow-teal-950/60',
     lightBadge: 'bg-teal-100 text-teal-800 border-teal-200',
     glowColor: '#14B8A6',
+    boysCharm: '🏛️',
+    boysBadgeTag: 'فلسفة وعلماء 🏛️',
+    boysDarkBadge: 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-950/60',
+    boysLightBadge: 'bg-purple-100 text-purple-800 border-purple-200',
+    boysGlowColor: '#A855F7',
   },
 };
 
@@ -610,37 +675,37 @@ export default function Home() {
               style={{
                 backgroundColor: isGirls 
                   ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC') 
-                  : 'var(--bg-surface-elevated)',
+                  : (isDark ? 'rgba(45, 212, 191, 0.15)' : '#E6F4F1'),
                 borderColor: isGirls 
                   ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5') 
-                  : 'var(--border-prominent)',
+                  : (isDark ? 'rgba(45, 212, 191, 0.35)' : '#B2DFDB'),
               }}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl border flex items-center justify-center shadow-sm shrink-0"
             >
               {isGirls ? (
                 <span className="text-xl sm:text-2xl">🎀</span>
               ) : (
-                <GraduationCap className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: 'var(--accent-primary)' }} />
+                <span className="text-xl sm:text-2xl">⚡</span>
               )}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="font-extrabold text-sm sm:text-xl tracking-tight truncate" style={{ color: 'var(--text-primary)' }}>
-                  {isGirls ? 'بوابة الرياضيات الذكية • نوتس & روقان 🎀' : content.header.siteTitle}
+                  {isGirls ? 'بوابة الرياضيات الذكية • نوتس & روقان 🎀' : 'بوابة الرياضيات والذكاء الاصطناعي • فورمة المنهج ⚡'}
                 </h1>
                 <span
                   style={{
-                    backgroundColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.15)' : '#FFF0F3') : 'var(--bg-surface-elevated)',
-                    borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : 'var(--border-prominent)',
-                    color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : 'var(--accent-primary)',
+                    backgroundColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.15)' : '#FFF0F3') : (isDark ? 'rgba(45, 212, 191, 0.15)' : '#E6F4F1'),
+                    borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : (isDark ? 'rgba(45, 212, 191, 0.35)' : '#B2DFDB'),
+                    color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : (isDark ? '#2DD4BF' : '#184E4E'),
                   }}
                   className="hidden md:inline-block px-2.5 py-0.5 text-[11px] font-bold rounded-full border shrink-0"
                 >
-                  {isGirls ? '🎀 I AM JUST A GIRL' : content.header.university}
+                  {isGirls ? '🎀 I AM JUST A GIRL' : '⚡ STEALTH TECH • شبابي'}
                 </span>
               </div>
               <p className="text-[11px] sm:text-sm font-medium mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
-                {isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : `${content.header.faculty} • ${content.header.major}`}
+                {isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات ⚡'}
               </p>
             </div>
           </div>
@@ -673,8 +738,8 @@ export default function Home() {
               </>
             ) : (
               <>
-                <BookMarked className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>{content.hero.badge}</span>
+                <span className="text-sm">⚡</span>
+                <span>سهرات المذاكرة والتركيز الهندسي • فورمة الشباب 🎯</span>
               </>
             )}
           </div>
@@ -685,7 +750,7 @@ export default function Home() {
           >
             {isGirls
               ? 'محاضرات الرياضة مشروحة بروقان.. كويزات ونوتس كيوت تظبطلك المذاكرة 🌸'
-              : content.hero.title}
+              : 'محاضرات الرياضة مشروحة باحتراف.. ريكوردات وفيديوهات وكويزات تفرم المنهج 🔥'}
           </h2>
 
           <p
@@ -694,7 +759,7 @@ export default function Home() {
           >
             {isGirls
               ? 'شرح مبسط وهادي يفهمك كل مسألة خطوة بخطوة، مع كويزات تفاعلية، وكروت فلاش كاردز ونوتس تلملك المنهج في ثواني بكل هدوء وتركيز 🎀✨'
-              : content.hero.description}
+              : 'شرح هندسي عميق يفهمك أصل القوانين خطوة بخطوة، مع كويزات تحدي وكروت مراجعة وزتونة تخلص معاك المادة في وقت قياسي ⚡🔥'}
           </p>
 
           <div className="max-w-md mx-auto relative pt-1 sm:pt-2">
@@ -702,7 +767,7 @@ export default function Home() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isGirls ? 'ابحثي عن أي مادة أو دكتور... 🌸 (مثلاً: د/ سيد، هندسة تفاضلية، د/ مروة...)' : content.hero.searchPlaceholder}
+              placeholder={isGirls ? 'ابحثي عن أي مادة أو دكتور... 🌸 (مثلاً: د/ سيد، هندسة تفاضلية، د/ مروة...)' : 'ابحث عن أي مادة أو دكتور يا وحش... ⚡ (مثلاً: د/ سيد، هندسة تفاضلية، د/ حسين...)'}
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F2CBD5') : 'var(--border-prominent)',
@@ -723,11 +788,11 @@ export default function Home() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
-                {isGirls ? <span className="text-2xl">🌸</span> : <BookOpen className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />}
-                <span>{isGirls ? 'مواد الترم الأول' : content.subjectsSection.title} ({filteredSubjects.length} مواد معتمدة)</span>
+                {isGirls ? <span className="text-2xl">🌸</span> : <span className="text-2xl">⚡</span>}
+                <span>{isGirls ? 'مواد الترم الأول' : 'مواد الترم الأول ⚡'} ({filteredSubjects.length} مواد معتمدة)</span>
               </h3>
               <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
-                {isGirls ? 'اختاري المادة واستمتعي بالمحاضرات والشرح والزتونة 🎀' : content.subjectsSection.subtitle}
+                {isGirls ? 'اختاري المادة واستمتعي بالمحاضرات والشرح والزتونة 🎀' : 'اختار المادة وادخل افرم المحاضرات والزتونة والكويزات 🔥'}
               </p>
             </div>
           </div>
@@ -735,13 +800,24 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
             {filteredSubjects.map((sub) => {
               const isActive = sub.id === activeSubjectId;
-              const style = SUBJECT_THEME_STYLES[sub.name] || {
+              const styleConfig = SUBJECT_THEME_STYLES[sub.name] || {
                 charm: '🌸',
                 badgeTag: 'مقرر دراسي 🌸',
                 darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
                 lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
                 glowColor: '#FB7185',
+                boysCharm: '⚡',
+                boysBadgeTag: 'مقرر دراسي ⚡',
+                boysDarkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
+                boysLightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+                boysGlowColor: '#06B6D4',
               };
+
+              const activeCharm = isGirls ? styleConfig.charm : styleConfig.boysCharm;
+              const activeBadgeTag = isGirls ? styleConfig.badgeTag : styleConfig.boysBadgeTag;
+              const activeDarkBadge = isGirls ? styleConfig.darkBadge : styleConfig.boysDarkBadge;
+              const activeLightBadge = isGirls ? styleConfig.lightBadge : styleConfig.boysLightBadge;
+              const activeGlowColor = isGirls ? styleConfig.glowColor : styleConfig.boysGlowColor;
 
               return (
                 <button
@@ -752,10 +828,10 @@ export default function Home() {
                       ? 'var(--bg-surface-elevated)' 
                       : 'var(--bg-surface)',
                     borderColor: isActive 
-                      ? (isGirls ? style.glowColor : 'var(--accent-primary)') 
+                      ? activeGlowColor 
                       : 'var(--border-subtle)',
                     boxShadow: isActive 
-                      ? (isGirls && isDark ? `0 0 25px ${style.glowColor}33, var(--card-shadow-hover)` : 'var(--card-shadow-hover)')
+                      ? (isDark ? `0 0 25px ${activeGlowColor}33, var(--card-shadow-hover)` : `0 0 20px ${activeGlowColor}22, var(--card-shadow-hover)`)
                       : 'var(--card-shadow)',
                   }}
                   className={`relative p-4 sm:p-5 rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer group ${
@@ -764,81 +840,65 @@ export default function Home() {
                       : 'hover:scale-[1.01]'
                   }`}
                 >
-                  {/* Girls cute active sticker tag */}
-                  {isActive && isGirls && (
+                  {/* Active sticker tag: Girls or Boys */}
+                  {isActive && (
                     <div className="absolute -top-2.5 right-3 z-10">
                       <span
-                        className="text-[10px] font-extrabold px-2 py-0.5 rounded-full border shadow-sm flex items-center gap-1"
+                        className="text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-sm flex items-center gap-1 tracking-wide"
                         style={{
-                          backgroundColor: isDark ? '#28162F' : '#FFF0F3',
-                          borderColor: style.glowColor,
-                          color: style.glowColor,
+                          backgroundColor: isDark ? (isGirls ? '#28162F' : '#0B132B') : (isGirls ? '#FFF0F3' : '#EFF6FF'),
+                          borderColor: activeGlowColor,
+                          color: activeGlowColor,
                         }}
                       >
-                        🎀 المختارة
+                        {isGirls ? '🎀 المختارة' : '⚡ المقرر النشط'}
                       </span>
                     </div>
                   )}
 
                   <div>
-                  <div className="relative w-12 h-12 mb-3">
-                    <div
-                      className={`w-12 h-12 rounded-2xl border flex items-center justify-center font-bold text-xl shadow-sm transition-transform duration-200 group-hover:scale-105 select-none leading-none ${
-                        isGirls
-                          ? isDark ? style.darkBadge : style.lightBadge
-                          : 'border-slate-300 dark:border-slate-700'
-                      }`}
-                      style={!isGirls ? {
-                        backgroundColor: 'var(--bg-surface-elevated)',
-                        borderColor: 'var(--border-prominent)',
-                        color: 'var(--accent-primary)',
-                      } : undefined}
-                    >
-                      <span className="flex items-center justify-center">{sub.icon || sub.name.slice(0, 2)}</span>
-                    </div>
+                    <div className="relative w-12 h-12 mb-3">
+                      <div
+                        className={`w-12 h-12 rounded-2xl border flex items-center justify-center font-bold text-xl shadow-sm transition-transform duration-200 group-hover:scale-105 select-none leading-none ${
+                          isDark ? activeDarkBadge : activeLightBadge
+                        }`}
+                      >
+                        <span className="flex items-center justify-center">{sub.icon || sub.name.slice(0, 2)}</span>
+                      </div>
 
-                    {/* Cute Girl Charm Sticker (pinned perfectly at top-right corner) */}
-                    {isGirls && (
+                      {/* Floating Charm Sticker (pinned perfectly at top-right corner) */}
                       <div
                         className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
                         style={{
-                          backgroundColor: isDark ? '#28162F' : '#FFFFFF',
-                          borderColor: isDark ? 'rgba(255, 101, 132, 0.5)' : '#F2CBD5',
+                          backgroundColor: isDark ? (isGirls ? '#28162F' : '#0B132B') : '#FFFFFF',
+                          borderColor: isDark ? `${activeGlowColor}80` : (isGirls ? '#F2CBD5' : '#CBD5E1'),
                         }}
                       >
-                        {style.charm}
+                        {activeCharm}
                       </div>
-                    )}
-                  </div>
+                    </div>
                     <h4 className="font-bold text-sm sm:text-base line-clamp-2 leading-snug" style={{ color: 'var(--text-primary)' }}>
                       {sub.name}
                     </h4>
                     {sub.canonicalDoctor && (
                       <span
-                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md mt-1.5 truncate max-w-full"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md mt-1.5 truncate max-w-full border"
                         style={{
-                          backgroundColor: isGirls 
-                            ? (isDark ? 'rgba(255, 101, 132, 0.12)' : '#FFF0F3') 
-                            : 'var(--bg-surface-elevated)',
-                          color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : 'var(--accent-primary)',
-                          borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.25)' : '#F4D7DE') : undefined,
-                          borderWidth: isGirls ? '1px' : '0px',
+                          backgroundColor: isDark ? `${activeGlowColor}18` : `${activeGlowColor}12`,
+                          color: activeGlowColor,
+                          borderColor: `${activeGlowColor}35`,
                         }}
                       >
-                        {sub.canonicalDoctor.includes('مروة') || sub.canonicalDoctor.includes('ايه') || sub.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {sub.canonicalDoctor} {isGirls ? '🌸' : ''}
+                        {sub.canonicalDoctor.includes('مروة') || sub.canonicalDoctor.includes('ايه') || sub.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {sub.canonicalDoctor} {isGirls ? '🌸' : '⚡'}
                       </span>
                     )}
                   </div>
                   <div className="mt-3 flex items-center justify-between text-xs" style={{ color: 'var(--text-muted)' }}>
                     <span 
                       className="font-semibold" 
-                      style={{ color: isGirls ? style.glowColor : 'var(--accent-primary)' }}
+                      style={{ color: activeGlowColor }}
                     >
-                      {isGirls 
-                        ? style.badgeTag 
-                        : (sub.lecture_count > 0 
-                            ? content.subjectsSection.lectureCountFormat.replace('{count}', sub.lecture_count.toString())
-                            : 'مقرر دراسي')}
+                      {activeBadgeTag}
                     </span>
                     <ChevronLeft className="w-4 h-4 opacity-70 transition-transform group-hover:-translate-x-1" />
                   </div>
@@ -849,227 +909,246 @@ export default function Home() {
         </section>
 
         {/* Active Subject Lectures */}
-        <section
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            borderColor: 'var(--border-subtle)',
-            boxShadow: 'var(--card-shadow)',
-          }}
-          className="p-6 sm:p-8 rounded-3xl border transition-colors"
-        >
-          <div
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b"
-            style={{ borderColor: 'var(--border-subtle)' }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative w-12 h-12 shrink-0">
-                <div
-                  style={{
-                    backgroundColor: isGirls 
-                      ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC')
-                      : 'var(--bg-surface-elevated)',
-                    borderColor: isGirls 
-                      ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5')
-                      : 'var(--border-prominent)',
-                    color: isGirls ? (isDark ? '#FF87A2' : '#C46D82') : 'var(--accent-primary)',
-                  }}
-                  className="w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm select-none leading-none"
-                >
-                  <span className="flex items-center justify-center">{activeSubject?.icon || '📐'}</span>
-                </div>
-                {isGirls && (
-                  <div
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
-                    style={{
-                      backgroundColor: isDark ? '#28162F' : '#FFFFFF',
-                      borderColor: isDark ? 'rgba(255, 101, 132, 0.5)' : '#F2CBD5',
-                    }}
-                  >
-                    {SUBJECT_THEME_STYLES[activeSubject?.name || '']?.charm || '🎀'}
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--accent-primary)' }}>
-                    {isGirls ? '🌸 المادة اللي اخترتيها يا شطورة' : content.lecturesSection.sectionBadge}
-                  </span>
-                  {activeSubject?.canonicalDoctor && (
-                    <span
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border"
-                      style={{
-                        backgroundColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.15)' : '#FFF0F3') : 'var(--bg-surface-elevated)',
-                        borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : 'var(--border-prominent)',
-                        color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : 'var(--accent-primary)',
-                      }}
-                    >
-                      {activeSubject.canonicalDoctor.includes('مروة') || activeSubject.canonicalDoctor.includes('ايه') || activeSubject.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {activeSubject.canonicalDoctor} {isGirls ? '🌸' : ''}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-black mt-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                  <span>{activeSubject?.name || content.lecturesSection.defaultPrompt}</span>
-                  {isGirls && <span className="text-xl">✨</span>}
-                </h3>
-              </div>
-            </div>
-            <div className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
-              {isGirls ? '☕ متاح' : ''}
-              <span>{displayedLectures.length} محاضرات</span>
-              {isGirls ? 'بروقان' : ''}
-            </div>
-          </div>
+        {(() => {
+          const activeSubjectConfig = SUBJECT_THEME_STYLES[activeSubject?.name || ''] || {
+            charm: '🎀',
+            badgeTag: 'مقرر دراسي 🌸',
+            darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
+            lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
+            glowColor: '#FB7185',
+            boysCharm: '⚡',
+            boysBadgeTag: 'مقرر دراسي ⚡',
+            boysDarkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
+            boysLightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+            boysGlowColor: '#06B6D4',
+          };
+          const activeSubjectCharm = isGirls ? activeSubjectConfig.charm : activeSubjectConfig.boysCharm;
+          const activeSubjectGlow = isGirls ? activeSubjectConfig.glowColor : activeSubjectConfig.boysGlowColor;
+          const activeSubjectDarkBadge = isGirls ? activeSubjectConfig.darkBadge : activeSubjectConfig.boysDarkBadge;
+          const activeSubjectLightBadge = isGirls ? activeSubjectConfig.lightBadge : activeSubjectConfig.boysLightBadge;
 
-          {/* Doctor / Professor Tracks Switcher - Only shown when subject has multiple doctors */}
-          {activeSubject?.doctors && activeSubject.doctors.length > 1 && (
-            <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
-              {activeSubject.doctors.map((doc) => {
-                const isSelected = selectedDoctor === doc;
-                const count = subjectLectures.filter(l => l.doctor === doc).length;
-                return (
-                  <button
-                    key={doc}
-                    type="button"
-                    onClick={() => setSelectedDoctor(doc)}
-                    className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shadow-sm"
-                    style={{
-                      backgroundColor: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
-                      borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                      color: isSelected ? '#ffffff' : 'var(--text-secondary)'
-                    }}
-                  >
-                    <span>{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
-                    <span>{doc}</span>
-                    <span className="opacity-70 text-xs font-mono">({count})</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {isLoadingLectures ? (
-            <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
+          return (
+            <section
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+                boxShadow: 'var(--card-shadow)',
+              }}
+              className="p-6 sm:p-8 rounded-3xl border transition-colors"
+            >
               <div
-                style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }}
-                className="w-10 h-10 border-3 rounded-full animate-spin mx-auto mb-3"
-              ></div>
-              <span className="text-base font-semibold">{content.lecturesSection.loading}</span>
-            </div>
-          ) : displayedLectures.length === 0 ? (
-            <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
-              <div
-                style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
-                className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b"
+                style={{ borderColor: 'var(--border-subtle)' }}
               >
-                <GraduationCap className="w-8 h-8 opacity-60" />
-              </div>
-              <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{content.lecturesSection.emptyTitle}</p>
-              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{content.lecturesSection.emptySubtitle}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {displayedLectures.map((lec) => {
-                  const isReady = lec.status === 'completed' && lec.assets_count > 0;
-                  return (
+                <div className="flex items-center gap-3">
+                  <div className="relative w-12 h-12 shrink-0">
                     <div
-                      key={lec.id}
-                      onClick={isReady ? () => openLecture(lec.id) : undefined}
-                      style={{
-                        backgroundColor: 'var(--bg-surface-elevated)',
-                        borderColor: isReady ? 'var(--border-subtle)' : 'var(--border-prominent)',
-                      }}
-                      className={`p-6 rounded-3xl border transition-all flex flex-col justify-between shadow-sm ${
-                        isReady 
-                          ? 'cursor-pointer group hover:border-blue-500 hover:shadow-md' 
-                          : 'opacity-85 select-none'
+                      className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm select-none leading-none ${
+                        isDark ? activeSubjectDarkBadge : activeSubjectLightBadge
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-4 mb-4">
-                        <div className="flex items-start gap-4">
-                          <div
-                            style={{
-                              backgroundColor: isReady 
-                                ? (isGirls ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC') : 'var(--accent-primary)')
-                                : 'var(--bg-surface)',
-                              color: isReady 
-                                ? (isGirls ? (isDark ? '#FF87A2' : '#C46D82') : '#ffffff')
-                                : 'var(--text-muted)',
-                              borderColor: isGirls && isReady ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5') : 'var(--border-subtle)',
-                            }}
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shrink-0 border shadow-md"
-                          >
-                            {isGirls ? `🌸 ${lec.lecture_num}` : lec.lecture_num}
-                          </div>
-                          <div>
-                            {lec.doctor && (
-                              <div className="mb-1.5">
-                                <span
-                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold border"
-                                  style={{
-                                    backgroundColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.12)' : 'rgba(59, 130, 246, 0.12)',
-                                    borderColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.3)' : 'rgba(59, 130, 246, 0.3)',
-                                    color: lec.doctor.includes('مروة') ? '#ec4899' : '#3b82f6',
-                                  }}
-                                >
-                                  {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor} {isGirls ? '🌸' : ''}
-                                </span>
-                              </div>
-                            )}
-                            <h4 className="font-extrabold text-lg sm:text-xl transition-colors group-hover:text-pink-500 dark:group-hover:text-pink-400" style={{ color: 'var(--text-primary)' }}>
-                              {lec.title}
-                            </h4>
-                            <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
-                              {isReady 
-                                ? (isGirls ? 'المحاضرة جاهزة ومية مية للمذاكرة 🎀✨' : (lec.stage_info || content.lecturesSection.completedStage)) 
-                                : (isGirls ? 'بنجهزهالك يا شطورة بروقان ⏳' : content.lecturesSection.processingStage)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-
-                      <div
-                        className="pt-4 border-t flex items-center justify-between"
-                        style={{ borderColor: 'var(--border-subtle)' }}
-                      >
-                        <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                          <span className="flex items-center gap-1 text-pink-400">
-                            <Headphones className="w-4 h-4" />
-                            {isGirls ? 'بودكاست 🌸' : ''}
-                          </span>
-                          <span className="flex items-center gap-1 text-purple-400">
-                            <Video className="w-4 h-4" />
-                          </span>
-                          <span className="flex items-center gap-1 text-amber-400">
-                            <HelpCircle className="w-4 h-4" />
-                          </span>
-                          <span className="flex items-center gap-1 text-emerald-400">
-                            <FileText className="w-4 h-4" />
-                          </span>
-                          <span className="mr-1">{content.lecturesSection.resourcesFormat.replace('{count}', lec.assets_count.toString())}</span>
-                        </div>
-
-                        <button
-                          disabled={!isReady}
+                      <span className="flex items-center justify-center">{activeSubject?.icon || '📐'}</span>
+                    </div>
+                    <div
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
+                      style={{
+                        backgroundColor: isDark ? (isGirls ? '#28162F' : '#0B132B') : '#FFFFFF',
+                        borderColor: isDark ? `${activeSubjectGlow}80` : (isGirls ? '#F2CBD5' : '#CBD5E1'),
+                      }}
+                    >
+                      {activeSubjectCharm}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wider" style={{ color: activeSubjectGlow }}>
+                        {isGirls ? '🌸 المادة اللي اخترتيها يا شطورة' : '⚡ المادة اللي بتفرمها دلوقتي يا بطل'}
+                      </span>
+                      {activeSubject?.canonicalDoctor && (
+                        <span
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border"
                           style={{
-                            backgroundColor: isReady ? 'var(--accent-primary)' : 'var(--bg-surface)',
-                            color: isReady ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-muted)',
-                            borderColor: 'var(--border-subtle)',
+                            backgroundColor: isDark ? `${activeSubjectGlow}20` : `${activeSubjectGlow}15`,
+                            borderColor: `${activeSubjectGlow}45`,
+                            color: activeSubjectGlow,
                           }}
-                          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 border shadow-sm ${
-                            isReady ? 'hover:opacity-95 cursor-pointer shadow-pink-500/20' : 'opacity-70 cursor-not-allowed'
+                        >
+                          {activeSubject.canonicalDoctor.includes('مروة') || activeSubject.canonicalDoctor.includes('ايه') || activeSubject.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {activeSubject.canonicalDoctor} {isGirls ? '🌸' : '⚡'}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-black mt-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                      <span>{activeSubject?.name || content.lecturesSection.defaultPrompt}</span>
+                      {isGirls ? <span className="text-xl">✨</span> : <span className="text-xl">⚡</span>}
+                    </h3>
+                  </div>
+                </div>
+                <div className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+                  {isGirls ? '☕ متاح' : '🔥 متاح'}
+                  <span>{displayedLectures.length} محاضرات</span>
+                  {isGirls ? 'بروقان' : 'جاهزة للفرم 🔥'}
+                </div>
+              </div>
+
+              {/* Doctor / Professor Tracks Switcher */}
+              {activeSubject?.doctors && activeSubject.doctors.length > 1 && (
+                <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
+                  {activeSubject.doctors.map((doc) => {
+                    const isSelected = selectedDoctor === doc;
+                    const count = subjectLectures.filter(l => l.doctor === doc).length;
+                    return (
+                      <button
+                        key={doc}
+                        type="button"
+                        onClick={() => setSelectedDoctor(doc)}
+                        className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shadow-sm"
+                        style={{
+                          backgroundColor: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
+                          borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
+                          color: isSelected ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)'
+                        }}
+                      >
+                        <span>{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
+                        <span>{doc}</span>
+                        <span className="opacity-70 text-xs font-mono">({count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {isLoadingLectures ? (
+                <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
+                  <div
+                    style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }}
+                    className="w-10 h-10 border-3 rounded-full animate-spin mx-auto mb-3"
+                  ></div>
+                  <span className="text-base font-semibold">{content.lecturesSection.loading}</span>
+                </div>
+              ) : displayedLectures.length === 0 ? (
+                <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
+                  <div
+                    style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
+                    className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+                  >
+                    <GraduationCap className="w-8 h-8 opacity-60" />
+                  </div>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{content.lecturesSection.emptyTitle}</p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{content.lecturesSection.emptySubtitle}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {displayedLectures.map((lec) => {
+                      const isReady = lec.status === 'completed' && lec.assets_count > 0;
+                      return (
+                        <div
+                          key={lec.id}
+                          onClick={isReady ? () => openLecture(lec.id) : undefined}
+                          style={{
+                            backgroundColor: 'var(--bg-surface-elevated)',
+                            borderColor: isReady ? 'var(--border-subtle)' : 'var(--border-prominent)',
+                          }}
+                          className={`p-6 rounded-3xl border transition-all flex flex-col justify-between shadow-sm ${
+                            isReady 
+                              ? 'cursor-pointer group hover:border-cyan-500 hover:shadow-md' 
+                              : 'opacity-85 select-none'
                           }`}
                         >
-                          {isReady ? <Play className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                          <span>{isReady ? (isGirls ? 'افتحي المحاضرة 🎀' : content.lecturesSection.openLectureButton) : (isGirls ? 'بتتجهز يا شطورة ⏳' : content.lecturesSection.processingButton)}</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          )}
-        </section>
+                          <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="flex items-start gap-4">
+                              <div
+                                style={{
+                                  backgroundColor: isReady 
+                                    ? (isGirls 
+                                        ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC') 
+                                        : (isDark ? `${activeSubjectGlow}25` : 'var(--accent-primary)'))
+                                    : 'var(--bg-surface)',
+                                  color: isReady 
+                                    ? (isGirls 
+                                        ? (isDark ? '#FF87A2' : '#C46D82') 
+                                        : (isDark ? activeSubjectGlow : '#ffffff'))
+                                    : 'var(--text-muted)',
+                                  borderColor: isReady 
+                                    ? (isGirls 
+                                        ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5') 
+                                        : `${activeSubjectGlow}50`) 
+                                    : 'var(--border-subtle)',
+                                }}
+                                className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shrink-0 border shadow-md"
+                              >
+                                {isGirls ? `🌸 ${lec.lecture_num}` : `⚡ ${lec.lecture_num}`}
+                              </div>
+                              <div>
+                                {lec.doctor && (
+                                  <div className="mb-1.5">
+                                    <span
+                                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold border"
+                                      style={{
+                                        backgroundColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.12)' : 'rgba(59, 130, 246, 0.12)',
+                                        borderColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.3)' : 'rgba(59, 130, 246, 0.3)',
+                                        color: lec.doctor.includes('مروة') ? '#ec4899' : '#3b82f6',
+                                      }}
+                                    >
+                                      {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor} {isGirls ? '🌸' : '⚡'}
+                                    </span>
+                                  </div>
+                                )}
+                                <h4 className="font-extrabold text-lg sm:text-xl transition-colors group-hover:text-cyan-500 dark:group-hover:text-cyan-400" style={{ color: 'var(--text-primary)' }}>
+                                  {lec.title}
+                                </h4>
+                                <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
+                                  {isReady 
+                                    ? (isGirls ? 'المحاضرة جاهزة ومية مية للمذاكرة 🎀✨' : 'المحاضرة جاهزة.. ادخل وافرم المادة ✅🔥') 
+                                    : (isGirls ? 'بنجهزهالك يا شطورة بروقان ⏳' : 'شغالين بنجهزهالك يا وحش ⏳⚡')}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            className="pt-4 border-t flex items-center justify-between"
+                            style={{ borderColor: 'var(--border-subtle)' }}
+                          >
+                            <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                              <span className="flex items-center gap-1 text-cyan-400">
+                                <Headphones className="w-4 h-4" />
+                                {isGirls ? 'بودكاست 🌸' : 'بودكاست ⚡'}
+                              </span>
+                              <span className="flex items-center gap-1 text-purple-400">
+                                <Video className="w-4 h-4" />
+                              </span>
+                              <span className="flex items-center gap-1 text-amber-400">
+                                <HelpCircle className="w-4 h-4" />
+                              </span>
+                              <span className="flex items-center gap-1 text-emerald-400">
+                                <FileText className="w-4 h-4" />
+                              </span>
+                              <span className="mr-1">{content.lecturesSection.resourcesFormat.replace('{count}', lec.assets_count.toString())}</span>
+                            </div>
+
+                            <button
+                              disabled={!isReady}
+                              style={{
+                                backgroundColor: isReady ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                                color: isReady ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-muted)',
+                                borderColor: 'var(--border-subtle)',
+                              }}
+                              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 border shadow-sm ${
+                                isReady ? 'hover:opacity-95 cursor-pointer shadow-cyan-500/20' : 'opacity-70 cursor-not-allowed'
+                              }`}
+                            >
+                              {isReady ? <Play className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                              <span>{isReady ? (isGirls ? 'افتحي المحاضرة 🎀' : 'ادخل وافرم ⚡') : (isGirls ? 'بتتجهز يا شطورة ⏳' : 'بتتجهز يا وحش ⏳')}</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </section>
+          );
+        })()}
       </main>
 
       {/* Complete Lecture Modal */}
@@ -1096,10 +1175,13 @@ export default function Home() {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div
-                  style={{ backgroundColor: 'var(--accent-primary)', color: '#ffffff' }}
+                  style={{
+                    backgroundColor: 'var(--accent-primary)',
+                    color: isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff'),
+                  }}
                   className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-sm sm:text-base shadow-sm shrink-0"
                 >
-                  {activeBundle.lecture_num}
+                  {isGirls ? `🌸 ${activeBundle.lecture_num}` : `⚡ ${activeBundle.lecture_num}`}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -1108,7 +1190,7 @@ export default function Home() {
                     </span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
                     <span className="text-[11px] sm:text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
-                      {content.modal.readyBadge}
+                      {isGirls ? 'جاهزة ومية مية 🎀' : 'جاهزة للفرم ⚡'}
                     </span>
                   </div>
                   <h3 className="text-sm sm:text-2xl font-black mt-0.5 truncate" style={{ color: 'var(--text-primary)' }}>
@@ -1142,60 +1224,60 @@ export default function Home() {
                 onClick={() => setActiveTab('audio')}
                 style={{
                   backgroundColor: activeTab === 'audio' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'audio' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
+                  color: activeTab === 'audio' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Headphones className="w-4 h-4" />
-                <span>{isGirls ? '🌸 بودكاست روقان' : content.modal.tabs.audio}</span>
+                <span>{isGirls ? '🌸 بودكاست روقان' : '⚡ بودكاست الشرح'}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('video')}
                 style={{
                   backgroundColor: activeTab === 'video' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'video' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
+                  color: activeTab === 'video' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Video className="w-4 h-4" />
-                <span>{isGirls ? '🎬 فيديو الشرح' : content.modal.tabs.video}</span>
+                <span>{isGirls ? '🎬 فيديو الشرح' : '🎬 فيديو الشرح 4K'}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('quiz')}
                 style={{
                   backgroundColor: activeTab === 'quiz' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'quiz' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
+                  color: activeTab === 'quiz' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <HelpCircle className="w-4 h-4" />
-                <span>{isGirls ? '🧁 اختبري شطارتك' : content.modal.tabs.quiz} ({quizQuestions.length})</span>
+                <span>{isGirls ? '🧁 اختبري شطارتك' : '🎯 كويز التحدي'} ({quizQuestions.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('guide')}
                 style={{
                   backgroundColor: activeTab === 'guide' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'guide' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
+                  color: activeTab === 'guide' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <FileText className="w-4 h-4" />
-                <span>{isGirls ? '🎀 النوتس والزتونة' : content.modal.tabs.guide}</span>
+                <span>{isGirls ? '🎀 النوتس والزتونة' : '📄 الدليل والزتونة'}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('flashcards')}
                 style={{
                   backgroundColor: activeTab === 'flashcards' ? 'var(--accent-primary)' : 'transparent',
-                  color: activeTab === 'flashcards' ? (isGirls && isDark ? '#0D0811' : '#ffffff') : 'var(--text-secondary)',
+                  color: activeTab === 'flashcards' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
                 }}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Layers className="w-4 h-4" />
-                <span>{isGirls ? '🪞 فلاش كاردز' : content.modal.tabs.flashcards} ({flashcards.length})</span>
+                <span>{isGirls ? '🪞 فلاش كاردز' : '💡 فلاش كاردز المراجعة'} ({flashcards.length})</span>
               </button>
             </div>
 
@@ -1493,8 +1575,8 @@ export default function Home() {
                                       className="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold"
                                     >
                                       {selectedOpt === q.correctIndex 
-                                        ? (isGirls ? 'شطورة يا بطلة! إجابة صحيحة 🎀✨' : content.quizTab.correctFeedback) 
-                                        : (isGirls ? 'حاولي تاني يا شطورة، كل غلطة بتعلمنا 🌸' : content.quizTab.wrongFeedback)}
+                                        ? (isGirls ? 'شطورة يا بطلة! إجابة صحيحة 🎀✨' : 'عاش يا بطل! إجابة صحيحة وفي الجون 🎯🔥') 
+                                        : (isGirls ? 'حاولي تاني يا شطورة، كل غلطة بتعلمنا 🌸' : 'ركز يا وحش، فكر في التلميح وجرب تاني ⚡')}
                                     </span>
                                   )}
                               </div>
