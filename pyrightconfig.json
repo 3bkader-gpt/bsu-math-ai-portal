@@ -1,0 +1,14 @@
+{
+  "include": [
+    "."
+  ],
+  "venvPath": "d:/الكليه/BOT",
+  "venv": ".venv",
+  "extraPaths": [
+    "d:/الكليه/BOT/.venv/Lib/site-packages",
+    "C:/Users/medoo/.pyenv/pyenv-win/versions/3.12.10/Lib/site-packages",
+    "d:/الكليه/BOT"
+  ],
+  "pythonVersion": "3.12",
+  "pythonPlatform": "Windows"
+}

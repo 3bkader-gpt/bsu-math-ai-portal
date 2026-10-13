@@ -1,0 +1,109 @@
+{
+  "header": {
+    "siteTitle": "بوابة قسم الرياضيات",
+    "university": "جامعة بني سويف",
+    "faculty": "كلية التربية",
+    "subtitle": "مكانك عشان تلم المحاضرات وتحل أسئلة"
+  },
+  "hero": {
+    "badge": "كل محاضرات قسم الماث ملمومة في مكان واحد",
+    "title": "محاضرات الرياضة مشروحة ريكوردات وفيديو.. ومعاها كويزات تظبطلك الدنيا",
+    "description": "شرح بسيط وفيديوهات توضحلك الدنيا، مع كويزات تدربك وتختبر فهمك، ده غير الزتونة والـ Flashcards اللي هتلملك المنهج في ثواني.",
+    "searchPlaceholder": "دور على مادة (مثلاً: هندسة تفاضلية، استاتيكا...)"
+  },
+  "subjectsSection": {
+    "title": "مواد الدفعة",
+    "totalCountFormat": "({count} مادة)",
+    "subtitle": "اختار المادة عشان تشوف محاضراتها والشرح بتاعها",
+    "lectureCountFormat": "{count} محاضرات"
+  },
+  "lecturesSection": {
+    "sectionBadge": "المادة اللي اخترتها • قسم الرياضيات",
+    "defaultPrompt": "اختار مادة عشان المحاضرات تظهرلك هنا",
+    "availableFormat": "متاح {count} محاضرات",
+    "loading": "بيحمل المحاضرات...",
+    "emptyTitle": "لسه مفيش محاضرات اترفعت للمادة دي",
+    "emptySubtitle": "هننزل المحاضرات والملخصات بتاعتها قريب أوي",
+    "completedStage": "المحاضرة جاهزة ومية فل وعشرة للمذاكرة ✅",
+    "processingStage": "شغالين بنجهزلك الشرح ⏳",
+    "resourcesFormat": "{count} مصادر تذاكر منها",
+    "openLectureButton": "افتح المحاضرة",
+    "processingButton": "بتتجهز ⏳"
+  },
+  "modal": {
+    "readyBadge": "جاهزة ومتاحة",
+    "closeButtonAria": "اقفل",
+    "tabs": {
+      "audio": "ريكورد الشرح",
+      "video": "فيديو الشرح",
+      "quiz": "كويز سريع",
+      "guide": "الزتونة والملخص",
+      "flashcards": "فلاش كاردز (مراجعة)"
+    }
+  },
+  "audioTab": {
+    "empty": "مفيش ريكورد شرح للمحاضرة دي لسه",
+    "descriptionFormat": "شرح بالبلدي وبسيط • حجم الملف {size} ميجا",
+    "speedLabel": "السرعة:",
+    "rewindTitle": "رجع 10 ثواني",
+    "forwardTitle": "قدم 10 ثواني"
+  },
+  "videoTab": {
+    "empty": "مفيش فيديو للمحاضرة دي لسه",
+    "unsupported": "لأسف المتصفح بتاعك مش بيدعم تشغيل الفيديو ده",
+    "fileSizeFormat": "{size} ميجا"
+  },
+  "quizTab": {
+    "loading": "بنجهزلك أسئلة الكويز...",
+    "title": "كويز المحاضرة",
+    "progressFormat": "حليت {solved} من أصل {total} أسئلة",
+    "scoreFormat": "النتيجة: {score} من {total} ({percent}%)",
+    "retryButton": "عيد الكويز تاني",
+    "questionHeaderFormat": "السؤال {number} من {total}",
+    "correctFeedback": "الله ينور، إجابة صح ✓",
+    "wrongFeedback": "لأسف إجابة غلط ✗",
+    "showHint": "تلميح للحل",
+    "hideHint": "خبي التلميح",
+    "hintPrefix": "💡 تلميح: ",
+    "explanationTitle": "شرح وتوضيح المسألة:",
+    "defaultExplanationFormat": "الإجابة الصح هي ({letter})."
+  },
+  "studyGuideTab": {
+    "loading": "بيحمل الملخص...",
+    "badge": "الزتونة وملخص المحاضرة",
+    "mobileTableHint": "← اسحب يمين وشمال عشان تشوف باقي الجدول →",
+    "tableLabel": "جدول القوانين والمفاهيم"
+  },
+  "flashcardsTab": {
+    "empty": "مفيش فلاش كاردز للمحاضرة دي لسه",
+    "progressFormat": "من أصل {total} كارت",
+    "restartButton": "هاتها من الأول",
+    "questionBadge": "السؤال أو المفهوم 💡",
+    "answerBadge": "الإجابة الصح ✓",
+    "tapToFlip": "دوس هنا عشان تقلب الكارت",
+    "frontHint": "فكر في الإجابة الأول مع نفسك",
+    "backHint": "آدي الإجابة يا سيدي",
+    "navigationHelp": "مسطرة عشان تقلب الكارت • والأسهم عشان تتحرك",
+    "prevButton": "الكارت اللي فات",
+    "nextButton": "الكارت اللي جاي"
+  },
+  "footer": {
+    "copyright": "جميع الحقوق محفوظة لقسم الرياضيات • كلية التربية • جامعة بني سويف",
+    "description": "مكانك عشان تلم المنهج وتتدرب على أسئلة الامتحانات",
+    "adminPortalLink": "بوابة الأدمن"
+  },
+  "adminLogin": {
+    "title": "بوابة رفع المحاضرات",
+    "subtitle": "من هنا بنظبط المناهج ونرفع المحاضرات للدفعة",
+    "backToPortal": "ارجع لمنصة الطلبة",
+    "serverStatus": "السيرفر شغال وتمام",
+    "usernameLabel": "اليوزر نيم",
+    "passwordLabel": "الباسورد",
+    "autofillButton": "⚡ اكتب البيانات التجريبية",
+    "loginButton": "سجل دخولك",
+    "loadingButton": "بيحمل وبيسجل دخول...",
+    "dbLabel": "الداتا بيز",
+    "cdnLabel": "سيرفرات التخزين",
+    "modelLabel": "محرك الـ AI"
+  }
+}

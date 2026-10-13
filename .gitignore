@@ -1,0 +1,52 @@
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Telegram Telethon sessions & SQLite credentials
+*.session
+*.session-journal
+bot_database.db
+bot_database.db-journal
+telethon_auth_cache.json
+get_project_info.py
+test_supabase_db.py
+telethon_login.py
+add_bot_admin.py
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.pytest_cache/
+
+# Media & Storage temporary files
+media_storage/
+temp/
+COLOURS/
+supabase/.temp/
+*.log
+
+# Frontend (Node / Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+node_modules/
+.next/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Agent & Harness Caches
+.claude/
+.codex/
+.cursor/
+.gemini/
+
