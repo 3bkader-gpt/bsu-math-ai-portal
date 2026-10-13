@@ -88,7 +88,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
                 dir="ltr"
                 style={{
                   unicodeBidi: 'isolate',
-                  color: 'var(--math-formula-color)',
+                  color: 'var(--math-formula-color, inherit)',
                 }}
                 className="inline px-1 font-semibold transition-colors"
                 dangerouslySetInnerHTML={{ __html: html }}
@@ -171,7 +171,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
               dir="ltr"
               style={{
                 unicodeBidi: 'isolate',
-                color: 'var(--math-formula-color)',
+                color: 'var(--math-formula-color, inherit)',
               }}
               className="inline px-1 font-semibold transition-colors"
               dangerouslySetInnerHTML={{ __html: html }}

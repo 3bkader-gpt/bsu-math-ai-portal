@@ -109,7 +109,7 @@ body.light, :root:not(.dark) body {
   text-align: left !important;
   unicode-bidi: isolate !important;
   font-size: 1.15em !important;
-  color: var(--math-formula-color) !important;
+  color: var(--math-formula-color, inherit);
 }
 
 .katex-display {
@@ -117,7 +117,7 @@ body.light, :root:not(.dark) body {
   text-align: center !important;
   unicode-bidi: isolate !important;
   margin: 0.85rem 0 !important;
-  color: var(--math-formula-color) !important;
+  color: var(--math-formula-color, inherit);
 }
 
 .katex-html {
