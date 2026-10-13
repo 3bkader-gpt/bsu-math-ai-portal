@@ -34,6 +34,7 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className={`${cairo.variable} ${outfit.variable}`} suppressHydrationWarning>
       <head>
         <script
+          id="theme-initializer"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -42,7 +43,7 @@ export default function RootLayout({
                   var mode = localStorage.getItem('bsu_portal_mode');
                   if (!mode) {
                     var oldTheme = localStorage.getItem('bsu_math_theme');
-                    mode = oldTheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                    mode = oldTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                   }
                   document.documentElement.setAttribute('data-persona', persona);
                   document.documentElement.setAttribute('data-mode', mode);
@@ -52,6 +53,16 @@ export default function RootLayout({
                   } else {
                     document.documentElement.classList.remove('dark');
                     document.documentElement.classList.add('light');
+                  }
+                  var p = {
+                    'boys-light': {'--bg-page':'#F5EFE1','--bg-surface':'#FFFFFF','--bg-surface-elevated':'#FAF5EA','--text-primary':'#162828','--accent-primary':'#184E4E','--border-subtle':'#E3D7C1','--math-formula-color':'#184E4E'},
+                    'boys-dark': {'--bg-page':'#0B0F14','--bg-surface':'#131922','--bg-surface-elevated':'#1C2533','--text-primary':'#F1F5F9','--accent-primary':'#2DD4BF','--border-subtle':'#1E2B3A','--math-formula-color':'#5EEAD4'},
+                    'girls-light': {'--bg-page':'#FAF5F0','--bg-surface':'#FFFFFF','--bg-surface-elevated':'#FFF7F9','--text-primary':'#381D26','--accent-primary':'#C46D82','--border-subtle':'#F4D7DE','--math-formula-color':'#381D26'},
+                    'girls-dark': {'--bg-page':'#150F16','--bg-surface':'#211422','--bg-surface-elevated':'#2E1B2F','--text-primary':'#FCEEF2','--accent-primary':'#E5839C','--border-subtle':'#3E233B','--math-formula-color':'#FDE2E8'}
+                  };
+                  var t = p[persona + '-' + mode];
+                  if (t) {
+                    for (var k in t) document.documentElement.style.setProperty(k, t[k]);
                   }
                 } catch (e) {}
               })();

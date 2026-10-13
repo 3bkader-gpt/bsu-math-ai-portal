@@ -1,37 +1,115 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Sun, Moon, Sparkles } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 
 export type PersonaType = 'boys' | 'girls';
 export type ModeType = 'light' | 'dark';
 
+export const THEME_PALETTES = {
+  'boys-light': {
+    '--bg-page': '#F5EFE1',
+    '--bg-surface': '#FFFFFF',
+    '--bg-surface-elevated': '#FAF5EA',
+    '--bg-surface-translucent': 'rgba(255, 255, 255, 0.92)',
+    '--text-primary': '#162828',
+    '--text-secondary': '#244040',
+    '--text-muted': '#526E6E',
+    '--border-subtle': '#E3D7C1',
+    '--border-prominent': '#D9C8AC',
+    '--border-interactive': '#184E4E',
+    '--accent-primary': '#184E4E',
+    '--accent-primary-hover': '#113838',
+    '--accent-cyan': '#0D9488',
+    '--accent-emerald': '#059669',
+    '--accent-amber': '#C8963E',
+    '--accent-rose': '#BE123C',
+    '--math-formula-color': '#184E4E',
+    '--math-block-bg': '#FAF5EA',
+    '--math-block-border': '#D9C8AC',
+    '--card-shadow': '0 4px 20px -2px rgba(24, 78, 78, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
+    '--card-shadow-hover': '0 12px 28px -4px rgba(24, 78, 78, 0.14), 0 2px 6px -1px rgba(0, 0, 0, 0.05)',
+  },
+  'boys-dark': {
+    '--bg-page': '#0B0F14',
+    '--bg-surface': '#131922',
+    '--bg-surface-elevated': '#1C2533',
+    '--bg-surface-translucent': 'rgba(19, 25, 34, 0.92)',
+    '--text-primary': '#F1F5F9',
+    '--text-secondary': '#CBD5E1',
+    '--text-muted': '#94A3B8',
+    '--border-subtle': '#1E2B3A',
+    '--border-prominent': '#2B3B4E',
+    '--border-interactive': '#2DD4BF',
+    '--accent-primary': '#2DD4BF',
+    '--accent-primary-hover': '#5EEAD4',
+    '--accent-cyan': '#38BDF8',
+    '--accent-emerald': '#10B981',
+    '--accent-amber': '#F59E0B',
+    '--accent-rose': '#F43F5E',
+    '--math-formula-color': '#5EEAD4',
+    '--math-block-bg': '#0E1724',
+    '--math-block-border': '#1E3A5F',
+    '--card-shadow': '0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.06)',
+    '--card-shadow-hover': '0 20px 48px -10px rgba(45, 212, 191, 0.15), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12)',
+  },
+  'girls-light': {
+    '--bg-page': '#FAF5F0',
+    '--bg-surface': '#FFFFFF',
+    '--bg-surface-elevated': '#FFF7F9',
+    '--bg-surface-translucent': 'rgba(255, 255, 255, 0.93)',
+    '--text-primary': '#381D26',
+    '--text-secondary': '#57303D',
+    '--text-muted': '#875565',
+    '--border-subtle': '#F4D7DE',
+    '--border-prominent': '#F2CBD5',
+    '--border-interactive': '#C46D82',
+    '--accent-primary': '#C46D82',
+    '--accent-primary-hover': '#A85266',
+    '--accent-cyan': '#E07A9E',
+    '--accent-emerald': '#059669',
+    '--accent-amber': '#E08A5E',
+    '--accent-rose': '#BE123C',
+    '--math-formula-color': '#381D26',
+    '--math-block-bg': '#FFF7F9',
+    '--math-block-border': '#F2CBD5',
+    '--card-shadow': '0 4px 20px -2px rgba(196, 109, 130, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.03)',
+    '--card-shadow-hover': '0 12px 28px -4px rgba(196, 109, 130, 0.18), 0 2px 6px -1px rgba(0, 0, 0, 0.05)',
+  },
+  'girls-dark': {
+    '--bg-page': '#150F16',
+    '--bg-surface': '#211422',
+    '--bg-surface-elevated': '#2E1B2F',
+    '--bg-surface-translucent': 'rgba(33, 20, 34, 0.92)',
+    '--text-primary': '#FCEEF2',
+    '--text-secondary': '#E8D0D8',
+    '--text-muted': '#B38E9B',
+    '--border-subtle': '#3E233B',
+    '--border-prominent': '#5A3356',
+    '--border-interactive': '#E5839C',
+    '--accent-primary': '#E5839C',
+    '--accent-primary-hover': '#F0A1B4',
+    '--accent-cyan': '#F7B299',
+    '--accent-emerald': '#34D399',
+    '--accent-amber': '#FBBF24',
+    '--accent-rose': '#FB7185',
+    '--math-formula-color': '#FDE2E8',
+    '--math-block-bg': '#2A192A',
+    '--math-block-border': '#4E2A49',
+    '--card-shadow': '0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.06)',
+    '--card-shadow-hover': '0 20px 48px -10px rgba(229, 131, 156, 0.2), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12)',
+  },
+};
+
 export function ThemeToggle({ className = '' }: { className?: string }) {
   const [persona, setPersona] = useState<PersonaType>('boys');
-  const [mode, setMode] = useState<ModeType>('dark');
+  const [mode, setMode] = useState<ModeType>('light');
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    try {
-      const savedPersona = (localStorage.getItem('bsu_portal_persona') as PersonaType) || 'boys';
-      let savedMode = localStorage.getItem('bsu_portal_mode') as ModeType | null;
-
-      if (!savedMode) {
-        const oldTheme = localStorage.getItem('bsu_math_theme') as ModeType | null;
-        savedMode = oldTheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-      }
-
-      setPersona(savedPersona);
-      setMode(savedMode);
-      applyTheme(savedPersona, savedMode);
-    } catch {
-      // fallback
-    }
-    setMounted(true);
-  }, []);
-
   const applyTheme = (p: PersonaType, m: ModeType) => {
+    if (typeof document === 'undefined') return;
     const root = document.documentElement;
+
     root.setAttribute('data-persona', p);
     root.setAttribute('data-mode', m);
 
@@ -43,15 +121,42 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       root.classList.add('light');
     }
 
+    const themeKey = `${p}-${m}` as keyof typeof THEME_PALETTES;
+    const palette = THEME_PALETTES[themeKey];
+    if (palette) {
+      Object.entries(palette).forEach(([k, v]) => {
+        root.style.setProperty(k, v);
+      });
+    }
+
     try {
       localStorage.setItem('bsu_portal_persona', p);
       localStorage.setItem('bsu_portal_mode', m);
       localStorage.setItem('bsu_math_theme', m);
       window.dispatchEvent(new CustomEvent('bsu_theme_changed', { detail: { persona: p, mode: m } }));
     } catch {
-      // Ignore storage errors in private browsing
+      // Ignore private browsing errors
     }
   };
+
+  useEffect(() => {
+    try {
+      const savedPersona = (localStorage.getItem('bsu_portal_persona') as PersonaType) || 'boys';
+      let savedMode = localStorage.getItem('bsu_portal_mode') as ModeType | null;
+
+      if (!savedMode) {
+        const oldTheme = localStorage.getItem('bsu_math_theme') as ModeType | null;
+        savedMode = oldTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      }
+
+      setPersona(savedPersona);
+      setMode(savedMode);
+      applyTheme(savedPersona, savedMode);
+    } catch {
+      // fallback
+    }
+    setMounted(true);
+  }, []);
 
   const handlePersonaChange = (newPersona: PersonaType) => {
     setPersona(newPersona);
@@ -66,9 +171,9 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <div className={`inline-flex items-center gap-1.5 p-1 rounded-2xl border border-white/10 bg-slate-900/50 opacity-60 ${className}`}>
-        <div className="w-16 h-7 rounded-xl bg-slate-800 animate-pulse" />
-        <div className="w-16 h-7 rounded-xl bg-slate-800 animate-pulse" />
+      <div className={`inline-flex items-center gap-1.5 p-1 rounded-2xl border border-slate-300 dark:border-white/10 bg-slate-100 dark:bg-slate-900/50 opacity-60 ${className}`}>
+        <div className="w-16 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="w-14 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
       </div>
     );
   }
