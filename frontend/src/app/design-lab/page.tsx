@@ -704,7 +704,7 @@ function RenderPortalScreen({
             ? 'مفهوم المنحنى في الفضاء وطول القوس (Curvature & Arc Length)'
             : `محتوى ومحاضرات ${subject.name} مع ${subject.doctor}`}
         </h3>
-        <p className="text-xs opacity-80 leading-relaxed mb-4">
+        <p className="text-sm font-semibold leading-relaxed mb-4 opacity-95">
           {subject.id === 'diff-geom'
             ? 'دراسة المعادلات البارامترية، التعبير المتجهي للمنحنيات في الفضاء ثلاثي الأبعاد، وحساب طول القوس وتفاضل البارامتر u مقابل طول القوس s مع د/ سيد.'
             : `الملخصات الشاملة، الأسئلة التدريبية والبودكاست الصوتي لمادة ${subject.name} تحت إشراف ${subject.doctor}.`}
@@ -836,20 +836,20 @@ function RenderPortalScreen({
 
       {/* 4. REAL MATHEMATICAL TYPOGRAPHY & KATEX BLOCK (FROM STUDY GUIDE) */}
       <div style={cardStyle} className="p-4 sm:p-5 mb-5 transition">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-xs font-extrabold flex items-center gap-1.5">
+        <div className="flex items-center justify-between mb-2.5">
+          <h4 className="text-sm font-black flex items-center gap-1.5 text-inherit">
             <span>📐</span>
             <span>قوانين المحاضرة الأساسية (Arc Length & Differential Notation)</span>
           </h4>
-          <span className="text-[10px] font-mono opacity-60">LaTeX KaTeX</span>
+          <span className="text-xs font-mono opacity-70">LaTeX KaTeX</span>
         </div>
 
-        <p className="text-xs opacity-80 leading-relaxed mb-2">
+        <p className="text-sm sm:text-[15px] font-bold leading-relaxed mb-3 text-inherit">
           <MathRenderer text={String.raw`حساب طول القوس $s$ لمنحنى فضائي معرّف بالمتجه $r(u)$ ومعدل تغيره:`} />
         </p>
 
         {/* The Math Box */}
-        <div style={mathCardStyle} className="p-3.5 my-2 text-center transition">
+        <div style={mathCardStyle} className="p-4 my-2 text-center transition">
           <div
             dir="ltr"
             className="py-1 overflow-x-auto text-center"
@@ -862,7 +862,7 @@ function RenderPortalScreen({
           />
           <div
             style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }}
-            className="text-[11px] font-medium opacity-90 mt-2.5 pt-2 border-t"
+            className="text-xs sm:text-sm font-bold opacity-100 mt-3 pt-2.5 border-t text-inherit leading-relaxed"
           >
             <MathRenderer
               text={String.raw`اتفاق الترميز: $\dot{r} = \frac{dr}{du}$ (تفاضل بالنسبة للبارامتر $u$)، بينما $r' = \frac{dr}{ds}$ (تفاضل بالنسبة لطول القوس $s$).`}
@@ -873,27 +873,27 @@ function RenderPortalScreen({
 
       {/* 5. REAL INTERACTIVE QUIZ CARD (QUESTION 2 FROM QUIZ.MD) */}
       <div style={cardStyle} className="p-4 sm:p-5 mb-5 transition">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2.5">
           <span
             style={{
               backgroundColor: theme.colors.tagBg,
               color: theme.colors.tagText,
             }}
-            className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+            className="text-xs font-bold px-2.5 py-0.5 rounded-md"
           >
             سؤال حقيقي من كويز المادة (Question 2)
           </span>
-          <span className="text-[10px] font-mono opacity-60">درجة: 1.0</span>
+          <span className="text-xs font-mono opacity-70">درجة: 1.0</span>
         </div>
 
-        <p className="text-xs font-bold leading-relaxed mb-3">
+        <p className="text-sm sm:text-base font-extrabold leading-relaxed mb-3.5 text-inherit">
           <MathRenderer
             text={String.raw`في دراسة المنحنيات في الفراغ، إيه الفرق الأساسي بين استخدام النقطة فوق المتجه $\dot{r}$ والشرطة $r'$؟`}
           />
         </p>
 
         {/* Options */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {[
             {
               id: 0,
@@ -940,11 +940,11 @@ function RenderPortalScreen({
                 key={opt.id}
                 onClick={() => setSelectedQuizAnswer(opt.id)}
                 style={optStyle}
-                className={`w-full text-right p-2.5 text-xs font-medium transition flex items-center justify-between border ${
+                className={`w-full text-right p-3 text-xs sm:text-sm font-bold transition flex items-center justify-between border ${
                   isGirls ? 'rounded-2xl' : 'rounded-xl'
                 }`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <span
                     style={{
                       borderColor:
@@ -956,16 +956,16 @@ function RenderPortalScreen({
                       backgroundColor:
                         isSelected && opt.isCorrect ? '#10B981' : 'transparent',
                     }}
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border"
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-black border shrink-0"
                   >
                     {opt.id === 0 ? 'أ' : opt.id === 1 ? 'ب' : 'ج'}
                   </span>
-                  <span>
+                  <span className="leading-relaxed">
                     <MathRenderer text={opt.text} />
                   </span>
                 </div>
                 {isSelected && (
-                  <span className="text-xs font-bold whitespace-nowrap mr-2">
+                  <span className="text-xs font-black whitespace-nowrap mr-2">
                     {opt.isCorrect ? '✅ إجابة صحيحة' : '❌ إجابة خاطئة'}
                   </span>
                 )}
@@ -977,9 +977,9 @@ function RenderPortalScreen({
         {selectedQuizAnswer !== null && (
           <div
             style={{
-              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
             }}
-            className="mt-2.5 p-2 rounded-xl text-[11px] opacity-90 leading-relaxed"
+            className="mt-3 p-3 rounded-xl text-xs sm:text-sm font-semibold opacity-100 leading-relaxed text-inherit"
           >
             <MathRenderer
               text={String.raw`💡 **تلميح المنهج:** النقطة فوق المتجه $\dot{r}$ مخصصة لاشتقاق المتغير البارامتري $u$ (أو $t$)، بينما الشرطة $r'$ محجوزة حصراً لطول القوس $s$.`}
@@ -994,30 +994,30 @@ function RenderPortalScreen({
         style={cardStyle}
         className={`p-4 sm:p-5 cursor-pointer transition select-none text-center`}
       >
-        <div className="text-[10px] font-bold opacity-60 mb-1">
+        <div className="text-xs font-bold opacity-75 mb-1.5">
           {isGirls
             ? '🎀 بطاقة استذكار كيوت (انقري للقلب ومعرفة الإجابة) 🔄'
             : '⚡ بطاقة استذكار ذكية (انقر للقلب ومعرفة الإجابة) 🔄'}
         </div>
         {!isFlippedCard ? (
-          <div className="py-2">
-            <div className="text-xs font-bold mb-1 opacity-75">السؤال (الوجه الأمامي):</div>
-            <div className="text-xs font-extrabold">
+          <div className="py-2.5">
+            <div className="text-xs font-bold mb-1.5 opacity-80">السؤال (الوجه الأمامي):</div>
+            <div className="text-sm sm:text-base font-extrabold text-inherit leading-relaxed">
               ما هو تعريف الهندسة التفاضلية وما الفرق بين المحلية والشاملة؟
             </div>
-            <div className="text-[10px] opacity-60 mt-2">
+            <div className="text-xs opacity-70 mt-2 font-medium">
               (انقر هنا لرؤية إجابة الدكتور النموذجية)
             </div>
           </div>
         ) : (
-          <div className="py-2">
+          <div className="py-2.5">
             <div
               style={{ color: isDark ? '#34D399' : '#059669' }}
-              className="text-xs font-bold mb-1"
+              className="text-xs sm:text-sm font-black mb-1.5"
             >
               الإجابة النموذجية (د/ سيد):
             </div>
-            <div className="text-xs font-medium leading-relaxed">
+            <div className="text-xs sm:text-sm font-bold leading-relaxed text-inherit">
               هي فرع يهدف لدراسة خواص المنحنيات والسطوح بالتفاضل والتكامل.
               <br />
               <strong style={{ color: theme.colors.primary }}>المحلية:</strong> تدرس الخواص في جوار نقطة معينة.
