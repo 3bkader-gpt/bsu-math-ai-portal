@@ -504,20 +504,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <Link
-              href="/design-lab"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs hover:scale-105"
-              style={{
-                backgroundColor: 'var(--bg-surface-elevated)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--accent-primary)',
-              }}
-              title="معاينة مختبر التصميم المزدوج (شبابي / بناتي)"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>مختبر التصميم</span>
-            </Link>
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <ThemeToggle />
           </div>
         </div>
