@@ -41,44 +41,44 @@ Traditional academic lecture slide decks and dense PDF handouts often lack acces
 
 ```mermaid
 flowchart TD
-    subgraph Ingestion & Administration
-        AdminUser["👨‍🏫 Course Administrator / TA"]
-        PDFFile["📄 Raw Lecture PDF(s)<br/>(Differential Geometry, Mechanics, Real Analysis)"]
-        AdminDashboard["🖥️ Admin Dashboard (Next.js 16)"]
+    subgraph Ingestion ["Ingestion & Administration"]
+        AdminUser["Course Administrator / TA"]
+        PDFFile["Raw Lecture PDF(s)<br/>Differential Geometry, Mechanics, Real Analysis"]
+        AdminDashboard["Admin Dashboard (Next.js 16)"]
     end
 
-    subgraph Backend Core (FastAPI)
-        AuthLayer["🔐 JWT Bearer Security Layer"]
-        UploadRouter["📥 Upload & Magic Byte Sanitizer"]
-        JobOrchestrator["⚡ Decoupled Background Pipeline"]
-        PromptEngine["🧠 Department Prompt Injector<br/>(11 Subject Curriculums)"]
+    subgraph BackendCore ["Backend Core (FastAPI)"]
+        AuthLayer["JWT Bearer Security Layer"]
+        UploadRouter["Upload & Magic Byte Sanitizer"]
+        JobOrchestrator["Decoupled Background Pipeline"]
+        PromptEngine["Department Prompt Injector<br/>11 Subject Curriculums"]
     end
 
-    subgraph Multimodal AI Generation
-        NotebookLMCLI["🤖 NotebookLM Automated Worker"]
-        AudioSynth["🎙️ Egyptian Arabic Podcast (30 min)"]
-        VideoSynth["🎬 Blackboard Video Animation"]
-        TextSynth["📝 Comprehensive Study Guide & Flashcards"]
-        QuizSynth["❓ Interactive Comprehension Quiz"]
+    subgraph MultimodalAI ["Multimodal AI Generation"]
+        NotebookLMCLI["NotebookLM Automated Worker"]
+        AudioSynth["Egyptian Arabic Podcast (30 min)"]
+        VideoSynth["Blackboard Video Animation"]
+        TextSynth["Comprehensive Study Guide & Flashcards"]
+        QuizSynth["Interactive Comprehension Quiz"]
     end
 
-    subgraph Storage & Delivery Layer
-        TelegramCDN["☁️ Telegram Private Channel CDN<br/>(Telethon Client & Bot API)"]
-        SupabaseDB["🗄️ Supabase PostgreSQL<br/>(Metadata, Doctor Tracks, Resilient Pool)"]
-        LocalCache["💾 Local Storage Fallback Cache"]
+    subgraph StorageLayer ["Storage & Delivery Layer"]
+        TelegramCDN["Telegram Private Channel CDN<br/>Telethon Client & Bot API"]
+        SupabaseDB["Supabase PostgreSQL<br/>Metadata, Doctor Tracks, Resilient Pool"]
+        LocalCache["Local Storage Fallback Cache"]
     end
 
-    subgraph Student Experience (Next.js 16)
-        StudentApp["📱 Student Portal (Mobile-First / OLED Dark)"]
-        PodcastPlayer["🎧 Audio Player (1x - 2x Speed)"]
-        VideoPlayer["📺 Whiteboard Video Stream"]
-        QuizUI["🎯 Instant Feedback Quiz Engine"]
-        KaTeXRenderer["📐 KaTeX Math Renderer (LTR in RTL)"]
+    subgraph StudentExp ["Student Experience (Next.js 16)"]
+        StudentApp["Student Portal (Mobile-First / OLED Dark)"]
+        PodcastPlayer["Audio Player (1x - 2x Speed)"]
+        VideoPlayer["Whiteboard Video Stream"]
+        QuizUI["Instant Feedback Quiz Engine"]
+        KaTeXRenderer["KaTeX Math Renderer (LTR in RTL)"]
     end
 
-    AdminUser -->|Upload PDF & Metadata| AdminDashboard
+    AdminUser --> AdminDashboard
     PDFFile --> AdminDashboard
-    AdminDashboard -->|POST /api/upload| AuthLayer
+    AdminDashboard --> AuthLayer
     AuthLayer --> UploadRouter
     UploadRouter --> JobOrchestrator
     PromptEngine --> JobOrchestrator
@@ -89,9 +89,11 @@ flowchart TD
     NotebookLMCLI --> TextSynth
     NotebookLMCLI --> QuizSynth
 
-    AudioSynth & VideoSynth --> TelegramCDN
-    TextSynth & QuizSynth --> SupabaseDB
-    TelegramCDN -.->|Fallback| LocalCache
+    AudioSynth --> TelegramCDN
+    VideoSynth --> TelegramCDN
+    TextSynth --> SupabaseDB
+    QuizSynth --> SupabaseDB
+    TelegramCDN -.-> LocalCache
 
     SupabaseDB --> StudentApp
     TelegramCDN --> StudentApp
