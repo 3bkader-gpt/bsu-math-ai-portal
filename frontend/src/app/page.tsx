@@ -701,7 +701,7 @@ export default function Home() {
                   }}
                   className="hidden md:inline-block px-2.5 py-0.5 text-[11px] font-bold rounded-full border shrink-0"
                 >
-                  {isGirls ? '🎀 I AM JUST A GIRL' : '⚡ STEALTH TECH • شبابي'}
+                  {isGirls ? "🎀 You're Just A Baby Girl" : '⚡ يا حبيب أخوك • شبابي'}
                 </span>
               </div>
               <p className="text-[11px] sm:text-sm font-medium mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
@@ -729,17 +729,17 @@ export default function Home() {
               color: 'var(--accent-primary)',
               boxShadow: 'var(--card-shadow)',
             }}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-sm font-bold shadow-sm"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-sm font-bold shadow-sm max-w-full flex-wrap justify-center"
           >
             {isGirls ? (
               <>
                 <span className="text-sm">🎀</span>
-                <span>مساحتك الرايقة للمذاكرة والروقان • I AM JUST A GIRL ✨</span>
+                <span>مساحتك الرايقة وكل الدلع ليكي • You&apos;re Just A Baby Girl ✨</span>
               </>
             ) : (
               <>
                 <span className="text-sm">⚡</span>
-                <span>سهرات المذاكرة والتركيز الهندسي • فورمة الشباب 🎯</span>
+                <span>متنشف كده ياض.. رياضة إيه اللي خايف منها، أنت لسه شفت حاجة يا حبيب أخوك 🔥</span>
               </>
             )}
           </div>
@@ -758,8 +758,8 @@ export default function Home() {
             style={{ color: 'var(--text-secondary)' }}
           >
             {isGirls
-              ? 'شرح مبسط وهادي يفهمك كل مسألة خطوة بخطوة، مع كويزات تفاعلية، وكروت فلاش كاردز ونوتس تلملك المنهج في ثواني بكل هدوء وتركيز 🎀✨'
-              : 'شرح هندسي عميق يفهمك أصل القوانين خطوة بخطوة، مع كويزات تحدي وكروت مراجعة وزتونة تخلص معاك المادة في وقت قياسي ⚡🔥'}
+              ? 'شرح هادي ومبسط يفهمك كل مسألة خطوة بخطوة، مع كويزات كيوت وكروت ونوتس تلملك المنهج وإنتي رايقة ومرتاحة خالص 🎀✨'
+              : 'شرح هندسي يفرم أصل القوانين خطوة بخطوة، مع كويزات تحدي تظبطك.. رياضة إيه اللي تشيل همها ومعاك الزتونة يا حبيب أخوك ⚡🔥'}
           </p>
 
           <div className="max-w-md mx-auto relative pt-1 sm:pt-2">
