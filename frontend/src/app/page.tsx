@@ -222,7 +222,7 @@ export default function Home() {
 
       const doctorsList = found?.doctors && found.doctors.length > 0 
         ? found.doctors 
-        : [course.doctor];
+        : (course.doctor.includes('+') ? course.doctor.split('+').map((d: string) => d.trim()) : [course.doctor]);
 
       return {
         id: found?.id ?? course.fallbackId,
@@ -262,7 +262,12 @@ export default function Home() {
   // 2. Fetch Subject Lectures when activeSubjectId changes
   useEffect(() => {
     if (!activeSubjectId) return;
-    setSelectedDoctor('الكل');
+    const currentSubj = subjects.find(s => s.id === activeSubjectId);
+    if (currentSubj?.doctors && currentSubj.doctors.length > 1) {
+      setSelectedDoctor(currentSubj.doctors[0]);
+    } else {
+      setSelectedDoctor('الكل');
+    }
     setIsLoadingLectures(true);
     fetch(`http://127.0.0.1:8000/api/subjects/${activeSubjectId}/lectures`)
       .then(res => {
@@ -275,7 +280,7 @@ export default function Home() {
         setSubjectLectures([]);
       })
       .finally(() => setIsLoadingLectures(false));
-  }, [activeSubjectId]);
+  }, [activeSubjectId, subjects]);
 
 
   // Robust Quiz Parser
@@ -451,6 +456,15 @@ export default function Home() {
   const activeSubject = subjects.find(s => s.id === activeSubjectId);
   const audioAsset = activeBundle?.assets.find(a => a.asset_type === 'audio');
   const videoAsset = activeBundle?.assets.find(a => a.asset_type === 'video');
+
+  const displayedLectures = subjectLectures
+    .filter((l) => l.status !== 'failed')
+    .filter((l) => {
+      if (activeSubject?.doctors && activeSubject.doctors.length > 1 && selectedDoctor && selectedDoctor !== 'الكل') {
+        return l.doctor === selectedDoctor;
+      }
+      return true;
+    });
 
   return (
     <div
@@ -682,25 +696,13 @@ export default function Home() {
               </div>
             </div>
             <div className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>
-              {content.lecturesSection.availableFormat.replace('{count}', subjectLectures.length.toString())}
+              {content.lecturesSection.availableFormat.replace('{count}', displayedLectures.length.toString())}
             </div>
           </div>
 
-          {/* Doctor / Professor Tracks Switcher */}
-          {activeSubject?.doctors && activeSubject.doctors.length > 0 && (
+          {/* Doctor / Professor Tracks Switcher - Only shown when subject has multiple doctors */}
+          {activeSubject?.doctors && activeSubject.doctors.length > 1 && (
             <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
-              <button
-                type="button"
-                onClick={() => setSelectedDoctor('الكل')}
-                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer whitespace-nowrap shadow-sm"
-                style={{
-                  backgroundColor: selectedDoctor === 'الكل' ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
-                  borderColor: selectedDoctor === 'الكل' ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                  color: selectedDoctor === 'الكل' ? '#ffffff' : 'var(--text-secondary)'
-                }}
-              >
-                كل الدكاترة ({subjectLectures.length})
-              </button>
               {activeSubject.doctors.map((doc) => {
                 const isSelected = selectedDoctor === doc;
                 const count = subjectLectures.filter(l => l.doctor === doc).length;
@@ -733,7 +735,7 @@ export default function Home() {
               ></div>
               <span className="text-base font-semibold">{content.lecturesSection.loading}</span>
             </div>
-          ) : subjectLectures.length === 0 ? (
+          ) : displayedLectures.length === 0 ? (
             <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
               <div
                 style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
@@ -746,10 +748,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {subjectLectures
-                .filter((l) => l.status !== 'failed')
-                .filter((l) => selectedDoctor === 'الكل' || l.doctor === selectedDoctor)
-                .map((lec) => {
+              {displayedLectures.map((lec) => {
                   const isReady = lec.status === 'completed' && lec.assets_count > 0;
                   return (
                     <div
