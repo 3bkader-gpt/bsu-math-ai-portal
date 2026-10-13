@@ -139,7 +139,7 @@ export const CANONICAL_COURSES: CanonicalCourse[] = [
 ];
 
 export interface SubjectStyleConfig {
-  girlsIcon: string;
+  charm: string;
   badgeTag: string;
   darkBadge: string;
   lightBadge: string;
@@ -148,84 +148,84 @@ export interface SubjectStyleConfig {
 
 export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
   'هندسة تفاضلية': {
-    girlsIcon: '🎀 📐',
+    charm: '🎀',
     badgeTag: 'منحنيات وفضاء 🎀',
     darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
     lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
     glowColor: '#FB7185',
   },
   'مقدمة في نظرية العدد والمنطق': {
-    girlsIcon: '🌸 🔢',
+    charm: '🌸',
     badgeTag: 'أعداد ومنطق 🌸',
     darkBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-950/60',
     lightBadge: 'bg-amber-100 text-amber-800 border-amber-200',
     glowColor: '#F59E0B',
   },
   'معادلات تفاضلية': {
-    girlsIcon: '✨ ∫',
+    charm: '✨',
     badgeTag: 'معادلات وتفاضل ✨',
     darkBadge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40 shadow-sm shadow-fuchsia-950/60',
     lightBadge: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
     glowColor: '#D946EF',
   },
   'ديناميكا (٢)': {
-    girlsIcon: '🍓 🚀',
+    charm: '🍓',
     badgeTag: 'حركة وطاقة 🍓',
     darkBadge: 'bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-sm shadow-pink-950/60',
     lightBadge: 'bg-pink-100 text-pink-700 border-pink-200',
     glowColor: '#F43F5E',
   },
   'استاتيكا (٢)': {
-    girlsIcon: '🌷 ⚖️',
+    charm: '🌷',
     badgeTag: 'اتزان وقوى 🌷',
     darkBadge: 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-950/60',
     lightBadge: 'bg-purple-100 text-purple-800 border-purple-200',
     glowColor: '#A855F7',
   },
   'كهربية ومغناطيسية وتيار متردد': {
-    girlsIcon: '💖 ⚡',
+    charm: '💖',
     badgeTag: 'دوائر وتيار 💖',
     darkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
     lightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
     glowColor: '#06B6D4',
   },
   'عملي فيزياء': {
-    girlsIcon: '🪞 🔬',
+    charm: '🪞',
     badgeTag: 'معمل وتجارب 🪞',
     darkBadge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-950/60',
     lightBadge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     glowColor: '#10B981',
   },
   'التعليم وريادة الأعمال': {
-    girlsIcon: '🧸 💼',
+    charm: '🧸',
     badgeTag: 'بيزنس ومشاريع 🧸',
     darkBadge: 'bg-orange-500/20 text-orange-300 border-orange-500/40 shadow-sm shadow-orange-950/60',
     lightBadge: 'bg-orange-100 text-orange-800 border-orange-200',
     glowColor: '#F97316',
   },
   'تدريس مصغر': {
-    girlsIcon: '🍰 🎓',
+    charm: '🍰',
     badgeTag: 'شرح ومهارات 🍰',
     darkBadge: 'bg-rose-400/20 text-rose-300 border-rose-400/40 shadow-sm shadow-rose-950/60',
     lightBadge: 'bg-rose-50 text-rose-600 border-rose-200',
     glowColor: '#EC4899',
   },
   'تكنولوجيا التعليم': {
-    girlsIcon: '🌸 💻',
+    charm: '🌸',
     badgeTag: 'ديجيتال وتطوير 🌸',
     darkBadge: 'bg-violet-500/20 text-violet-300 border-violet-500/40 shadow-sm shadow-violet-950/60',
     lightBadge: 'bg-violet-100 text-violet-800 border-violet-200',
     glowColor: '#6366F1',
   },
   'إدارة المعرفة': {
-    girlsIcon: '☕ 📚',
+    charm: '☕',
     badgeTag: 'تنظيم ونوتس ☕',
     darkBadge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm shadow-yellow-950/60',
     lightBadge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     glowColor: '#EAB308',
   },
   'فلسفة وتاريخ الرياضيات': {
-    girlsIcon: '✨ 🏛️',
+    charm: '✨',
     badgeTag: 'علماء وتاريخ ✨',
     darkBadge: 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-sm shadow-teal-950/60',
     lightBadge: 'bg-teal-100 text-teal-800 border-teal-200',
@@ -736,7 +736,7 @@ export default function Home() {
             {filteredSubjects.map((sub) => {
               const isActive = sub.id === activeSubjectId;
               const style = SUBJECT_THEME_STYLES[sub.name] || {
-                girlsIcon: `🌸 ${sub.icon || '📚'}`,
+                charm: '🌸',
                 badgeTag: 'مقرر دراسي 🌸',
                 darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
                 lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
@@ -781,8 +781,9 @@ export default function Home() {
                   )}
 
                   <div>
+                  <div className="relative w-12 h-12 mb-3">
                     <div
-                      className={`w-11 h-11 rounded-2xl border flex items-center justify-center mb-3 font-bold text-lg shadow-sm transition-transform duration-200 group-hover:scale-105 ${
+                      className={`w-12 h-12 rounded-2xl border flex items-center justify-center font-bold text-xl shadow-sm transition-transform duration-200 group-hover:scale-105 select-none leading-none ${
                         isGirls
                           ? isDark ? style.darkBadge : style.lightBadge
                           : 'border-slate-300 dark:border-slate-700'
@@ -793,8 +794,22 @@ export default function Home() {
                         color: 'var(--accent-primary)',
                       } : undefined}
                     >
-                      {isGirls ? style.girlsIcon : (sub.icon || sub.name.slice(0, 2))}
+                      <span className="flex items-center justify-center">{sub.icon || sub.name.slice(0, 2)}</span>
                     </div>
+
+                    {/* Cute Girl Charm Sticker (pinned perfectly at top-right corner) */}
+                    {isGirls && (
+                      <div
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
+                        style={{
+                          backgroundColor: isDark ? '#28162F' : '#FFFFFF',
+                          borderColor: isDark ? 'rgba(255, 101, 132, 0.5)' : '#F2CBD5',
+                        }}
+                      >
+                        {style.charm}
+                      </div>
+                    )}
+                  </div>
                     <h4 className="font-bold text-sm sm:text-base line-clamp-2 leading-snug" style={{ color: 'var(--text-primary)' }}>
                       {sub.name}
                     </h4>
@@ -847,21 +862,32 @@ export default function Home() {
             style={{ borderColor: 'var(--border-subtle)' }}
           >
             <div className="flex items-center gap-3">
-              <div
-                style={{
-                  backgroundColor: isGirls 
-                    ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC')
-                    : 'var(--bg-surface-elevated)',
-                  borderColor: isGirls 
-                    ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5')
-                    : 'var(--border-prominent)',
-                  color: isGirls ? (isDark ? '#FF87A2' : '#C46D82') : 'var(--accent-primary)',
-                }}
-                className="w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm shrink-0"
-              >
-                {isGirls 
-                  ? (SUBJECT_THEME_STYLES[activeSubject?.name || '']?.girlsIcon || '🎀') 
-                  : (activeSubject?.icon || '📐')}
+              <div className="relative w-12 h-12 shrink-0">
+                <div
+                  style={{
+                    backgroundColor: isGirls 
+                      ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC')
+                      : 'var(--bg-surface-elevated)',
+                    borderColor: isGirls 
+                      ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5')
+                      : 'var(--border-prominent)',
+                    color: isGirls ? (isDark ? '#FF87A2' : '#C46D82') : 'var(--accent-primary)',
+                  }}
+                  className="w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm select-none leading-none"
+                >
+                  <span className="flex items-center justify-center">{activeSubject?.icon || '📐'}</span>
+                </div>
+                {isGirls && (
+                  <div
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
+                    style={{
+                      backgroundColor: isDark ? '#28162F' : '#FFFFFF',
+                      borderColor: isDark ? 'rgba(255, 101, 132, 0.5)' : '#F2CBD5',
+                    }}
+                  >
+                    {SUBJECT_THEME_STYLES[activeSubject?.name || '']?.charm || '🎀'}
+                  </div>
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2">
