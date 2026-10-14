@@ -50,50 +50,60 @@ class TelegramStorageService:
 
         field_name = "audio" if action == "sendAudio" else ("video" if action == "sendVideo" else "document")
 
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            with open(file_path, "rb") as f:
-                files = {field_name: (file_path.name, f)}
-                data = {
-                    "chat_id": self.channel_id,
-                    "caption": caption[:1024]
-                }
-                response = await client.post(url, data=data, files=files)
-                res_json = response.json()
+        last_error = None
+        for attempt in range(1, 4):
+            try:
+                async with httpx.AsyncClient(timeout=300.0) as client:
+                    with open(file_path, "rb") as f:
+                        files = {field_name: (file_path.name, f)}
+                        data = {
+                            "chat_id": self.channel_id,
+                            "caption": caption[:1024]
+                        }
+                        response = await client.post(url, data=data, files=files)
+                        res_json = response.json()
 
-                if not res_json.get("ok"):
-                    # Fallback to local on API error
-                    target_dir = settings.MEDIA_DIR / asset_type
-                    target_dir.mkdir(parents=True, exist_ok=True)
-                    target_file = target_dir / file_path.name
-                    shutil.copy2(file_path, target_file)
-                    return {
-                        "storage_mode": "local_fallback",
-                        "local_file_path": str(target_file),
-                        "telegram_file_id": None,
-                        "telegram_message_id": None,
-                        "file_size": file_size,
-                        "warning": res_json.get("description")
-                    }
+                        if not res_json.get("ok"):
+                            last_error = res_json.get("description")
+                            await asyncio.sleep(2 * attempt)
+                            continue
 
-                result = res_json["result"]
-                msg_id = result["message_id"]
+                        result = res_json["result"]
+                        msg_id = result["message_id"]
 
-                # Extract file_id
-                file_id = None
-                if "audio" in result:
-                    file_id = result["audio"]["file_id"]
-                elif "video" in result:
-                    file_id = result["video"]["file_id"]
-                elif "document" in result:
-                    file_id = result["document"]["file_id"]
+                        # Extract file_id
+                        file_id = None
+                        if "audio" in result:
+                            file_id = result["audio"]["file_id"]
+                        elif "video" in result:
+                            file_id = result["video"]["file_id"]
+                        elif "document" in result:
+                            file_id = result["document"]["file_id"]
 
-                return {
-                    "storage_mode": "telegram",
-                    "local_file_path": str(file_path),
-                    "telegram_file_id": file_id,
-                    "telegram_message_id": msg_id,
-                    "file_size": file_size,
-                }
+                        return {
+                            "storage_mode": "telegram",
+                            "local_file_path": str(file_path),
+                            "telegram_file_id": file_id,
+                            "telegram_message_id": msg_id,
+                            "file_size": file_size,
+                        }
+            except Exception as e:
+                last_error = str(e)
+                await asyncio.sleep(3 * attempt)
+
+        # Fallback to local on API error or network exception
+        target_dir = settings.MEDIA_DIR / asset_type
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_file = target_dir / file_path.name
+        shutil.copy2(file_path, target_file)
+        return {
+            "storage_mode": "local_fallback",
+            "local_file_path": str(target_file),
+            "telegram_file_id": None,
+            "telegram_message_id": None,
+            "file_size": file_size,
+            "warning": last_error
+        }
 
     async def get_direct_download_url(self, file_id: str) -> str | None:
         """Retrieves direct streaming URL from Telegram for a given file_id."""

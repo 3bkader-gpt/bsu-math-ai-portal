@@ -180,6 +180,7 @@ class NotebookLMPipeline:
             # 4. Trigger Text Generations with --wait for completion
             lecture.stage_info = "جاري توليد الكويز والملخص والبطاقات الذكية..."
             db.commit()
+            db.close()
 
             quiz_cmd = ["notebooklm", "generate", "quiz", "اختبار شامل مع تلميحات وشرح الإجابات", "--quantity", "more", "--wait", "--retry", "3", "-n", nb_id]
             report_cmd = ["notebooklm", "generate", "report", "--format", "study-guide", "--wait", "--retry", "3", "-n", nb_id]
@@ -194,8 +195,11 @@ class NotebookLMPipeline:
             )
 
             # 5. Wait for and Download Artifacts
-            lecture.stage_info = "جاري تحميل وتخزين المخرجات..."
-            db.commit()
+            db = db_factory()
+            lecture = db.query(Lecture).filter(Lecture.id == lecture_id).first()
+            if lecture:
+                lecture.stage_info = "جاري تحميل وتخزين المخرجات..."
+                db.commit()
 
             # Download Quiz
             quiz_file = temp_dir / "quiz.md"
@@ -263,14 +267,26 @@ class NotebookLMPipeline:
             )
 
         except Exception as e:
-
             logger.exception("Pipeline failed")
-            lecture.status = "failed"
-            lecture.stage_info = "فشلت المعالجة"
-            lecture.error_message = str(e)
-            db.commit()
+            try:
+                db.rollback()
+            except Exception:
+                pass
+            try:
+                with db_factory() as err_db:
+                    lec = err_db.query(Lecture).filter(Lecture.id == lecture_id).first()
+                    if lec:
+                        lec.status = "failed"
+                        lec.stage_info = "فشلت المعالجة"
+                        lec.error_message = str(e)
+                        err_db.commit()
+            except Exception as dbe:
+                logger.error(f"Failed to record failure in DB: {dbe}")
         finally:
-            db.close()
+            try:
+                db.close()
+            except Exception:
+                pass
 
     @classmethod
     async def fetch_media_in_background(
