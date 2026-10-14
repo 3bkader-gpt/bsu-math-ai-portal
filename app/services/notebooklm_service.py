@@ -10,16 +10,21 @@ from app.services.telegram_storage import telegram_storage
 
 logger = logging.getLogger("notebooklm_pipeline")
 
+import os
+
 def run_cmd(args: list[str]) -> tuple[int, str]:
-    """Helper to run synchronous subprocess command cleanly."""
+    """Helper to run synchronous subprocess command cleanly with headless reauth enabled."""
     try:
+        env = os.environ.copy()
+        env["NOTEBOOKLM_HEADLESS_REAUTH"] = "1"
         proc = subprocess.run(
             args,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             encoding="utf-8",
-            errors="replace"
+            errors="replace",
+            env=env
         )
         return proc.returncode, proc.stdout
     except Exception as e:
@@ -40,7 +45,14 @@ class NotebookLMPipeline:
         if code == 0:
             try:
                 data = json.loads(out)
-                return data.get("id") or data.get("notebook_id")
+                nb_id = (
+                    data.get("id")
+                    or data.get("notebook_id")
+                    or data.get("active_notebook_id")
+                    or (data.get("notebook", {}).get("id") if isinstance(data.get("notebook"), dict) else None)
+                )
+                if nb_id:
+                    return nb_id
             except Exception:
                 pass
         # Fallback regex extraction if json flag wasn't parsed
