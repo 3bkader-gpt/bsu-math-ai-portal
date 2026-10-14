@@ -205,10 +205,12 @@ class NotebookLMPipeline:
             quiz_file = temp_dir / "quiz.md"
             await run_cmd_async(["notebooklm", "download", "quiz", "--format", "markdown", str(quiz_file), "--force", "-n", nb_id])
             if quiz_file.exists():
+                txt = quiz_file.read_text(encoding="utf-8", errors="replace")
                 cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "📝 كويز تفاعلي وبنك الأسئلة الكامل")
                 res = await telegram_storage.upload_asset(quiz_file, "quiz_md", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="quiz_md", title="كويز المحاضرة",
+                    content_text=txt,
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
                     telegram_message_id=res.get("telegram_message_id"), file_size_bytes=res.get("file_size")
                 ))
@@ -217,10 +219,12 @@ class NotebookLMPipeline:
             report_file = temp_dir / "study_guide.md"
             await run_cmd_async(["notebooklm", "download", "report", str(report_file), "--force", "-n", nb_id])
             if report_file.exists():
+                txt = report_file.read_text(encoding="utf-8", errors="replace")
                 cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "📄 ملخص ودليل دراسي شامل وتأسيسي")
                 res = await telegram_storage.upload_asset(report_file, "study_guide_md", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="study_guide_md", title="دليل دراسي وملخص",
+                    content_text=txt,
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
                     telegram_message_id=res.get("telegram_message_id"), file_size_bytes=res.get("file_size")
                 ))
@@ -229,10 +233,12 @@ class NotebookLMPipeline:
             cards_file = temp_dir / "flashcards.md"
             await run_cmd_async(["notebooklm", "download", "flashcards", "--format", "markdown", str(cards_file), "--force", "-n", nb_id])
             if cards_file.exists():
+                txt = cards_file.read_text(encoding="utf-8", errors="replace")
                 cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "🃏 بطاقات استذكار ذكية (Flashcards)")
                 res = await telegram_storage.upload_asset(cards_file, "flashcards_md", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="flashcards_md", title="بطاقات تعليمية",
+                    content_text=txt,
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
                     telegram_message_id=res.get("telegram_message_id"), file_size_bytes=res.get("file_size")
                 ))
@@ -241,10 +247,12 @@ class NotebookLMPipeline:
             map_file = temp_dir / "mind_map.json"
             await run_cmd_async(["notebooklm", "download", "mind-map", str(map_file), "--force", "-n", nb_id])
             if map_file.exists():
+                txt = map_file.read_text(encoding="utf-8", errors="replace")
                 cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "🧠 خريطة ذهنية ومفاهيمية (Mind Map)")
                 res = await telegram_storage.upload_asset(map_file, "mind_map_json", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="mind_map_json", title="خريطة ذهنية",
+                    content_text=txt,
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
                     telegram_message_id=res.get("telegram_message_id"), file_size_bytes=res.get("file_size")
                 ))

@@ -244,11 +244,13 @@ async def process_single_task(task_info: dict, index: int, total: int):
         if map_file.exists():
             cap = make_telegram_caption(subject_name, lec_num, title, doctor, "🧠 خريطة ذهنية ومفاهيمية (Mind Map)")
             res_m = await telegram_storage.upload_asset(map_file, "mind_map_json", cap)
+            txt_map = map_file.read_text(encoding="utf-8", errors="replace")
             with SessionLocal() as db:
                 db.add(MediaAsset(
                     lecture_id=lecture_id,
                     asset_type="mind_map_json",
                     title="خريطة ذهنية",
+                    content_text=txt_map,
                     local_file_path=res_m.get("local_file_path"),
                     telegram_file_id=res_m.get("telegram_file_id"),
                     telegram_message_id=res_m.get("telegram_message_id"),

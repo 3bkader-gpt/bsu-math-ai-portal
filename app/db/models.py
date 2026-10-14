@@ -49,6 +49,7 @@ class MediaAsset(Base):
     telegram_message_id: Mapped[Optional[int]] = mapped_column(nullable=True)
     file_size_bytes: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     duration_seconds: Mapped[Optional[int]] = mapped_column(nullable=True)
+    content_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     lecture: Mapped["Lecture"] = relationship("Lecture", back_populates="assets")

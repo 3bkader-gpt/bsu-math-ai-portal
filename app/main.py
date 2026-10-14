@@ -31,6 +31,7 @@ allowed_origins = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://bsu-math-ai-portal.pages.dev",
 ]
 custom_origins = getattr(settings, "ALLOWED_ORIGINS", "") or ""
 if custom_origins:
@@ -39,6 +40,7 @@ if custom_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.pages\.dev",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

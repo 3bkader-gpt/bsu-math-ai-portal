@@ -32,7 +32,12 @@ import {
   BookMarked,
   Clock
 } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
+import { getApiUrl, getApiBaseUrl } from '@/lib/api';
+import { 
+  getDirectSupabaseSubjects, 
+  getDirectSupabaseLectures, 
+  getDirectSupabaseBundle 
+} from '@/lib/supabase';
 
 interface Subject {
   id: number;
@@ -303,8 +308,9 @@ interface LectureAsset {
   id: number;
   asset_type: string;
   title: string;
-  file_size_bytes: number;
+  file_size_bytes?: number | null;
   has_telegram: boolean;
+  content_text?: string | null;
   stream_url: string;
 }
 
@@ -312,19 +318,20 @@ interface Lecture {
   id: number;
   lecture_num: number;
   title: string;
-  doctor?: string;
+  doctor?: string | null;
   status: string;
-  stage_info: string;
+  stage_info?: string | null;
   created_at: string;
   assets_count: number;
 }
 
 interface LectureBundle {
-  lecture_id: number;
+  id?: number;
+  lecture_id?: number;
   lecture_num: number;
   title: string;
-  doctor?: string;
-  subject_name: string;
+  doctor?: string | null;
+  subject_name?: string;
   assets: LectureAsset[];
 }
 
@@ -421,10 +428,9 @@ export default function Home() {
     });
   };
 
-  // 1. Fetch Subjects on Mount
+  // 1. Fetch Subjects on Mount (Supabase Edge First <100ms)
   useEffect(() => {
-    fetch(getApiUrl('/api/subjects'))
-      .then(res => res.json())
+    getDirectSupabaseSubjects()
       .then(data => {
         const unified = mergeSubjects(data);
         setSubjects(unified);
@@ -436,15 +442,29 @@ export default function Home() {
         }
       })
       .catch(err => {
-        console.error('Error loading subjects:', err);
-        // Fallback to offline canonical list so the app is 100% resilient
-        const fallbackUnified = mergeSubjects([]);
-        setSubjects(fallbackUnified);
-        setActiveSubjectId(fallbackUnified[0].id);
+        console.warn('Supabase edge subjects fetch failed, falling back to tunnel:', err);
+        fetch(getApiUrl('/api/subjects'))
+          .then(res => res.json())
+          .then(data => {
+            const unified = mergeSubjects(data);
+            setSubjects(unified);
+            const diff = unified.find((s) => s.name === 'هندسة تفاضلية');
+            if (diff) {
+              setActiveSubjectId(diff.id);
+            } else if (unified.length > 0) {
+              setActiveSubjectId(unified[0].id);
+            }
+          })
+          .catch(apiErr => {
+            console.error('All subjects fetch failed, using offline canonical:', apiErr);
+            const fallbackUnified = mergeSubjects([]);
+            setSubjects(fallbackUnified);
+            setActiveSubjectId(fallbackUnified[0].id);
+          });
       });
   }, []);
 
-  // 2. Fetch Subject Lectures when activeSubjectId changes
+  // 2. Fetch Subject Lectures when activeSubjectId changes (Supabase Edge First)
   useEffect(() => {
     if (!activeSubjectId) return;
     const currentSubj = subjects.find(s => s.id === activeSubjectId);
@@ -454,15 +474,15 @@ export default function Home() {
       setSelectedDoctor('الكل');
     }
     setIsLoadingLectures(true);
-    fetch(getApiUrl(`/api/subjects/${activeSubjectId}/lectures`))
-      .then(res => {
-        if (!res.ok) return [];
-        return res.json();
-      })
+
+    getDirectSupabaseLectures(activeSubjectId)
       .then(data => setSubjectLectures(Array.isArray(data) ? data : []))
       .catch(err => {
-        console.error('Error loading lectures:', err);
-        setSubjectLectures([]);
+        console.warn('Direct Supabase lectures failed, falling back to tunnel:', err);
+        fetch(getApiUrl(`/api/subjects/${activeSubjectId}/lectures`))
+          .then(res => (res.ok ? res.json() : []))
+          .then(data => setSubjectLectures(Array.isArray(data) ? data : []))
+          .catch(() => setSubjectLectures([]));
       })
       .finally(() => setIsLoadingLectures(false));
   }, [activeSubjectId, subjects]);
@@ -554,7 +574,7 @@ export default function Home() {
     return cards;
   };
 
-  // 3. Open Lecture Modal and fetch bundle details
+  // 3. Open Lecture Modal and fetch bundle details (Supabase Edge First)
   const openLecture = async (lectureId: number) => {
     setIsLoadingBundle(true);
     setIsPlaying(false);
@@ -567,33 +587,53 @@ export default function Home() {
     setFlashcards([]);
 
     try {
-      const res = await fetch(getApiUrl(`/api/lectures/${lectureId}`));
-      if (res.ok) {
-        const bundle = await res.json();
+      let bundle: any = null;
+      try {
+        bundle = await getDirectSupabaseBundle(lectureId, getApiBaseUrl());
+      } catch (err) {
+        console.warn('Direct Supabase bundle fetch failed, falling back to tunnel:', err);
+        const res = await fetch(getApiUrl(`/api/lectures/${lectureId}`));
+        if (res.ok) bundle = await res.json();
+      }
+
+      if (bundle && bundle.assets) {
         setActiveBundle(bundle);
 
-        // Fetch quiz
+        // Instant Parse if content_text is cached directly in Supabase
         const quizAsset = bundle.assets.find((a: any) => a.asset_type === 'quiz_md');
         if (quizAsset) {
-          fetch(getApiUrl(quizAsset.stream_url))
-            .then(r => r.text())
-            .then(text => setQuizQuestions(parseQuizMarkdown(text)));
+          if (quizAsset.content_text) {
+            setQuizQuestions(parseQuizMarkdown(quizAsset.content_text));
+          } else if (quizAsset.stream_url) {
+            fetch(getApiUrl(quizAsset.stream_url))
+              .then(r => r.text())
+              .then(text => setQuizQuestions(parseQuizMarkdown(text)))
+              .catch(console.error);
+          }
         }
 
-        // Fetch study guide
         const guideAsset = bundle.assets.find((a: any) => a.asset_type === 'study_guide_md');
         if (guideAsset) {
-          fetch(getApiUrl(guideAsset.stream_url))
-            .then(r => r.text())
-            .then(text => setGuideText(text));
+          if (guideAsset.content_text) {
+            setGuideText(guideAsset.content_text);
+          } else if (guideAsset.stream_url) {
+            fetch(getApiUrl(guideAsset.stream_url))
+              .then(r => r.text())
+              .then(text => setGuideText(text))
+              .catch(console.error);
+          }
         }
 
-        // Fetch flashcards
         const cardsAsset = bundle.assets.find((a: any) => a.asset_type === 'flashcards_md');
         if (cardsAsset) {
-          fetch(getApiUrl(cardsAsset.stream_url))
-            .then(r => r.text())
-            .then(text => setFlashcards(parseFlashcardsMarkdown(text)));
+          if (cardsAsset.content_text) {
+            setFlashcards(parseFlashcardsMarkdown(cardsAsset.content_text));
+          } else if (cardsAsset.stream_url) {
+            fetch(getApiUrl(cardsAsset.stream_url))
+              .then(r => r.text())
+              .then(text => setFlashcards(parseFlashcardsMarkdown(text)))
+              .catch(console.error);
+          }
         }
       }
     } catch (e) {
@@ -1322,7 +1362,7 @@ export default function Home() {
                           {audioAsset.title}
                         </h4>
                         <p className="text-sm font-medium mt-1.5" style={{ color: 'var(--text-muted)' }}>
-                          {content.audioTab.descriptionFormat.replace('{size}', (audioAsset.file_size_bytes / (1024*1024)).toFixed(1))}
+                          {content.audioTab.descriptionFormat.replace('{size}', (((audioAsset.file_size_bytes || 0) / (1024*1024)).toFixed(1)))}
                         </p>
                       </div>
 
@@ -1427,7 +1467,7 @@ export default function Home() {
                         style={{ backgroundColor: 'var(--bg-surface-elevated)', color: 'var(--text-muted)' }}
                       >
                         <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{videoAsset.title}</span>
-                        <span>{content.videoTab.fileSizeFormat.replace('{size}', (videoAsset.file_size_bytes / (1024*1024)).toFixed(1))}</span>
+                        <span>{content.videoTab.fileSizeFormat.replace('{size}', (((videoAsset.file_size_bytes || 0) / (1024*1024)).toFixed(1)))}</span>
                       </div>
                     </div>
                   ) : (

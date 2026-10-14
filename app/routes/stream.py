@@ -44,20 +44,30 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
 
+    # 1. If content_text is cached in database, return text directly
+    if asset.content_text:
+        return Response(content=asset.content_text, media_type="text/plain; charset=utf-8")
+
+    # 2. If telegram_file_id is available, redirect (307) immediately to Telegram's global CDN
+    if asset.telegram_file_id:
+        tg_url = await telegram_storage.get_direct_download_url(asset.telegram_file_id)
+        if tg_url:
+            return Response(status_code=307, headers={"Location": tg_url})
+
     local_path = Path(asset.local_file_path) if asset.local_file_path else None
 
     # Validate path safety
     if local_path and not is_safe_path(local_path):
         raise HTTPException(status_code=403, detail="Access to specified file path is forbidden")
 
-    # If it's markdown or json, we can serve it as text
+    # If it's markdown or json on disk, serve as text
     if asset.asset_type in {"quiz_md", "study_guide_md", "flashcards_md", "mind_map_json"}:
         if local_path and local_path.exists():
             with open(local_path, "r", encoding="utf-8", errors="replace") as f:
                 content = f.read()
             return Response(content=content, media_type="text/plain; charset=utf-8")
 
-    # Check if local file exists
+    # 3. Fallback to local file streaming only if Telegram is unavailable
     if local_path and local_path.exists():
         file_size = local_path.stat().st_size
         range_header = request.headers.get("Range")

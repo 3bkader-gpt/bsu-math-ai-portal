@@ -82,6 +82,7 @@ def get_lecture_bundle(lecture_id: int, db: Session = Depends(get_db)):
             "title": a.title,
             "file_size_bytes": a.file_size_bytes,
             "has_telegram": bool(a.telegram_file_id),
+            "content_text": a.content_text,
             "stream_url": f"/api/stream/{a.id}"
         })
 

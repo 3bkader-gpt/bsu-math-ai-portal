@@ -43,6 +43,8 @@ temp/
 COLOURS/
 supabase/.temp/
 *.log
+*.mp4
+*.m4a
 
 # Frontend (Node / Next.js)
 frontend/node_modules/

@@ -1,0 +1,152 @@
+/**
+ * Direct High-Speed Supabase Client for BSU Mathematics Portal.
+ * Enables ultra-fast edge loading (<100ms) with zero dependency on the local machine
+ * for all catalog queries, lecture listings, quizzes, guides, and flashcards.
+ */
+
+export const SUPABASE_URL = 'https://cjmlnpdtfclzcvehebsv.supabase.co';
+export const SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbWxucGR0ZmNsemN2ZWhlYnN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MjUyMDIsImV4cCI6MjEwNzQwMTIwMn0.NipIyq1IfvcjXiI9iL4KjIq-B-OK60AI0guQZz5PB8k';
+
+const HEADERS = {
+  apikey: SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  Accept: 'application/json',
+};
+
+export interface SupabaseSubject {
+  id: number;
+  name: string;
+  has_prompt: boolean;
+  lecture_count: number;
+  doctors: string[];
+}
+
+export interface SupabaseLectureItem {
+  id: number;
+  lecture_num: number;
+  title: string;
+  doctor: string | null;
+  status: string;
+  stage_info: string | null;
+  created_at: string;
+  assets_count: number;
+}
+
+export interface SupabaseMediaAsset {
+  id: number;
+  asset_type: string;
+  title: string;
+  file_size_bytes: number | null;
+  has_telegram: boolean;
+  telegram_file_id: string | null;
+  content_text: string | null;
+  stream_url: string;
+}
+
+export interface SupabaseLectureBundle {
+  id: number;
+  subject_id: number;
+  subject_name?: string;
+  lecture_num: number;
+  title: string;
+  doctor: string | null;
+  status: string;
+  stage_info: string | null;
+  error_message: string | null;
+  assets: SupabaseMediaAsset[];
+  created_at: string;
+}
+
+/**
+ * Fetches all academic subjects directly from Supabase edge CDN.
+ */
+export async function getDirectSupabaseSubjects(): Promise<SupabaseSubject[]> {
+  const [subRes, lecRes] = await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path`, { headers: HEADERS }),
+    fetch(`${SUPABASE_URL}/rest/v1/lectures?select=id,subject_id,doctor,status`, { headers: HEADERS }),
+  ]);
+
+  if (!subRes.ok) throw new Error(`Supabase subjects error: ${subRes.statusText}`);
+  const subjects = await subRes.json();
+  const lectures = lecRes.ok ? await lecRes.json() : [];
+
+  return subjects.map((s: any) => {
+    const subLecs = lectures.filter((l: any) => l.subject_id === s.id);
+    const docs = Array.from(new Set(subLecs.map((l: any) => l.doctor).filter(Boolean))) as string[];
+    return {
+      id: s.id,
+      name: s.name,
+      has_prompt: Boolean(s.prompt_path),
+      lecture_count: subLecs.length,
+      doctors: docs,
+    };
+  });
+}
+
+/**
+ * Fetches lectures for a given subject directly from Supabase edge CDN.
+ */
+export async function getDirectSupabaseLectures(
+  subjectId: number,
+  doctor?: string
+): Promise<SupabaseLectureItem[]> {
+  let url = `${SUPABASE_URL}/rest/v1/lectures?subject_id=eq.${subjectId}&select=id,lecture_num,title,doctor,status,stage_info,created_at,media_assets(id)&order=lecture_num.asc`;
+  if (doctor && doctor !== 'الكل' && doctor.trim()) {
+    url += `&doctor=eq.${encodeURIComponent(doctor.trim())}`;
+  }
+
+  const res = await fetch(url, { headers: HEADERS });
+  if (!res.ok) throw new Error(`Supabase lectures error: ${res.statusText}`);
+  const data = await res.json();
+
+  return data.map((l: any) => ({
+    id: l.id,
+    lecture_num: l.lecture_num,
+    title: l.title,
+    doctor: l.doctor,
+    status: l.status,
+    stage_info: l.stage_info,
+    created_at: l.created_at,
+    assets_count: l.media_assets ? l.media_assets.length : 0,
+  }));
+}
+
+/**
+ * Fetches full lecture details with all media assets directly from Supabase edge CDN.
+ */
+export async function getDirectSupabaseBundle(
+  lectureId: number,
+  fallbackBaseUrl: string
+): Promise<SupabaseLectureBundle> {
+  const url = `${SUPABASE_URL}/rest/v1/lectures?id=eq.${lectureId}&select=id,subject_id,lecture_num,title,doctor,status,stage_info,error_message,created_at,media_assets(*)`;
+  const res = await fetch(url, { headers: HEADERS });
+  if (!res.ok) throw new Error(`Supabase bundle error: ${res.statusText}`);
+  const list = await res.json();
+  if (!list || list.length === 0) throw new Error('Lecture not found in Supabase');
+
+  const l = list[0];
+  const assets: SupabaseMediaAsset[] = (l.media_assets || []).map((a: any) => ({
+    id: a.id,
+    asset_type: a.asset_type,
+    title: a.title,
+    file_size_bytes: a.file_size_bytes,
+    has_telegram: Boolean(a.telegram_file_id),
+    telegram_file_id: a.telegram_file_id,
+    content_text: a.content_text || null,
+    stream_url: `${fallbackBaseUrl}/api/stream/${a.id}`,
+  }));
+
+  return {
+    id: l.id,
+    subject_id: l.subject_id,
+    lecture_num: l.lecture_num,
+    title: l.title,
+    doctor: l.doctor,
+    status: l.status,
+    stage_info: l.stage_info,
+    error_message: l.error_message,
+    assets,
+    created_at: l.created_at,
+  };
+}
