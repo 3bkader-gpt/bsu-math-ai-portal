@@ -90,7 +90,7 @@ export const CANONICAL_COURSES: CanonicalCourse[] = [
   {
     canonicalName: 'كهربية ومغناطيسية وتيار متردد',
     doctor: 'د/ حسن سيد',
-    icon: '⚡',
+    icon: '🧲',
     aliases: ['كهربيه مغناطيسية وتيار متردد', 'كهربية ومغناطيسية', 'كهربيه'],
     fallbackId: 8,
   },
@@ -158,8 +158,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
     lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
     glowColor: '#FB7185',
-    boysCharm: '⚡',
-    boysBadgeTag: 'منحنيات وفضاء ⚡',
+    boysCharm: '',
+    boysBadgeTag: 'منحنيات وفضاء',
     boysDarkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
     boysLightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
     boysGlowColor: '#06B6D4',
@@ -170,8 +170,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-950/60',
     lightBadge: 'bg-amber-100 text-amber-800 border-amber-200',
     glowColor: '#F59E0B',
-    boysCharm: '🧠',
-    boysBadgeTag: 'منطق وبرهان 🧠',
+    boysCharm: '',
+    boysBadgeTag: 'أعداد ومنطق',
     boysDarkBadge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 shadow-sm shadow-indigo-950/60',
     boysLightBadge: 'bg-indigo-100 text-indigo-800 border-indigo-200',
     boysGlowColor: '#6366F1',
@@ -182,8 +182,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40 shadow-sm shadow-fuchsia-950/60',
     lightBadge: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
     glowColor: '#D946EF',
-    boysCharm: '🔥',
-    boysBadgeTag: 'تكاملات حيتان 🔥',
+    boysCharm: '',
+    boysBadgeTag: 'معادلات وتفاضل',
     boysDarkBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-950/60',
     boysLightBadge: 'bg-amber-100 text-amber-800 border-amber-200',
     boysGlowColor: '#F59E0B',
@@ -194,8 +194,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-sm shadow-pink-950/60',
     lightBadge: 'bg-pink-100 text-pink-700 border-pink-200',
     glowColor: '#F43F5E',
-    boysCharm: '🚀',
-    boysBadgeTag: 'سرعة وتسارع 🚀',
+    boysCharm: '',
+    boysBadgeTag: 'سرعة وتسارع',
     boysDarkBadge: 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-sm shadow-blue-950/60',
     boysLightBadge: 'bg-blue-100 text-blue-800 border-blue-200',
     boysGlowColor: '#3B82F6',
@@ -206,8 +206,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-950/60',
     lightBadge: 'bg-purple-100 text-purple-800 border-purple-200',
     glowColor: '#A855F7',
-    boysCharm: '⚙️',
-    boysBadgeTag: 'اتزان واحتكاك ⚙️',
+    boysCharm: '',
+    boysBadgeTag: 'اتزان وقوى',
     boysDarkBadge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-950/60',
     boysLightBadge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     boysGlowColor: '#10B981',
@@ -218,8 +218,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
     lightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
     glowColor: '#06B6D4',
-    boysCharm: '⚡',
-    boysBadgeTag: 'تيار ومجالات ⚡',
+    boysCharm: '',
+    boysBadgeTag: 'تيار ومجالات',
     boysDarkBadge: 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-sm shadow-teal-950/60',
     boysLightBadge: 'bg-teal-100 text-teal-800 border-teal-200',
     boysGlowColor: '#14B8A6',
@@ -230,8 +230,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-950/60',
     lightBadge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     glowColor: '#10B981',
-    boysCharm: '🔬',
-    boysBadgeTag: 'معمل وتجارب 🔬',
+    boysCharm: '',
+    boysBadgeTag: 'معمل وتجارب',
     boysDarkBadge: 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm shadow-sky-950/60',
     boysLightBadge: 'bg-sky-100 text-sky-800 border-sky-200',
     boysGlowColor: '#0EA5E9',
@@ -242,8 +242,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-orange-500/20 text-orange-300 border-orange-500/40 shadow-sm shadow-orange-950/60',
     lightBadge: 'bg-orange-100 text-orange-800 border-orange-200',
     glowColor: '#F97316',
-    boysCharm: '🏆',
-    boysBadgeTag: 'بيزنس وستارتب 🏆',
+    boysCharm: '',
+    boysBadgeTag: 'بيزنس ومشاريع',
     boysDarkBadge: 'bg-orange-500/20 text-orange-300 border-orange-500/40 shadow-sm shadow-orange-950/60',
     boysLightBadge: 'bg-orange-100 text-orange-800 border-orange-200',
     boysGlowColor: '#F97316',
@@ -254,8 +254,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-rose-400/20 text-rose-300 border-rose-400/40 shadow-sm shadow-rose-950/60',
     lightBadge: 'bg-rose-50 text-rose-600 border-rose-200',
     glowColor: '#EC4899',
-    boysCharm: '🎯',
-    boysBadgeTag: 'إلقاء وتدريب 🎯',
+    boysCharm: '',
+    boysBadgeTag: 'شرح وتدريب',
     boysDarkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
     boysLightBadge: 'bg-rose-100 text-rose-800 border-rose-200',
     boysGlowColor: '#F43F5E',
@@ -266,8 +266,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-violet-500/20 text-violet-300 border-violet-500/40 shadow-sm shadow-violet-950/60',
     lightBadge: 'bg-violet-100 text-violet-800 border-violet-200',
     glowColor: '#6366F1',
-    boysCharm: '💻',
-    boysBadgeTag: 'ذكاء وتطوير 💻',
+    boysCharm: '',
+    boysBadgeTag: 'ذكاء وتطوير',
     boysDarkBadge: 'bg-violet-500/20 text-violet-300 border-violet-500/40 shadow-sm shadow-violet-950/60',
     boysLightBadge: 'bg-violet-100 text-violet-800 border-violet-200',
     boysGlowColor: '#8B5CF6',
@@ -278,8 +278,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm shadow-yellow-950/60',
     lightBadge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     glowColor: '#EAB308',
-    boysCharm: '🧠',
-    boysBadgeTag: 'سيستم وتنظيم 🧠',
+    boysCharm: '',
+    boysBadgeTag: 'تنظيم ومعرفة',
     boysDarkBadge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm shadow-yellow-950/60',
     boysLightBadge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     boysGlowColor: '#EAB308',
@@ -290,8 +290,8 @@ export const SUBJECT_THEME_STYLES: Record<string, SubjectStyleConfig> = {
     darkBadge: 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-sm shadow-teal-950/60',
     lightBadge: 'bg-teal-100 text-teal-800 border-teal-200',
     glowColor: '#14B8A6',
-    boysCharm: '🏛️',
-    boysBadgeTag: 'فلسفة وعلماء 🏛️',
+    boysCharm: '',
+    boysBadgeTag: 'فلسفة وعلماء',
     boysDarkBadge: 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-950/60',
     boysLightBadge: 'bg-purple-100 text-purple-800 border-purple-200',
     boysGlowColor: '#A855F7',
@@ -701,7 +701,7 @@ export default function Home() {
                   }}
                   className="hidden md:inline-block px-2.5 py-0.5 text-[11px] font-bold rounded-full border shrink-0"
                 >
-                  {isGirls ? "🎀 You're Just A Baby Girl" : '⚡ يا حبيب أخوك • شبابي'}
+                  {isGirls ? "🎀 You're Just A Baby Girl" : 'نسخة الشباب'}
                 </span>
               </div>
               <p className="text-[11px] sm:text-sm font-medium mt-0.5 leading-snug whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
@@ -738,10 +738,7 @@ export default function Home() {
                 <span>مساحتك الرايقة وكل الدلع ليكي • You&apos;re Just A Baby Girl ✨</span>
               </>
             ) : (
-              <>
-                <span className="text-sm">⚡</span>
-                <span>متنشف كده ياض.. رياضة إيه اللي خايف منها، أنت لسه شفت حاجة يا حبيب أخوك 🔥</span>
-              </>
+              <span>انشف ياض.. الرياضة مبترحميش حد، وأنت لسه مشوفتش حاجة.. ادخل ذاكر لا تتسوح!</span>
             )}
           </div>
 
@@ -751,7 +748,7 @@ export default function Home() {
           >
             {isGirls
               ? 'محاضرات الرياضة مشروحة بروقان.. كويزات ونوتس كيوت تظبطلك المذاكرة 🌸'
-              : 'محاضرات الرياضة مشروحة باحتراف.. ريكوردات وفيديوهات وكويزات تفرم المنهج 🔥'}
+              : 'محاضرات الرياضة مشروحة باحتراف.. ريكوردات وفيديوهات وشرح لكل تفصيلة'}
           </h2>
 
           <p
@@ -760,7 +757,7 @@ export default function Home() {
           >
             {isGirls
               ? 'شرح هادي ومبسط يفهمك كل مسألة خطوة بخطوة، مع كويزات كيوت وكروت ونوتس تلملك المنهج وإنتي رايقة ومرتاحة خالص 🎀✨'
-              : 'شرح هندسي يفرم أصل القوانين خطوة بخطوة، مع كويزات تحدي تظبطك.. رياضة إيه اللي تشيل همها ومعاك الزتونة يا حبيب أخوك ⚡🔥'}
+              : 'شرح هندسي عميق يفهمك أصل القوانين خطوة بخطوة، مع كويزات وكروت مراجعة وزتونة تلملك المنهج في وقت قياسي'}
           </p>
 
           <div className="max-w-md mx-auto relative pt-1 sm:pt-2">
@@ -768,7 +765,7 @@ export default function Home() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isGirls ? 'ابحثي عن أي مادة أو دكتور... 🌸 (مثلاً: د/ سيد، هندسة تفاضلية، د/ مروة...)' : 'ابحث عن أي مادة أو دكتور يا وحش... ⚡ (مثلاً: د/ سيد، هندسة تفاضلية، د/ حسين...)'}
+              placeholder={isGirls ? 'ابحثي عن أي مادة أو دكتور... 🌸 (مثلاً: د/ سيد، هندسة تفاضلية، د/ مروة...)' : 'ابحث عن أي مادة أو دكتور... (مثلاً: د/ سيد، هندسة تفاضلية، د/ حسين...)'}
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F2CBD5') : 'var(--border-prominent)',
@@ -789,11 +786,11 @@ export default function Home() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
-                {isGirls ? <span className="text-2xl">🌸</span> : <span className="text-2xl">⚡</span>}
-                <span>{isGirls ? 'مواد الترم الأول' : 'مواد الترم الأول ⚡'} ({filteredSubjects.length} مواد معتمدة)</span>
+                {isGirls && <span className="text-2xl">🌸</span>}
+                <span>مواد الترم الأول ({filteredSubjects.length} مواد معتمدة)</span>
               </h3>
               <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
-                {isGirls ? 'اختاري المادة واستمتعي بالمحاضرات والشرح والزتونة 🎀' : 'اختار المادة وادخل افرم المحاضرات والزتونة والكويزات 🔥'}
+                {isGirls ? 'اختاري المادة واستمتعي بالمحاضرات والشرح والزتونة 🎀' : 'اختار المادة وتصفح المحاضرات والشرح والملخصات'}
               </p>
             </div>
           </div>
@@ -807,8 +804,8 @@ export default function Home() {
                 darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
                 lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
                 glowColor: '#FB7185',
-                boysCharm: '⚡',
-                boysBadgeTag: 'مقرر دراسي ⚡',
+                boysCharm: '',
+                boysBadgeTag: 'مقرر دراسي',
                 boysDarkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
                 boysLightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
                 boysGlowColor: '#06B6D4',
@@ -852,7 +849,7 @@ export default function Home() {
                           color: activeGlowColor,
                         }}
                       >
-                        {isGirls ? '🎀 المختارة' : '⚡ المقرر النشط'}
+                        {isGirls ? '🎀 المختارة' : 'المقرر النشط'}
                       </span>
                     </div>
                   )}
@@ -867,16 +864,18 @@ export default function Home() {
                         <span className="flex items-center justify-center">{sub.icon || sub.name.slice(0, 2)}</span>
                       </div>
 
-                      {/* Floating Charm Sticker (pinned perfectly at top-right corner) */}
-                      <div
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
-                        style={{
-                          backgroundColor: isDark ? (isGirls ? '#28162F' : '#0B132B') : '#FFFFFF',
-                          borderColor: isDark ? `${activeGlowColor}80` : (isGirls ? '#F2CBD5' : '#CBD5E1'),
-                        }}
-                      >
-                        {activeCharm}
-                      </div>
+                      {/* Floating Charm Sticker (Girls only) */}
+                      {isGirls && activeCharm && (
+                        <div
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
+                          style={{
+                            backgroundColor: isDark ? '#28162F' : '#FFFFFF',
+                            borderColor: isDark ? `${activeGlowColor}80` : '#F2CBD5',
+                          }}
+                        >
+                          {activeCharm}
+                        </div>
+                      )}
                     </div>
                     <h4 className="font-bold text-sm sm:text-base line-clamp-2 leading-snug" style={{ color: 'var(--text-primary)' }}>
                       {sub.name}
@@ -890,7 +889,7 @@ export default function Home() {
                           borderColor: `${activeGlowColor}35`,
                         }}
                       >
-                        {sub.canonicalDoctor.includes('مروة') || sub.canonicalDoctor.includes('ايه') || sub.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {sub.canonicalDoctor} {isGirls ? '🌸' : '⚡'}
+                        {sub.canonicalDoctor.includes('مروة') || sub.canonicalDoctor.includes('ايه') || sub.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {sub.canonicalDoctor} {isGirls ? '🌸' : ''}
                       </span>
                     )}
                   </div>
@@ -917,8 +916,8 @@ export default function Home() {
             darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
             lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
             glowColor: '#FB7185',
-            boysCharm: '⚡',
-            boysBadgeTag: 'مقرر دراسي ⚡',
+            boysCharm: '',
+            boysBadgeTag: 'مقرر دراسي',
             boysDarkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
             boysLightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
             boysGlowColor: '#06B6D4',
@@ -950,20 +949,22 @@ export default function Home() {
                     >
                       <span className="flex items-center justify-center">{activeSubject?.icon || '📐'}</span>
                     </div>
-                    <div
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
-                      style={{
-                        backgroundColor: isDark ? (isGirls ? '#28162F' : '#0B132B') : '#FFFFFF',
-                        borderColor: isDark ? `${activeSubjectGlow}80` : (isGirls ? '#F2CBD5' : '#CBD5E1'),
-                      }}
-                    >
-                      {activeSubjectCharm}
-                    </div>
+                    {isGirls && activeSubjectCharm && (
+                      <div
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
+                        style={{
+                          backgroundColor: isDark ? '#28162F' : '#FFFFFF',
+                          borderColor: isDark ? `${activeSubjectGlow}80` : '#F2CBD5',
+                        }}
+                      >
+                        {activeSubjectCharm}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold uppercase tracking-wider" style={{ color: activeSubjectGlow }}>
-                        {isGirls ? '🌸 المادة اللي اخترتيها يا شطورة' : '⚡ المادة اللي بتفرمها دلوقتي يا بطل'}
+                        {isGirls ? '🌸 المادة اللي اخترتيها يا شطورة' : 'المقرر المختار'}
                       </span>
                       {activeSubject?.canonicalDoctor && (
                         <span
@@ -974,20 +975,20 @@ export default function Home() {
                             color: activeSubjectGlow,
                           }}
                         >
-                          {activeSubject.canonicalDoctor.includes('مروة') || activeSubject.canonicalDoctor.includes('ايه') || activeSubject.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {activeSubject.canonicalDoctor} {isGirls ? '🌸' : '⚡'}
+                          {activeSubject.canonicalDoctor.includes('مروة') || activeSubject.canonicalDoctor.includes('ايه') || activeSubject.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {activeSubject.canonicalDoctor} {isGirls ? '🌸' : ''}
                         </span>
                       )}
                     </div>
                     <h3 className="text-2xl sm:text-3xl font-black mt-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                       <span>{activeSubject?.name || content.lecturesSection.defaultPrompt}</span>
-                      {isGirls ? <span className="text-xl">✨</span> : <span className="text-xl">⚡</span>}
+                      {isGirls && <span className="text-xl">✨</span>}
                     </h3>
                   </div>
                 </div>
                 <div className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
-                  {isGirls ? '☕ متاح' : '🔥 متاح'}
-                  <span>{displayedLectures.length} محاضرات</span>
-                  {isGirls ? 'بروقان' : 'جاهزة للفرم 🔥'}
+                  {isGirls && <span>☕</span>}
+                  <span>متاح {displayedLectures.length} محاضرات</span>
+                  {isGirls && <span>بروقان</span>}
                 </div>
               </div>
 
@@ -1077,7 +1078,7 @@ export default function Home() {
                                 }}
                                 className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shrink-0 border shadow-md"
                               >
-                                {isGirls ? `🌸 ${lec.lecture_num}` : `⚡ ${lec.lecture_num}`}
+                                {isGirls ? `🌸 ${lec.lecture_num}` : lec.lecture_num}
                               </div>
                               <div>
                                 {lec.doctor && (
@@ -1090,7 +1091,7 @@ export default function Home() {
                                         color: lec.doctor.includes('مروة') ? '#ec4899' : '#3b82f6',
                                       }}
                                     >
-                                      {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor} {isGirls ? '🌸' : '⚡'}
+                                      {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor} {isGirls ? '🌸' : ''}
                                     </span>
                                   </div>
                                 )}
@@ -1099,8 +1100,8 @@ export default function Home() {
                                 </h4>
                                 <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
                                   {isReady 
-                                    ? (isGirls ? 'المحاضرة جاهزة ومية مية للمذاكرة 🎀✨' : 'المحاضرة جاهزة.. ادخل وافرم المادة ✅🔥') 
-                                    : (isGirls ? 'بنجهزهالك يا شطورة بروقان ⏳' : 'شغالين بنجهزهالك يا وحش ⏳⚡')}
+                                    ? (isGirls ? 'المحاضرة جاهزة ومية مية للمذاكرة 🎀✨' : 'المحاضرة جاهزة للمذاكرة بالكامل') 
+                                    : (isGirls ? 'بنجهزهالك يا شطورة بروقان ⏳' : 'جاري تجهيز المحاضرة')}
                                 </p>
                               </div>
                             </div>
@@ -1113,7 +1114,7 @@ export default function Home() {
                             <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
                               <span className="flex items-center gap-1 text-cyan-400">
                                 <Headphones className="w-4 h-4" />
-                                {isGirls ? 'بودكاست 🌸' : 'بودكاست ⚡'}
+                                {isGirls ? 'بودكاست 🌸' : 'بودكاست'}
                               </span>
                               <span className="flex items-center gap-1 text-purple-400">
                                 <Video className="w-4 h-4" />
@@ -1139,7 +1140,7 @@ export default function Home() {
                               }`}
                             >
                               {isReady ? <Play className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                              <span>{isReady ? (isGirls ? 'افتحي المحاضرة 🎀' : 'ادخل وافرم ⚡') : (isGirls ? 'بتتجهز يا شطورة ⏳' : 'بتتجهز يا وحش ⏳')}</span>
+                              <span>{isReady ? (isGirls ? 'افتحي المحاضرة 🎀' : 'افتح المحاضرة') : (isGirls ? 'بتتجهز يا شطورة ⏳' : 'قيد التجهيز')}</span>
                             </button>
                           </div>
                         </div>
@@ -1182,7 +1183,7 @@ export default function Home() {
                   }}
                   className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-sm sm:text-base shadow-sm shrink-0"
                 >
-                  {isGirls ? `🌸 ${activeBundle.lecture_num}` : `⚡ ${activeBundle.lecture_num}`}
+                  {isGirls ? `🌸 ${activeBundle.lecture_num}` : activeBundle.lecture_num}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -1191,7 +1192,7 @@ export default function Home() {
                     </span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
                     <span className="text-[11px] sm:text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
-                      {isGirls ? 'جاهزة ومية مية 🎀' : 'جاهزة للفرم ⚡'}
+                      {isGirls ? 'جاهزة ومية مية 🎀' : 'المحاضرة متاحة'}
                     </span>
                   </div>
                   <h3 className="text-sm sm:text-2xl font-black mt-0.5 truncate" style={{ color: 'var(--text-primary)' }}>
@@ -1230,7 +1231,7 @@ export default function Home() {
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Headphones className="w-4 h-4" />
-                <span>{isGirls ? '🌸 بودكاست روقان' : '⚡ بودكاست الشرح'}</span>
+                <span>{isGirls ? '🌸 بودكاست روقان' : 'بودكاست الشرح'}</span>
               </button>
 
               <button
@@ -1242,7 +1243,7 @@ export default function Home() {
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Video className="w-4 h-4" />
-                <span>{isGirls ? '🎬 فيديو الشرح' : '🎬 فيديو الشرح 4K'}</span>
+                <span>{isGirls ? '🎬 فيديو الشرح' : 'فيديو الشرح'}</span>
               </button>
 
               <button
@@ -1254,7 +1255,7 @@ export default function Home() {
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <HelpCircle className="w-4 h-4" />
-                <span>{isGirls ? '🧁 اختبري شطارتك' : '🎯 كويز التحدي'} ({quizQuestions.length})</span>
+                <span>{isGirls ? '🧁 اختبري شطارتك' : 'كويز المحاضرة'} ({quizQuestions.length})</span>
               </button>
 
               <button
@@ -1266,7 +1267,7 @@ export default function Home() {
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <FileText className="w-4 h-4" />
-                <span>{isGirls ? '🎀 النوتس والزتونة' : '📄 الدليل والزتونة'}</span>
+                <span>{isGirls ? '🎀 النوتس والزتونة' : 'الدليل والزتونة'}</span>
               </button>
 
               <button
@@ -1278,7 +1279,7 @@ export default function Home() {
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
                 <Layers className="w-4 h-4" />
-                <span>{isGirls ? '🪞 فلاش كاردز' : '💡 فلاش كاردز المراجعة'} ({flashcards.length})</span>
+                <span>{isGirls ? '🪞 فلاش كاردز' : 'كروت المراجعة'} ({flashcards.length})</span>
               </button>
             </div>
 
@@ -1576,8 +1577,8 @@ export default function Home() {
                                       className="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold"
                                     >
                                       {selectedOpt === q.correctIndex 
-                                        ? (isGirls ? 'شطورة يا بطلة! إجابة صحيحة 🎀✨' : 'عاش يا بطل! إجابة صحيحة وفي الجون 🎯🔥') 
-                                        : (isGirls ? 'حاولي تاني يا شطورة، كل غلطة بتعلمنا 🌸' : 'ركز يا وحش، فكر في التلميح وجرب تاني ⚡')}
+                                        ? (isGirls ? 'شطورة يا بطلة! إجابة صحيحة 🎀✨' : 'إجابة صحيحة، أحسنت!') 
+                                        : (isGirls ? 'حاولي تاني يا شطورة، كل غلطة بتعلمنا 🌸' : 'إجابة غير صحيحة.. راجع التلميح وحاول تاني')}
                                     </span>
                                   )}
                               </div>
