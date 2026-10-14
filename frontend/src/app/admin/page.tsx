@@ -18,6 +18,7 @@ import {
   GraduationCap,
   ArrowRight
 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
@@ -28,7 +29,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const handleAutofill = () => {
     setUsername('admin');
-    setPassword('admin123');
+    setPassword('admin_academic_2026');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -37,7 +38,7 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/login', {
+      const res = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

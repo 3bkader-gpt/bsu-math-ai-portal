@@ -5,7 +5,7 @@ from app.config import settings
 from app.db.models import Subject
 
 def sync_subjects_from_filesystem(db: Session):
-    """
+    r"""
     Scans D:\الكليه\subjects as well as D:\الكليه (for active subjects like تعليم ورياده اعمال),
     and registers all academic subject folders into the database.
     """

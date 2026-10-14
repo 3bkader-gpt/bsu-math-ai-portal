@@ -1,8 +1,10 @@
 import asyncio
 import json
 import logging
+import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 from sqlalchemy.orm import Session
 from app.db.models import Lecture, MediaAsset
@@ -10,13 +12,15 @@ from app.services.telegram_storage import telegram_storage
 
 logger = logging.getLogger("notebooklm_pipeline")
 
-import os
-
 def run_cmd(args: list[str]) -> tuple[int, str]:
-    """Helper to run synchronous subprocess command cleanly with headless reauth enabled."""
+    """Helper to run synchronous subprocess command cleanly with automated headless refresh."""
     try:
         env = os.environ.copy()
         env["NOTEBOOKLM_HEADLESS_REAUTH"] = "1"
+        refresh_script = str(Path(r"d:\الكليه\BOT\refresh_notebooklm_auth.py").resolve())
+        env["NOTEBOOKLM_REFRESH_CMD"] = f"python {refresh_script}"
+        env["NOTEBOOKLM_REFRESH_CMD_USE_SHELL"] = "1"
+
         proc = subprocess.run(
             args,
             stdout=subprocess.PIPE,
@@ -26,6 +30,19 @@ def run_cmd(args: list[str]) -> tuple[int, str]:
             errors="replace",
             env=env
         )
+        # If auth/CSRF error, auto-heal and retry once
+        if proc.returncode != 0 and ("CSRF token not found" in proc.stdout or "Authentication expired" in proc.stdout):
+            logger.warning("NotebookLM auth issue detected, running automated headless refresh...")
+            subprocess.run([sys.executable, refresh_script], check=False)
+            proc = subprocess.run(
+                args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                env=env
+            )
         return proc.returncode, proc.stdout
     except Exception as e:
         return 1, str(e)
@@ -34,6 +51,18 @@ async def run_cmd_async(args: list[str]) -> tuple[int, str]:
     """Asynchronous wrapper around subprocess execution."""
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, run_cmd, args)
+
+def make_telegram_caption(subject_name: str, lecture_num: int, title: str, doctor: str | None, asset_label: str, filename: str = "") -> str:
+    """Formats structured, readable captions for Telegram storage channel."""
+    doc_str = f" | 👨‍🏫 {doctor}" if doctor else ""
+    tag_sub = subject_name.replace(" ", "_")
+    file_info = f" ({filename})" if filename else ""
+    return (
+        f"📚 #{tag_sub}{doc_str}\n"
+        f"📌 المحاضرة {lecture_num}: {title}\n"
+        f"✨ {asset_label}{file_info}\n"
+        f"🎓 كلية التربية - قسم الرياضيات | جامعة بني سويف"
+    )
 
 class NotebookLMPipeline:
 
@@ -93,7 +122,10 @@ class NotebookLMPipeline:
         temp_dir.mkdir(parents=True, exist_ok=True)
 
         db: Session = db_factory()
-        lecture: Lecture = db.query(Lecture).filter(Lecture.id == lecture_id).first()
+        lecture = db.query(Lecture).filter(Lecture.id == lecture_id).first()
+        if not lecture:
+            logger.error(f"Lecture {lecture_id} not found in database.")
+            return
 
         try:
             # 1. Start processing
@@ -111,8 +143,9 @@ class NotebookLMPipeline:
             # 2. Add sources
             for pdf in pdf_paths:
                 await cls.add_source(nb_id, pdf)
-                # Store original PDF asset
-                upload_res = await telegram_storage.upload_asset(pdf, "pdf", f"📄 المحاضرة الأصلية - {subject_name} ({pdf.name})")
+                # Store original PDF asset with clean structured caption
+                cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "📄 ملف المحاضرة المعتمد", pdf.name)
+                upload_res = await telegram_storage.upload_asset(pdf, "pdf", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id,
                     asset_type="original_pdf",
@@ -135,6 +168,14 @@ class NotebookLMPipeline:
                 audio_cmd.extend(["اشرح المحاضرة بالتفصيل وباللهجة المصرية وركز على القوانين وخطوات الحل"])
             # Launch audio asynchronously without waiting so text artifacts can generate concurrently
             await run_cmd_async(audio_cmd)
+
+            # Launch explainer video generation with the same subject prompt file
+            video_cmd = ["notebooklm", "generate", "video", "--format", "explainer", "-n", nb_id]
+            if prompt_path and Path(prompt_path).exists():
+                video_cmd.extend(["--prompt-file", prompt_path])
+            else:
+                video_cmd.extend(["فيديو تعليمي تفاعلي يشرح القوانين والمسائل خطوة بخطوة بالعامية المصرية"])
+            await run_cmd_async(video_cmd)
 
             # 4. Trigger Text Generations with --wait for completion
             lecture.stage_info = "جاري توليد الكويز والملخص والبطاقات الذكية..."
@@ -160,7 +201,8 @@ class NotebookLMPipeline:
             quiz_file = temp_dir / "quiz.md"
             await run_cmd_async(["notebooklm", "download", "quiz", "--format", "markdown", str(quiz_file), "--force", "-n", nb_id])
             if quiz_file.exists():
-                res = await telegram_storage.upload_asset(quiz_file, "quiz_md", f"📝 كويز المحاضرة - {subject_name}")
+                cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "📝 كويز تفاعلي وبنك الأسئلة الكامل")
+                res = await telegram_storage.upload_asset(quiz_file, "quiz_md", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="quiz_md", title="كويز المحاضرة",
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
@@ -171,7 +213,8 @@ class NotebookLMPipeline:
             report_file = temp_dir / "study_guide.md"
             await run_cmd_async(["notebooklm", "download", "report", str(report_file), "--force", "-n", nb_id])
             if report_file.exists():
-                res = await telegram_storage.upload_asset(report_file, "study_guide_md", f"📄 ملخص ودليل دراسي - {subject_name}")
+                cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "📄 ملخص ودليل دراسي شامل وتأسيسي")
+                res = await telegram_storage.upload_asset(report_file, "study_guide_md", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="study_guide_md", title="دليل دراسي وملخص",
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
@@ -182,7 +225,8 @@ class NotebookLMPipeline:
             cards_file = temp_dir / "flashcards.md"
             await run_cmd_async(["notebooklm", "download", "flashcards", "--format", "markdown", str(cards_file), "--force", "-n", nb_id])
             if cards_file.exists():
-                res = await telegram_storage.upload_asset(cards_file, "flashcards_md", f"🃏 بطاقات تعليمية - {subject_name}")
+                cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "🃏 بطاقات استذكار ذكية (Flashcards)")
+                res = await telegram_storage.upload_asset(cards_file, "flashcards_md", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="flashcards_md", title="بطاقات تعليمية",
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
@@ -193,7 +237,8 @@ class NotebookLMPipeline:
             map_file = temp_dir / "mind_map.json"
             await run_cmd_async(["notebooklm", "download", "mind-map", str(map_file), "--force", "-n", nb_id])
             if map_file.exists():
-                res = await telegram_storage.upload_asset(map_file, "mind_map_json", f"🧠 خريطة ذهنية - {subject_name}")
+                cap = make_telegram_caption(subject_name, lecture_num, lecture.title, doctor, "🧠 خريطة ذهنية ومفاهيمية (Mind Map)")
+                res = await telegram_storage.upload_asset(map_file, "mind_map_json", cap)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="mind_map_json", title="خريطة ذهنية",
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
@@ -210,7 +255,7 @@ class NotebookLMPipeline:
             asyncio.create_task(
                 cls.fetch_media_in_background(
                     lecture_id=lecture.id,
-                    nb_id=nb_id,
+                    nb_id=nb_id or "",
                     subject_name=subject_name,
                     temp_dir=temp_dir,
                     db_factory=db_factory
@@ -326,8 +371,8 @@ class NotebookLMPipeline:
 
         temp_dir = Path(r"D:\الكليه\BOT\media_storage\temp") / f"lec_{lecture_id}"
         temp_dir.mkdir(parents=True, exist_ok=True)
-        nb_id = lecture.notebook_id
-        subject_name = lecture.subject.name
+        nb_id = lecture.notebook_id or ""
+        subject_name = lecture.subject.name if lecture.subject else ""
 
         # Check audio
         has_audio = db.query(MediaAsset).filter(MediaAsset.lecture_id == lecture_id, MediaAsset.asset_type == "audio").first()
@@ -335,7 +380,8 @@ class NotebookLMPipeline:
             audio_file = temp_dir / "audio_overview.m4a"
             c, _ = await run_cmd_async(["notebooklm", "download", "audio", str(audio_file), "--force", "-n", nb_id])
             if c == 0 and audio_file.exists() and audio_file.stat().st_size > 1000:
-                res = await telegram_storage.upload_asset(audio_file, "audio", f"🎧 بودكاست المحاضرة - {subject_name}")
+                cap_audio = make_telegram_caption(subject_name, lecture.lecture_num, lecture.title, lecture.doctor, "🎧 بودكاست الشرح الصوتي بالمصرية")
+                res = await telegram_storage.upload_asset(audio_file, "audio", cap_audio)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="audio", title="بودكاست الشرح الصوتي",
                     local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
@@ -350,7 +396,8 @@ class NotebookLMPipeline:
             video_file = temp_dir / "video_overview.mp4"
             vc, _ = await run_cmd_async(["notebooklm", "download", "video", str(video_file), "--force", "-n", nb_id])
             if vc == 0 and video_file.exists() and video_file.stat().st_size > 1000:
-                res_v = await telegram_storage.upload_asset(video_file, "video", f"🎬 فيديو المحاضرة - {subject_name}")
+                cap_video = make_telegram_caption(subject_name, lecture.lecture_num, lecture.title, lecture.doctor, "🎬 فيديو الشرح المرئي التفاعلي")
+                res_v = await telegram_storage.upload_asset(video_file, "video", cap_video)
                 db.add(MediaAsset(
                     lecture_id=lecture.id, asset_type="video", title="فيديو الشرح التفاعلي",
                     local_file_path=res_v.get("local_file_path"), telegram_file_id=res_v.get("telegram_file_id"),

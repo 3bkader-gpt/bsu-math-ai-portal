@@ -32,6 +32,7 @@ import {
   BookMarked,
   Clock
 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface Subject {
   id: number;
@@ -422,7 +423,7 @@ export default function Home() {
 
   // 1. Fetch Subjects on Mount
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/subjects')
+    fetch(getApiUrl('/api/subjects'))
       .then(res => res.json())
       .then(data => {
         const unified = mergeSubjects(data);
@@ -453,7 +454,7 @@ export default function Home() {
       setSelectedDoctor('الكل');
     }
     setIsLoadingLectures(true);
-    fetch(`http://127.0.0.1:8000/api/subjects/${activeSubjectId}/lectures`)
+    fetch(getApiUrl(`/api/subjects/${activeSubjectId}/lectures`))
       .then(res => {
         if (!res.ok) return [];
         return res.json();
@@ -566,7 +567,7 @@ export default function Home() {
     setFlashcards([]);
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/lectures/${lectureId}`);
+      const res = await fetch(getApiUrl(`/api/lectures/${lectureId}`));
       if (res.ok) {
         const bundle = await res.json();
         setActiveBundle(bundle);
@@ -574,7 +575,7 @@ export default function Home() {
         // Fetch quiz
         const quizAsset = bundle.assets.find((a: any) => a.asset_type === 'quiz_md');
         if (quizAsset) {
-          fetch(`http://127.0.0.1:8000${quizAsset.stream_url}`)
+          fetch(getApiUrl(quizAsset.stream_url))
             .then(r => r.text())
             .then(text => setQuizQuestions(parseQuizMarkdown(text)));
         }
@@ -582,7 +583,7 @@ export default function Home() {
         // Fetch study guide
         const guideAsset = bundle.assets.find((a: any) => a.asset_type === 'study_guide_md');
         if (guideAsset) {
-          fetch(`http://127.0.0.1:8000${guideAsset.stream_url}`)
+          fetch(getApiUrl(guideAsset.stream_url))
             .then(r => r.text())
             .then(text => setGuideText(text));
         }
@@ -590,7 +591,7 @@ export default function Home() {
         // Fetch flashcards
         const cardsAsset = bundle.assets.find((a: any) => a.asset_type === 'flashcards_md');
         if (cardsAsset) {
-          fetch(`http://127.0.0.1:8000${cardsAsset.stream_url}`)
+          fetch(getApiUrl(cardsAsset.stream_url))
             .then(r => r.text())
             .then(text => setFlashcards(parseFlashcardsMarkdown(text)));
         }
@@ -1296,7 +1297,7 @@ export default function Home() {
                     >
                       <audio
                         ref={audioRef}
-                        src={`http://127.0.0.1:8000${audioAsset.stream_url}`}
+                        src={getApiUrl(audioAsset.stream_url)}
                         onTimeUpdate={() => {
                           if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
                         }}
@@ -1416,7 +1417,7 @@ export default function Home() {
                     >
                       <video
                         controls
-                        src={`http://127.0.0.1:8000${videoAsset.stream_url}`}
+                        src={getApiUrl(videoAsset.stream_url)}
                         className="w-full max-h-[500px]"
                       >
                         {content.videoTab.unsupported}

@@ -27,6 +27,7 @@ import {
   GraduationCap,
   Plus
 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface Subject {
   id: number;
@@ -100,7 +101,7 @@ export default function AdminDashboardPage() {
   const fetchSubjects = async () => {
     setIsLoadingSubjects(true);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/subjects');
+      const res = await fetch(getApiUrl('/api/subjects'));
       if (res.ok) {
         const data = await res.json();
         setSubjects(data);
@@ -130,7 +131,7 @@ export default function AdminDashboardPage() {
 
     const fetchLectures = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/subjects/${selectedSubjectId}/lectures`);
+        const res = await fetch(getApiUrl(`/api/subjects/${selectedSubjectId}/lectures`));
         if (res.ok) {
           const data = await res.json();
           setSubjectLectures(data);
@@ -155,7 +156,7 @@ export default function AdminDashboardPage() {
     let intervalId: any = null;
     const checkStatus = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/lectures/${activeTrackingId}`);
+        const res = await fetch(getApiUrl(`/api/lectures/${activeTrackingId}`));
         if (res.ok) {
           const data = await res.json();
           setTrackedLecture(data);
@@ -164,7 +165,7 @@ export default function AdminDashboardPage() {
             clearInterval(intervalId);
             // Refresh lectures list
             if (selectedSubjectId) {
-              const r = await fetch(`http://127.0.0.1:8000/api/subjects/${selectedSubjectId}/lectures`);
+              const r = await fetch(getApiUrl(`/api/subjects/${selectedSubjectId}/lectures`));
               if (r.ok) setSubjectLectures(await r.json());
             }
           }
@@ -239,7 +240,7 @@ export default function AdminDashboardPage() {
         formData.append('files', file);
       });
 
-      const res = await fetch('http://127.0.0.1:8000/api/upload', {
+      const res = await fetch(getApiUrl('/api/upload'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -297,8 +298,8 @@ export default function AdminDashboardPage() {
           <div className="hidden lg:flex items-center gap-4 text-xs">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/60 border border-slate-800">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-slate-400">سيرفر FastAPI:</span>
-              <span className="text-emerald-400 font-mono font-medium">8000 OK</span>
+              <span className="text-slate-400">سيرفر الـ API:</span>
+              <span className="text-emerald-400 font-mono font-medium">ONLINE</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/60 border border-slate-800">
               <Database className="w-3.5 h-3.5 text-cyan-400" />

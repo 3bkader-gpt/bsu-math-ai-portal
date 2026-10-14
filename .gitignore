@@ -2,6 +2,12 @@
 .env
 .env.*
 !.env.example
+!frontend/.env.example
+
+# Cloudflare & temporary
+.wrangler/
+*.png
+
 
 # Telegram Telethon sessions & SQLite credentials
 *.session
@@ -9,10 +15,18 @@
 bot_database.db
 bot_database.db-journal
 telethon_auth_cache.json
-get_project_info.py
-test_supabase_db.py
-telethon_login.py
-add_bot_admin.py
+test_*.py
+refresh_*.py
+attach_*.py
+scan_*.py
+process_*.py
+restore_*.py
+find_doctors.py
+inventory_all_lectures.py
+response_sample.html
+incoming_lectures/
+*سجل_الشات*
+
 
 # Python
 __pycache__/
