@@ -382,6 +382,11 @@ class NotebookLMPipeline:
                 logger.warning(f"Background media fetch attempt {attempt+1} encountered: {e}")
 
         logger.info(f"Background media fetcher finished for lecture {lecture_id}")
+        try:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            logger.info(f"Auto-purged temp directory for lecture {lecture_id} (0 bytes left on local disk).")
+        except Exception:
+            pass
 
     @classmethod
     async def sync_lecture_media(cls, lecture_id: int, db: Session) -> dict:

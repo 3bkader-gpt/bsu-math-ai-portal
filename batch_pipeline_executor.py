@@ -332,6 +332,13 @@ async def process_single_task(task_info: dict, index: int, total: int):
                 lec.stage_info = "المحاضرة جاهزة ومتاحة للمذاكرة والكويزات ✅ (جاري إنهاء الصوت في الخلفية)"
             db.commit()
 
+    # Auto-cleanup: Purge temporary storage from disk completely
+    try:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        logger.info(f"Cleaned up temporary storage for Lecture {lecture_id} (0 bytes left on local disk).")
+    except Exception as e:
+        logger.warning(f"Failed to cleanup temp dir {temp_dir}: {e}")
+
     logger.info(f"[{index}/{total}] FINISHED: {subject_name} - المحاضرة {lec_num}: {title} ✅")
     return True
 
