@@ -723,24 +723,20 @@ export default function Home() {
         className="relative overflow-hidden pt-6 pb-8 sm:pt-12 sm:pb-16 px-4 sm:px-6 lg:px-8 border-b"
       >
         <div className="max-w-4xl mx-auto text-center relative z-10 space-y-4 sm:space-y-6">
-          <div
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : 'var(--border-subtle)',
-              color: 'var(--accent-primary)',
-              boxShadow: 'var(--card-shadow)',
-            }}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-sm font-bold shadow-sm max-w-full flex-wrap justify-center"
-          >
-            {isGirls ? (
-              <>
-                <span className="text-sm">🎀</span>
-                <span>مساحتك الرايقة وكل الدلع ليكي • You&apos;re Just A Baby Girl ✨</span>
-              </>
-            ) : (
-              <span>انشف ياض.. الرياضة مبترحميش حد، وأنت لسه مشوفتش حاجة.. ادخل ذاكر لا تتسوح!</span>
-            )}
-          </div>
+          {isGirls && (
+            <div
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE',
+                color: 'var(--accent-primary)',
+                boxShadow: 'var(--card-shadow)',
+              }}
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-sm font-bold shadow-sm max-w-full flex-wrap justify-center"
+            >
+              <span className="text-sm">🎀</span>
+              <span>مساحتك الرايقة وكل الدلع ليكي • You&apos;re Just A Baby Girl ✨</span>
+            </div>
+          )}
 
           <h2
             className="text-2xl sm:text-5xl font-black tracking-tight leading-snug"
