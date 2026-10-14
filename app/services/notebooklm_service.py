@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import sys
+import shutil
 from pathlib import Path
 from sqlalchemy.orm import Session
 from app.db.models import Lecture, MediaAsset

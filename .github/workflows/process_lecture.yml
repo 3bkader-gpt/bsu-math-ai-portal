@@ -1,0 +1,107 @@
+name: Cloud AI Lecture Pipeline Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      subject:
+        description: 'اسم المادة الدراسية'
+        required: true
+        type: choice
+        options:
+          - 'ديناميكا 2'
+          - 'معادلات تفاضلية'
+          - 'هندسه تفاضلية'
+          - 'فلسفه وتاريخ رياضيات'
+          - 'نظريه عدد ومنطق'
+          - 'تعليم ورياده اعمال'
+          - 'استاتيكا2'
+          - 'اداره معرفه'
+          - 'كهربيه مغناطيسية وتيار متردد'
+          - 'تدريس مصغر'
+          - 'تكنولوجيا والتحول الرقمي'
+      lecture_num:
+        description: 'رقم المحاضرة'
+        required: true
+        type: number
+      title:
+        description: 'عنوان المحاضرة (اختياري)'
+        required: false
+        type: string
+        default: ''
+      doctor:
+        description: 'اسم الدكتور (اختياري)'
+        required: false
+        type: string
+        default: ''
+      pdf_url:
+        description: 'رابط ملف المحاضرة المباشر (PDF URL)'
+        required: true
+        type: string
+      notify_chat_id:
+        description: 'معرف محادثة تليجرام لإرسال إشعار باكتمال المعالجة (اختياري)'
+        required: false
+        type: string
+        default: ''
+
+  repository_dispatch:
+    types: [process_lecture]
+
+jobs:
+  process_lecture:
+    name: Execute Autonomous Academic Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install System & Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install notebooklm-py playwright
+          playwright install --with-deps chromium
+
+      - name: Configure NotebookLM Cloud Authentication
+        run: |
+          mkdir -p ~/.notebooklm/profiles/default
+          echo "${{ secrets.NOTEBOOKLM_STORAGE_STATE_B64 }}" | base64 -d > ~/.notebooklm/profiles/default/storage_state.json
+          chmod 600 ~/.notebooklm/profiles/default/storage_state.json
+
+      - name: Run Cloud Lecture Pipeline
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          # Determine inputs from either workflow_dispatch or repository_dispatch client_payload
+          SUBJECT="${{ inputs.subject || github.event.client_payload.subject }}"
+          LEC_NUM="${{ inputs.lecture_num || github.event.client_payload.lecture_num }}"
+          TITLE="${{ inputs.title || github.event.client_payload.title }}"
+          DOCTOR="${{ inputs.doctor || github.event.client_payload.doctor }}"
+          PDF_URL="${{ inputs.pdf_url || github.event.client_payload.pdf_url }}"
+          NOTIFY_ID="${{ inputs.notify_chat_id || github.event.client_payload.notify_chat_id }}"
+
+          echo "🚀 Starting Cloud Pipeline Execution:"
+          echo "   Subject: $SUBJECT"
+          echo "   Lecture Num: $LEC_NUM"
+          echo "   Doctor: $DOCTOR"
+
+          python cloud_lecture_executor.py \
+            --subject "$SUBJECT" \
+            --lecture-num "$LEC_NUM" \
+            --title "$TITLE" \
+            --doctor "$DOCTOR" \
+            --pdf-url "$PDF_URL" \
+            --notify-chat-id "$NOTIFY_ID"

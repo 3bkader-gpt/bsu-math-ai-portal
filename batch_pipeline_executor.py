@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import shutil
 from pathlib import Path
 
 # UTF-8 stdout configuration for Windows
