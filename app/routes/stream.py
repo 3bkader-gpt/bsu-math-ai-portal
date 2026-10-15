@@ -51,13 +51,9 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
 
     local_path = Path(asset.local_file_path) if asset.local_file_path else None
 
-    # Validate path safety if local_path exists
-    if local_path and not is_safe_path(local_path):
-        raise HTTPException(status_code=403, detail="Access to specified file path is forbidden")
-
     # If it's markdown or json on disk, serve as text
     if asset.asset_type in {"quiz_md", "study_guide_md", "flashcards_md", "mind_map_json"}:
-        if local_path and local_path.exists():
+        if local_path and local_path.exists() and is_safe_path(local_path):
             with open(local_path, "r", encoding="utf-8", errors="replace") as f:
                 content = f.read()
             return Response(content=content, media_type="text/plain; charset=utf-8")
@@ -113,6 +109,8 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
 
     # 3. Fallback to local file streaming if present on disk
     if local_path and local_path.exists():
+        if not is_safe_path(local_path):
+            raise HTTPException(status_code=403, detail="Access to specified file path is forbidden")
         file_size = local_path.stat().st_size
         range_header = request.headers.get("Range")
 
