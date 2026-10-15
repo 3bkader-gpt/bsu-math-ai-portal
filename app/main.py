@@ -71,7 +71,7 @@ app.include_router(upload.router)
 app.include_router(stream.router)
 app.include_router(diagnostics.router)
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def health_check():
     return {
         "status": "online",
