@@ -58,6 +58,30 @@ export interface SupabaseLectureBundle {
   created_at: string;
 }
 
+export const OFFICIAL_SUBJECT_DOCTORS: Record<string, string[]> = {
+  'هندسه تفاضلية': ['د/ سيد'],
+  'هندسة تفاضلية': ['د/ سيد'],
+  'عملي فيزياء': ['د/ سيد'],
+  'نظريه عدد ومنطق': ['د/ محمد حسين'],
+  'مقدمة في نظرية العدد والمنطق': ['د/ محمد حسين'],
+  'تدريس مصغر': ['د/ عبدالرحمن برعي'],
+  'معادلات تفاضلية': ['د/ حسين'],
+  'فلسفه وتاريخ رياضيات': ['د/ طه ابراهيم'],
+  'فلسفة وتاريخ الرياضيات': ['د/ طه ابراهيم'],
+  'ديناميكا 2': ['د/ مروة ذكري'],
+  'ديناميكا (٢)': ['د/ مروة ذكري'],
+  'اداره معرفه': ['د/ عزام'],
+  'إدارة المعرفة': ['د/ عزام'],
+  'تكنولوجيا والتحول الرقمي': ['د/ ايمان'],
+  'تكنولوجيا التعليم': ['د/ ايمان'],
+  'تعليم ورياده اعمال': ['د/ مروة', 'د/ وليد'],
+  'التعليم وريادة الأعمال': ['د/ مروة', 'د/ وليد'],
+  'استاتيكا2': ['د/ ايه'],
+  'استاتيكا (٢)': ['د/ ايه'],
+  'كهربيه مغناطيسية وتيار متردد': ['د/ حسن سيد'],
+  'كهربية ومغناطيسية وتيار متردد': ['د/ حسن سيد'],
+};
+
 /**
  * Fetches all academic subjects directly from Supabase edge CDN.
  */
@@ -73,7 +97,11 @@ export async function getDirectSupabaseSubjects(): Promise<SupabaseSubject[]> {
 
   return subjects.map((s: any) => {
     const subLecs = lectures.filter((l: any) => l.subject_id === s.id);
-    const docs = Array.from(new Set(subLecs.map((l: any) => l.doctor).filter(Boolean))) as string[];
+    const officialDocs = OFFICIAL_SUBJECT_DOCTORS[s.name] || [];
+    const docs = officialDocs.length > 0 
+      ? officialDocs 
+      : (Array.from(new Set(subLecs.map((l: any) => l.doctor).filter(Boolean))) as string[]);
+
     return {
       id: s.id,
       name: s.name,

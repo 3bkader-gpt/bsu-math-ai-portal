@@ -942,9 +942,10 @@ export default function AdminDashboardPage() {
                   <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
                     مسار الدكتور / أستاذ المادة
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className={`grid ${selectedSubject.doctors.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
                     {selectedSubject.doctors.map((doc) => {
                       const isSelected = selectedDoctor === doc;
+                      const isFemale = doc.includes('مروة') || doc.includes('ايمان') || doc.includes('ايه');
                       return (
                         <button
                           type="button"
@@ -958,7 +959,7 @@ export default function AdminDashboardPage() {
                             color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
                           }}
                         >
-                          <span className="text-base">{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
+                          <span className="text-base">{isFemale ? '👩‍🏫' : '👨‍🏫'}</span>
                           <span>{doc}</span>
                         </button>
                       );
@@ -1209,7 +1210,7 @@ export default function AdminDashboardPage() {
                                   color: 'var(--accent-primary)'
                                 }}
                               >
-                                {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor}
+                                {lec.doctor.includes('مروة') || lec.doctor.includes('ايمان') || lec.doctor.includes('ايه') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor}
                               </span>
                             </div>
                           )}
