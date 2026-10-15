@@ -689,6 +689,9 @@ export default function Home() {
   const activeSubject = subjects.find(s => s.id === activeSubjectId);
   const audioAsset = activeBundle?.assets.find(a => a.asset_type === 'audio');
   const videoAsset = activeBundle?.assets.find(a => a.asset_type === 'video');
+  const isAudioReady = Boolean(audioAsset && (audioAsset.has_telegram || audioAsset.telegram_message_id));
+  const isVideoReady = Boolean(videoAsset && (videoAsset.has_telegram || videoAsset.telegram_message_id));
+
 
   const displayedLectures = subjectLectures
     .filter((l) => l.status !== 'failed')
@@ -1373,7 +1376,7 @@ export default function Home() {
               {/* TAB 1: AUDIO PODCAST PLAYER */}
               {activeTab === 'audio' && (
                 <div className="space-y-5 max-w-2xl mx-auto py-2 sm:py-4">
-                  {audioAsset ? (
+                  {isAudioReady && audioAsset ? (
                     <div
                       style={{
                         backgroundColor: 'var(--bg-surface-elevated)',
@@ -1392,6 +1395,18 @@ export default function Home() {
                           if (audioRef.current) setDuration(audioRef.current.duration);
                         }}
                         onEnded={() => setIsPlaying(false)}
+                        onError={(e) => {
+                          console.error("Audio playback error:", e);
+                          fetch(getApiUrl('/api/diagnostics/client-log'), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              level: 'ERROR',
+                              message: `Audio playback error for asset ${audioAsset.id}`,
+                              context: { lectureId: activeBundle.id, streamUrl: audioAsset.stream_url }
+                            })
+                          }).catch(() => {});
+                        }}
                       />
 
                       <div
@@ -1502,7 +1517,38 @@ export default function Home() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>{content.audioTab.empty}</p>
+                    <div className="text-center py-12 space-y-4 max-w-md mx-auto" style={{ color: 'var(--text-muted)' }}>
+                      <div 
+                        className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center border shadow-sm"
+                        style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}
+                      >
+                        <Headphones className="w-8 h-8 opacity-40 text-cyan-500 animate-pulse" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <h4 className="font-black text-base" style={{ color: 'var(--text-primary)' }}>
+                          بودكاست الشرح قيد المعالجة السحابية ⏳
+                        </h4>
+                        <p className="text-xs sm:text-sm font-semibold leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                          يتم تسجيل ومزامنة الصوت لهذه المحاضرة على السحابة. يمكنك حالياً دراسة محتوى المحاضرة كاملاً عبر الكويز التفاعلي والدليل والزتونة.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center gap-3 pt-2">
+                        <button
+                          onClick={() => setActiveTab('quiz')}
+                          className="px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm text-white"
+                          style={{ backgroundColor: 'var(--accent-primary)', borderColor: 'var(--accent-primary)' }}
+                        >
+                          كويز المحاضرة 🎯
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('guide')}
+                          className="px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+                          style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', color: 'var(--text-primary)' }}
+                        >
+                          الدليل الدراسي والزتونة 📖
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -1510,7 +1556,7 @@ export default function Home() {
               {/* TAB 2: VIDEO EXPLAINER PLAYER */}
               {activeTab === 'video' && (
                 <div className="space-y-4">
-                  {videoAsset ? (
+                  {isVideoReady && videoAsset ? (
                     <div
                       style={{
                         backgroundColor: '#000000',
@@ -1521,8 +1567,22 @@ export default function Home() {
                     >
                       <video
                         controls
+                        playsInline
+                        preload="metadata"
                         src={getApiUrl(videoAsset.stream_url)}
                         className="w-full max-h-[500px]"
+                        onError={(e) => {
+                          console.error("Video playback error:", e);
+                          fetch(getApiUrl('/api/diagnostics/client-log'), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              level: 'ERROR',
+                              message: `Video playback error for asset ${videoAsset.id}`,
+                              context: { lectureId: activeBundle.id, streamUrl: videoAsset.stream_url }
+                            })
+                          }).catch(() => {});
+                        }}
                       >
                         {content.videoTab.unsupported}
                       </video>
@@ -1552,10 +1612,42 @@ export default function Home() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>{content.videoTab.empty}</p>
+                    <div className="text-center py-12 space-y-4 max-w-md mx-auto" style={{ color: 'var(--text-muted)' }}>
+                      <div 
+                        className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center border shadow-sm"
+                        style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}
+                      >
+                        <Video className="w-8 h-8 opacity-40 text-rose-500 animate-pulse" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <h4 className="font-black text-base" style={{ color: 'var(--text-primary)' }}>
+                          فيديو الشرح التفاعلي قيد المعالجة السحابية ⏳
+                        </h4>
+                        <p className="text-xs sm:text-sm font-semibold leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                          يتم إنتاج ورندرة الفيديو التفاعلي لهذه المحاضرة سحابياً. يمكنك الاستفادة الآن من الكويز والدليل والبطاقات التعليمية المكتملة.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center gap-3 pt-2">
+                        <button
+                          onClick={() => setActiveTab('quiz')}
+                          className="px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm text-white"
+                          style={{ backgroundColor: 'var(--accent-primary)', borderColor: 'var(--accent-primary)' }}
+                        >
+                          كويز المحاضرة 🎯
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('guide')}
+                          className="px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+                          style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', color: 'var(--text-primary)' }}
+                        >
+                          الدليل الدراسي والزتونة 📖
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
+
 
               {/* TAB 3: ROBUST INTERACTIVE QUIZ ENGINE WITH KATEX */}
               {activeTab === 'quiz' && (

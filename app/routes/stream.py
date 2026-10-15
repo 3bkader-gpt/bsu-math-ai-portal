@@ -35,19 +35,22 @@ def range_stream_file(file_path: Path, start: int, end: int):
             bytes_to_read -= len(chunk)
             yield chunk
 
-@router.get("/stream/{asset_id}")
+@router.api_route("/stream/{asset_id}", methods=["GET", "HEAD"])
 async def stream_media_asset(asset_id: int, request: Request, db: Session = Depends(get_db)):
     """
     Streams media assets (Audio, Video, PDF, Markdown) with HTTP Range support (206)
-    allowing smooth seeking in HTML5 audio and video players.
+    and HTTP HEAD probe support for HTML5 audio and video players.
     """
     asset = db.query(MediaAsset).filter(MediaAsset.id == asset_id).first()
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
 
+    is_head = request.method == "HEAD"
+
     # 1. If content_text is cached in database, return text directly
     if asset.content_text:
-        return Response(content=asset.content_text, media_type="text/plain; charset=utf-8")
+        headers = {"Content-Length": str(len(asset.content_text.encode('utf-8')))}
+        return Response(content=b"" if is_head else asset.content_text.encode('utf-8'), media_type="text/plain; charset=utf-8", headers=headers)
 
     local_path = Path(asset.local_file_path) if asset.local_file_path else None
 
@@ -56,7 +59,8 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
         if local_path and local_path.exists() and is_safe_path(local_path):
             with open(local_path, "r", encoding="utf-8", errors="replace") as f:
                 content = f.read()
-            return Response(content=content, media_type="text/plain; charset=utf-8")
+            headers = {"Content-Length": str(len(content.encode('utf-8')))}
+            return Response(content=b"" if is_head else content.encode('utf-8'), media_type="text/plain; charset=utf-8", headers=headers)
 
     media_types = {
         "audio": "audio/mp4",
@@ -88,6 +92,9 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
                         "Content-Length": str(end - start + 1),
                         "Content-Type": content_type
                     }
+                    if is_head:
+                        return Response(status_code=206, headers=headers, media_type=content_type)
+
                     return StreamingResponse(
                         telethon_streamer.stream_media_chunks(asset.telegram_message_id, start, end),
                         status_code=206,
@@ -99,6 +106,9 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
                         "Accept-Ranges": "bytes",
                         "Content-Type": content_type
                     }
+                    if is_head:
+                        return Response(status_code=200, headers=headers, media_type=content_type)
+
                     return StreamingResponse(
                         telethon_streamer.stream_media_chunks(asset.telegram_message_id, 0, file_size - 1),
                         headers=headers
@@ -106,6 +116,7 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
         except Exception as e:
             # Log error and fall back to next handlers
             pass
+
 
     # 3. Fallback to local file streaming if present on disk
     if local_path and local_path.exists():
@@ -129,17 +140,29 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
                 "Content-Length": str(end - start + 1),
                 "Content-Type": content_type
             }
+            if is_head:
+                return Response(status_code=206, headers=headers, media_type=content_type)
+
             return StreamingResponse(
                 range_stream_file(local_path, start, end),
                 status_code=206,
                 headers=headers
             )
         else:
+            headers = {
+                "Content-Length": str(file_size),
+                "Accept-Ranges": "bytes",
+                "Content-Type": content_type
+            }
+            if is_head:
+                return Response(status_code=200, headers=headers, media_type=content_type)
+
             return FileResponse(
                 path=str(local_path),
                 media_type=content_type,
                 headers={"Accept-Ranges": "bytes"}
             )
+
 
     # 4. Fallback: Telegram Bot API direct download for files under 20MB
     if asset.telegram_file_id:

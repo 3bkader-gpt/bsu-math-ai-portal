@@ -23,7 +23,8 @@ export function getApiBaseUrl(): string {
     return envUrl.trim().replace(/\/+$/, '');
   }
 
-  return 'http://127.0.0.1:8000';
+  // Production cloud default: Render backend 24/7
+  return 'https://bsu-math-api.onrender.com';
 }
 
 export const API_BASE_URL = getApiBaseUrl();
