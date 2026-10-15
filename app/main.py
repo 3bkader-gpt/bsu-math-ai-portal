@@ -7,23 +7,30 @@ from app.services.prompt_service import sync_subjects_from_filesystem
 from app.services.auth_service import init_admin_user
 from app.routes import lectures, upload, stream, auth, diagnostics
 
+from contextlib import asynccontextmanager
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("app")
 
-# Initialize DB tables
-Base.metadata.create_all(bind=engine)
-
-# Auto-sync subjects from filesystem & seed admin user
-with SessionLocal() as db:
-    synced = sync_subjects_from_filesystem(db)
-    init_admin_user(db)
-    logger.info(f"Initialized {len(synced)} academic subjects from {settings.COLLEGE_DIR}")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        Base.metadata.create_all(bind=engine)
+        with SessionLocal() as db:
+            sync_subjects_from_filesystem(db)
+            init_admin_user(db)
+        logger.info("Database and subjects initialization completed.")
+    except Exception as e:
+        logger.warning(f"Startup DB init warning (handled gracefully): {e}")
+    yield
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Automated Academic Content Pipeline & Media Delivery Server"
+    description="Automated Academic Content Pipeline & Media Delivery Server",
+    lifespan=lifespan
 )
+
 
 # CORS Configuration: restrict to authorized client origins
 allowed_origins = [

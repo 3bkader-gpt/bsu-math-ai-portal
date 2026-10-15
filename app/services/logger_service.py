@@ -73,8 +73,7 @@ def setup_global_logging():
     if log_handler not in root_logger.handlers:
         root_logger.addHandler(log_handler)
     
-    # Also attach to specific app loggers for visibility
-    for name in ["app", "uvicorn", "uvicorn.error", "uvicorn.access", "DiagnosticsRouter", "StreamRouter", "TelegramStorage"]:
+    for name in ["app", "DiagnosticsRouter", "StreamRouter", "TelegramStorage"]:
         lg = logging.getLogger(name)
         if log_handler not in lg.handlers:
             lg.addHandler(log_handler)
@@ -82,5 +81,5 @@ def setup_global_logging():
     logger = logging.getLogger("SystemLogger")
     logger.info("In-Memory System Logs Buffer initialized successfully.")
 
-# Initialize upon import
 setup_global_logging()
+
