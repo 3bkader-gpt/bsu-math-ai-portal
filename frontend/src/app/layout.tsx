@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cairo, Outfit } from "next/font/google";
 import "katex/dist/katex.min.css";
 import "./globals.css";
@@ -17,6 +17,16 @@ const outfit = Outfit({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F5EFE1" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0F14" },
+  ],
+};
+
 export const metadata: Metadata = {
   title: "منصة المنهج | كلية التربية جامعة بني سويف",
   description: "المنصة الأكاديمية لشعبة رياضيات - الفرقة الثانية، كلية التربية (عام) جامعة بني سويف",
@@ -31,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} ${outfit.variable}`} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={`${cairo.variable} ${outfit.variable} overflow-x-clip max-w-[100vw]`} suppressHydrationWarning>
       <head>
         <script
           id="theme-initializer"
@@ -70,7 +80,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen antialiased transition-colors duration-200">
+      <body className="min-h-screen antialiased transition-colors duration-200 overflow-x-clip max-w-[100vw] w-full">
         {children}
       </body>
     </html>

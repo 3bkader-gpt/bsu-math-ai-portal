@@ -465,7 +465,7 @@ export default function AdminDashboardPage() {
           borderColor: 'var(--border-subtle)'
         }}
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-[4rem] sm:min-h-[4.5rem] py-2 flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Logo & Platform Info */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -578,7 +578,7 @@ export default function AdminDashboardPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* KPI Quick Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4 sm:gap-6">
           <div 
             className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
@@ -772,7 +772,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Stepper Visualization */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,130px),1fr))] gap-2.5 sm:gap-3 pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
               <div 
                 className="p-3.5 rounded-2xl border text-center transition-all"
                 style={{
@@ -867,11 +867,11 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Two-Column Studio: Uploader Form & Subject Lectures Browser */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start w-full max-w-full min-w-0">
           
           {/* Column 1: The Smart Uploader Form (7 cols) */}
           <div 
-            className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border transition-all shadow-xl"
+            className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border transition-all shadow-xl min-w-0 w-full"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
@@ -905,7 +905,7 @@ export default function AdminDashboardPage() {
                 <label className="block text-sm sm:text-base font-black mb-3" style={{ color: 'var(--text-primary)' }}>
                   1. اختر المادة الدراسية (11 مادة متاحة)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,140px),1fr))] gap-2.5">
                   {subjects.map((sub) => {
                     const isSelected = sub.id === selectedSubjectId;
                     return (
@@ -942,7 +942,7 @@ export default function AdminDashboardPage() {
                   <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
                     مسار الدكتور / أستاذ المادة
                   </label>
-                  <div className={`grid ${selectedSubject.doctors.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3">
                     {selectedSubject.doctors.map((doc) => {
                       const isSelected = selectedDoctor === doc;
                       const isFemale = doc.includes('مروة') || doc.includes('ايمان') || doc.includes('ايه');
@@ -969,7 +969,7 @@ export default function AdminDashboardPage() {
               )}
 
               {/* Step 2: Lecture Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4 pt-2">
                 <div>
                   <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
                     رقم المحاضرة
@@ -1084,7 +1084,7 @@ export default function AdminDashboardPage() {
                 <span className="text-sm sm:text-base font-black block mb-3" style={{ color: 'var(--text-primary)' }}>
                   ✨ ما سيتم إنتاجه تلقائياً من خلال هذا الرفع:
                 </span>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs sm:text-sm font-black">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,115px),1fr))] gap-3 text-xs sm:text-sm font-black">
                   <div className="flex items-center gap-2 text-sky-600 dark:text-sky-300">
                     <Headphones className="w-4.5 h-4.5 text-sky-500 shrink-0" />
                     <span>بودكاست مصري (30د)</span>
@@ -1138,7 +1138,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Column 2: Subject Lectures Explorer (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-6 min-w-0 w-full">
             
             <div 
               className="p-6 rounded-3xl border transition-all shadow-xl"

@@ -29,7 +29,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
               borderColor: 'var(--math-block-border)',
               color: 'var(--math-formula-color)',
             }}
-            className="my-3 py-3 px-5 overflow-x-auto text-center rounded-2xl border shadow-sm transition-colors"
+            className="my-3 py-3 px-5 overflow-x-auto text-center rounded-2xl border shadow-sm transition-colors w-full max-w-full"
             dangerouslySetInnerHTML={{ __html: html }}
           />
         );
@@ -77,7 +77,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
                   borderColor: 'var(--math-block-border)',
                   color: 'var(--math-formula-color)',
                 }}
-                className="my-3 py-2.5 px-4 overflow-x-auto text-center rounded-xl border transition-colors"
+                className="my-3 py-2.5 px-4 overflow-x-auto text-center rounded-xl border transition-colors w-full max-w-full"
                 dangerouslySetInnerHTML={{ __html: html }}
               />
             );
@@ -150,7 +150,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
                 borderColor: 'var(--math-block-border)',
                 color: 'var(--math-formula-color)',
               }}
-              className="my-3 py-2.5 px-4 overflow-x-auto text-center rounded-2xl border shadow-sm transition-colors"
+              className="my-3 py-2.5 px-4 overflow-x-auto text-center rounded-2xl border shadow-sm transition-colors w-full max-w-full"
               dangerouslySetInnerHTML={{ __html: html }}
             />
           );

@@ -709,7 +709,7 @@ export default function Home() {
         }}
         className="sticky top-0 z-40 border-b backdrop-blur-md transition-colors"
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-[4rem] sm:min-h-[5rem] py-2.5 flex items-center justify-between gap-2.5 sm:gap-4">
           
           <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
             <div
@@ -780,7 +780,7 @@ export default function Home() {
           )}
 
           <h2
-            className="text-2xl sm:text-5xl font-black tracking-tight leading-snug"
+            className="fluid-h1 font-black tracking-tight leading-snug max-w-4xl mx-auto"
             style={{ color: 'var(--text-primary)' }}
           >
             {isGirls
@@ -789,7 +789,7 @@ export default function Home() {
           </h2>
 
           <p
-            className="text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed"
+            className="fluid-body max-w-2xl mx-auto leading-relaxed"
             style={{ color: 'var(--text-secondary)' }}
           >
             {isGirls
@@ -832,7 +832,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,155px),1fr))] gap-3 sm:gap-4">
             {filteredSubjects.map((sub) => {
               const isActive = sub.id === activeSubjectId;
               const styleConfig = SUBJECT_THEME_STYLES[sub.name] || {
@@ -1076,7 +1076,7 @@ export default function Home() {
                   <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{content.lecturesSection.emptySubtitle}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-4 sm:gap-5">
                   {displayedLectures.map((lec) => {
                       const isReady = lec.status === 'completed' && lec.assets_count > 0;
                       return (
@@ -1145,7 +1145,7 @@ export default function Home() {
                           </div>
 
                           <div
-                            className="pt-4 border-t flex items-center justify-between"
+                            className="pt-4 border-t flex flex-wrap items-center justify-between gap-3"
                             style={{ borderColor: 'var(--border-subtle)' }}
                           >
                             <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
@@ -1199,7 +1199,7 @@ export default function Home() {
               borderColor: 'var(--border-subtle)',
               boxShadow: 'var(--card-shadow)',
             }}
-            className="w-full max-w-4xl h-[94dvh] sm:h-auto sm:max-h-[94vh] rounded-t-3xl sm:rounded-3xl border sm:border flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300"
+            className="w-full max-w-4xl max-w-full h-[94dvh] sm:h-auto sm:max-h-[92vh] rounded-t-3xl sm:rounded-3xl border sm:border flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300 mx-auto"
           >
             {/* Mobile Sheet Drag Indicator */}
             <div className="w-12 h-1 bg-slate-400/30 rounded-full mx-auto mt-2.5 mb-1 sm:hidden shrink-0"></div>
@@ -1417,7 +1417,7 @@ export default function Home() {
                       </div>
 
                       <div
-                        className="pt-5 border-t flex items-center justify-center gap-2.5"
+                        className="pt-5 border-t flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
                         style={{ borderColor: 'var(--border-subtle)' }}
                       >
                         <span className="text-xs font-bold" style={{ color: 'var(--text-muted)' }}>{content.audioTab.speedLabel}</span>
@@ -1518,7 +1518,7 @@ export default function Home() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             {score !== null && (
                               <div
                                 style={{

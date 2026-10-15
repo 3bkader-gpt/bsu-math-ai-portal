@@ -98,9 +98,9 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-3 sm:p-6 overflow-hidden transition-colors">
+    <div className="relative min-h-screen flex items-center justify-center p-3 sm:p-6 overflow-hidden transition-colors w-full max-w-[100vw]">
       {/* Decorative Floating Math Symbols Background */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden font-mono opacity-10">
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden font-mono opacity-10 max-w-full">
         <span className="absolute top-16 right-20 text-4xl sm:text-5xl text-blue-500">∫ f(x) dx</span>
         <span className="absolute top-1/4 left-16 text-3xl sm:text-4xl text-cyan-500">∑ (1/n²) = π²/6</span>
         <span className="absolute bottom-28 right-28 text-4xl sm:text-5xl text-blue-500">∇ × B = μ₀J</span>
@@ -115,11 +115,11 @@ export default function AdminLoginPage() {
           borderColor: 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)',
         }}
-        className="relative z-10 w-full max-w-md p-6 sm:p-10 rounded-3xl border transition-colors shadow-2xl backdrop-blur-md"
+        className="relative z-10 w-full max-w-md p-5 sm:p-10 rounded-3xl border transition-colors shadow-2xl backdrop-blur-md min-w-0"
       >
         
         {/* Top Header & Actions */}
-        <div className="flex items-center justify-between gap-2 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-6">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-105 shadow-xs"

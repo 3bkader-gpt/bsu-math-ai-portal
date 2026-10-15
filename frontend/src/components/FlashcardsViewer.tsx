@@ -60,7 +60,7 @@ export function FlashcardsViewer({ cards }: FlashcardsViewerProps) {
   return (
     <div className="max-w-2xl mx-auto space-y-6 py-4">
       {/* Top Header & Progress */}
-      <div className="flex items-center justify-between text-sm" style={{ color: 'var(--text-secondary)' }}>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
         <div className="flex items-center gap-2.5">
           <span
             style={{
@@ -78,7 +78,7 @@ export function FlashcardsViewer({ cards }: FlashcardsViewerProps) {
         </div>
 
         <div
-          className="w-44 h-2.5 rounded-full overflow-hidden"
+          className="flex-1 max-w-[176px] min-w-[50px] h-2.5 rounded-full overflow-hidden"
           style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
         >
           <div
