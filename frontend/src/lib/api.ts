@@ -1,12 +1,10 @@
 /**
  * Centralized API configuration for the BSU Mathematics Portal.
- * Reads the public backend URL from:
- * 1. localStorage override ('bsu_api_url') if set
+ * Reads the backend URL from:
+ * 1. localStorage override ('bsu_api_url') if set by admin
  * 2. NEXT_PUBLIC_API_URL environment variable
- * 3. Active public Cloudflare Tunnel URL as robust production fallback
+ * 3. Localhost fallback when running locally
  */
-
-const DEFAULT_TUNNEL_URL = 'https://optical-butler-corp-began.trycloudflare.com';
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
@@ -14,14 +12,18 @@ export function getApiBaseUrl(): string {
     if (override && override.trim()) {
       return override.trim().replace(/\/+$/, '');
     }
+    // If running on localhost in browser, default to local FastAPI port 8000
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://127.0.0.1:8000';
+    }
   }
 
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (envUrl && envUrl.trim() && !envUrl.includes('127.0.0.1') && !envUrl.includes('localhost')) {
+  if (envUrl && envUrl.trim()) {
     return envUrl.trim().replace(/\/+$/, '');
   }
 
-  return DEFAULT_TUNNEL_URL;
+  return 'http://127.0.0.1:8000';
 }
 
 export const API_BASE_URL = getApiBaseUrl();
