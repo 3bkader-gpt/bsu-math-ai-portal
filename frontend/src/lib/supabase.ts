@@ -95,7 +95,11 @@ export async function getDirectSupabaseSubjects(): Promise<SupabaseSubject[]> {
   const subjects = await subRes.json();
   const lectures = lecRes.ok ? await lecRes.json() : [];
 
-  return subjects.map((s: any) => {
+  const validSubjects = (subjects as any[]).filter(
+    (s) => s.name && s.name.trim() !== 'كتب كامله' && !['BOT', 'subjects'].includes(s.name.trim())
+  );
+
+  return validSubjects.map((s: any) => {
     const subLecs = lectures.filter((l: any) => l.subject_id === s.id);
     const officialDocs = OFFICIAL_SUBJECT_DOCTORS[s.name] || [];
     const docs = officialDocs.length > 0 

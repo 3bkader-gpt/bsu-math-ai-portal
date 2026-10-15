@@ -21,7 +21,7 @@ def sync_subjects_from_filesystem(db: Session):
                 candidate_folders.append(item)
                 
     # 2. Also check subject folders directly in college_dir
-    ignored = {"BOT", "subjects", "bsu-math-portal", "مروه", "وليد", "venv", ".git", "__pycache__", "node_modules", "dist", "build"}
+    ignored = {"BOT", "subjects", "كتب كامله", "bsu-math-portal", "مروه", "وليد", "venv", ".git", "__pycache__", "node_modules", "dist", "build"}
     if college_dir.exists():
         for item in college_dir.iterdir():
             if item.is_dir() and item.name not in ignored and not item.name.startswith("."):

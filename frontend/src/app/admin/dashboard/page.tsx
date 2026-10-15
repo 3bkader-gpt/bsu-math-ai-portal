@@ -109,10 +109,11 @@ export default function AdminDashboardPage() {
     setIsLoadingSubjects(true);
     try {
       const data = await getDirectSupabaseSubjects();
-      if (data && data.length > 0) {
-        setSubjects(data);
+      const cleanData = (data || []).filter((s: any) => s.name && s.name.trim() !== 'كتب كامله');
+      if (cleanData.length > 0) {
+        setSubjects(cleanData);
         if (!selectedSubjectId) {
-          setSelectedSubjectId(data[0].id);
+          setSelectedSubjectId(cleanData[0].id);
         }
         return;
       }
@@ -123,10 +124,11 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(getApiUrl('/api/subjects'));
       if (res.ok) {
-        const data = await res.json();
-        setSubjects(data);
-        if (data.length > 0 && !selectedSubjectId) {
-          setSelectedSubjectId(data[0].id);
+        const raw = await res.json();
+        const cleanData = (Array.isArray(raw) ? raw : []).filter((s: any) => s.name && s.name.trim() !== 'كتب كامله');
+        setSubjects(cleanData);
+        if (cleanData.length > 0 && !selectedSubjectId) {
+          setSelectedSubjectId(cleanData[0].id);
         }
       }
     } catch (err) {
