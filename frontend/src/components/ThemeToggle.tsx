@@ -3,43 +3,43 @@
 import React, { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-export type PersonaType = 'boys' | 'academic' | 'girls';
+export type PersonaType = 'boys' | 'girls';
 export type ModeType = 'light' | 'dark';
 
 export const THEME_PALETTES = {
   'boys-light': {
-    '--bg-page': '#F5EFE1',
+    '--bg-page': '#F6F2E9',
     '--bg-surface': '#FFFFFF',
-    '--bg-surface-elevated': '#FAF5EA',
-    '--bg-surface-translucent': 'rgba(255, 255, 255, 0.94)',
-    '--text-primary': '#0B1515',
-    '--text-secondary': '#162E2E',
+    '--bg-surface-elevated': '#EDE8DC',
+    '--bg-surface-translucent': 'rgba(255, 255, 255, 0.95)',
+    '--text-primary': '#0D1919',
+    '--text-secondary': '#1B3333',
     '--text-muted': '#365353',
-    '--border-subtle': '#D9CBB3',
-    '--border-prominent': '#C8B79B',
-    '--border-interactive': '#184E4E',
-    '--accent-primary': '#184E4E',
-    '--accent-primary-hover': '#113838',
+    '--border-subtle': '#D6C7AF',
+    '--border-prominent': '#C0AE92',
+    '--border-interactive': '#115E59',
+    '--accent-primary': '#115E59',
+    '--accent-primary-hover': '#0F4C47',
     '--accent-cyan': '#0D9488',
     '--accent-emerald': '#059669',
     '--accent-amber': '#C8963E',
     '--accent-rose': '#BE123C',
-    '--math-formula-color': '#0B1515',
-    '--math-block-bg': '#FAF5EA',
-    '--math-block-border': '#C8B79B',
-    '--card-shadow': '0 4px 20px -2px rgba(24, 78, 78, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
-    '--card-shadow-hover': '0 12px 28px -4px rgba(24, 78, 78, 0.14), 0 2px 6px -1px rgba(0, 0, 0, 0.05)',
+    '--math-formula-color': '#0D1919',
+    '--math-block-bg': '#EDE8DC',
+    '--math-block-border': '#C0AE92',
+    '--card-shadow': '0 4px 20px -2px rgba(17, 94, 89, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
+    '--card-shadow-hover': '0 12px 28px -4px rgba(17, 94, 89, 0.16), 0 2px 6px -1px rgba(0, 0, 0, 0.05)',
   },
   'boys-dark': {
     '--bg-page': '#0B0F14',
     '--bg-surface': '#131922',
     '--bg-surface-elevated': '#1C2533',
-    '--bg-surface-translucent': 'rgba(19, 25, 34, 0.94)',
+    '--bg-surface-translucent': 'rgba(19, 25, 34, 0.95)',
     '--text-primary': '#FFFFFF',
-    '--text-secondary': '#E2E8F0',
-    '--text-muted': '#A8B7CC',
+    '--text-secondary': '#F1F5F9',
+    '--text-muted': '#CBD5E1',
     '--border-subtle': '#223244',
-    '--border-prominent': '#31445B',
+    '--border-prominent': '#33475E',
     '--border-interactive': '#2DD4BF',
     '--accent-primary': '#2DD4BF',
     '--accent-primary-hover': '#5EEAD4',
@@ -51,53 +51,7 @@ export const THEME_PALETTES = {
     '--math-block-bg': '#0E1724',
     '--math-block-border': '#1E3A5F',
     '--card-shadow': '0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.06)',
-    '--card-shadow-hover': '0 20px 48px -10px rgba(45, 212, 191, 0.15), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12)',
-  },
-  'academic-light': {
-    '--bg-page': '#F6F4FB',
-    '--bg-surface': '#FFFFFF',
-    '--bg-surface-elevated': '#EFEAF8',
-    '--bg-surface-translucent': 'rgba(255, 255, 255, 0.95)',
-    '--text-primary': '#140826',
-    '--text-secondary': '#2B1347',
-    '--text-muted': '#52386E',
-    '--border-subtle': '#DDD4EE',
-    '--border-prominent': '#C8BCE2',
-    '--border-interactive': '#7C3AED',
-    '--accent-primary': '#7C3AED',
-    '--accent-primary-hover': '#6D28D9',
-    '--accent-cyan': '#0284C7',
-    '--accent-emerald': '#059669',
-    '--accent-amber': '#D97706',
-    '--accent-rose': '#BE123C',
-    '--math-formula-color': '#140826',
-    '--math-block-bg': '#EFEAF8',
-    '--math-block-border': '#C8BCE2',
-    '--card-shadow': '0 4px 20px -2px rgba(124, 58, 237, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
-    '--card-shadow-hover': '0 12px 28px -4px rgba(124, 58, 237, 0.16), 0 2px 6px -1px rgba(0, 0, 0, 0.05)',
-  },
-  'academic-dark': {
-    '--bg-page': '#0E0918',
-    '--bg-surface': '#181126',
-    '--bg-surface-elevated': '#251A3B',
-    '--bg-surface-translucent': 'rgba(24, 17, 38, 0.95)',
-    '--text-primary': '#FFFFFF',
-    '--text-secondary': '#EBE5F7',
-    '--text-muted': '#C8BAE5',
-    '--border-subtle': 'rgba(188, 146, 224, 0.22)',
-    '--border-prominent': 'rgba(188, 146, 224, 0.42)',
-    '--border-interactive': '#A78BFA',
-    '--accent-primary': '#A78BFA',
-    '--accent-primary-hover': '#C4B5FD',
-    '--accent-cyan': '#38BDF8',
-    '--accent-emerald': '#34D399',
-    '--accent-amber': '#FBBF24',
-    '--accent-rose': '#FB7185',
-    '--math-formula-color': '#C4B5FD',
-    '--math-block-bg': '#150C24',
-    '--math-block-border': '#3B245D',
-    '--card-shadow': '0 16px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 1px 0 rgba(255, 255, 255, 0.07)',
-    '--card-shadow-hover': '0 20px 48px -10px rgba(167, 139, 250, 0.25), 0 0 25px rgba(167, 139, 250, 0.15)',
+    '--card-shadow-hover': '0 20px 48px -10px rgba(45, 212, 191, 0.18), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12)',
   },
   'girls-light': {
     '--bg-page': '#FAF5F0',
@@ -148,7 +102,7 @@ export const THEME_PALETTES = {
 };
 
 export function ThemeToggle({ className = '' }: { className?: string }) {
-  const [persona, setPersona] = useState<PersonaType>('academic');
+  const [persona, setPersona] = useState<PersonaType>('boys');
   const [mode, setMode] = useState<ModeType>('light');
   const [mounted, setMounted] = useState(false);
 
@@ -156,7 +110,9 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
 
-    root.setAttribute('data-persona', p);
+    const safePersona = p === ('academic' as any) ? 'boys' : p;
+
+    root.setAttribute('data-persona', safePersona);
     root.setAttribute('data-mode', m);
 
     if (m === 'dark') {
@@ -167,7 +123,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       root.classList.add('light');
     }
 
-    const themeKey = `${p}-${m}` as keyof typeof THEME_PALETTES;
+    const themeKey = `${safePersona}-${m}` as keyof typeof THEME_PALETTES;
     const palette = THEME_PALETTES[themeKey];
     if (palette) {
       Object.entries(palette).forEach(([k, v]) => {
@@ -176,10 +132,10 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
     }
 
     try {
-      localStorage.setItem('bsu_portal_persona', p);
+      localStorage.setItem('bsu_portal_persona', safePersona);
       localStorage.setItem('bsu_portal_mode', m);
       localStorage.setItem('bsu_math_theme', m);
-      window.dispatchEvent(new CustomEvent('bsu_theme_changed', { detail: { persona: p, mode: m } }));
+      window.dispatchEvent(new CustomEvent('bsu_theme_changed', { detail: { persona: safePersona, mode: m } }));
     } catch {
       // Ignore private browsing errors
     }
@@ -187,7 +143,12 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
 
   useEffect(() => {
     try {
-      const savedPersona = (localStorage.getItem('bsu_portal_persona') as PersonaType) || 'academic';
+      let savedPersona = (localStorage.getItem('bsu_portal_persona') as PersonaType) || 'boys';
+      if (savedPersona === ('academic' as any)) {
+        savedPersona = 'boys';
+        localStorage.setItem('bsu_portal_persona', 'boys');
+      }
+
       let savedMode = localStorage.getItem('bsu_portal_mode') as ModeType | null;
 
       if (!savedMode) {
@@ -218,13 +179,14 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
   if (!mounted) {
     return (
       <div className={`inline-flex items-center gap-1.5 p-1 rounded-2xl border border-slate-300 dark:border-white/10 bg-slate-100 dark:bg-slate-900/50 opacity-60 ${className}`}>
-        <div className="w-24 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="w-18 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
         <div className="w-14 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
       </div>
     );
   }
 
   const isDark = mode === 'dark';
+  const isGirls = persona === 'girls';
 
   return (
     <div
@@ -236,7 +198,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       role="region"
       aria-label="إعدادات المظهر والنسخة"
     >
-      {/* 1. Persona Selector (Boys vs Academic vs Girls) */}
+      {/* 1. Persona Selector (Boys vs Girls) */}
       <div
         className="flex items-center p-0.5 rounded-xl border"
         style={{
@@ -248,54 +210,36 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           type="button"
           onClick={() => handlePersonaChange('boys')}
           title="النسخة الشبابية: طابع تيل كلاسيكي وستيلث تكنو"
-          className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-            persona === 'boys'
+          className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+            !isGirls
               ? 'shadow-sm text-white scale-[1.02]'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
           }`}
           style={{
-            backgroundColor: persona === 'boys' ? (isDark ? '#2DD4BF' : '#184E4E') : 'transparent',
-            color: persona === 'boys' ? (isDark ? '#0B0F14' : '#FFFFFF') : undefined,
+            backgroundColor: !isGirls ? (isDark ? '#2DD4BF' : '#115E59') : 'transparent',
+            color: !isGirls ? (isDark ? '#0B0F14' : '#FFFFFF') : undefined,
           }}
         >
           <span>⚡</span>
-          <span className="hidden xs:inline">شبابي</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handlePersonaChange('academic')}
-          title="النسخة الأكاديمية الملكية: لافندر ملكي متوازن ووقور"
-          className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-            persona === 'academic'
-              ? 'shadow-sm text-white scale-[1.02]'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
-          }`}
-          style={{
-            backgroundColor: persona === 'academic' ? (isDark ? '#A78BFA' : '#7C3AED') : 'transparent',
-            color: persona === 'academic' ? (isDark ? '#0E0918' : '#FFFFFF') : undefined,
-          }}
-        >
-          <span>👑</span>
-          <span>أكاديمي</span>
+          <span>شبابي</span>
         </button>
 
         <button
           type="button"
           onClick={() => handlePersonaChange('girls')}
           title="نسخة البنات: درجات كوزي روز بودري وميدنايت بيري"
-          className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-            persona === 'girls'
+          className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+            isGirls
               ? 'shadow-sm text-white scale-[1.02]'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
           }`}
           style={{
-            backgroundColor: persona === 'girls' ? (isDark ? '#FF6584' : '#C46D82') : 'transparent',
-            color: persona === 'girls' ? (isDark ? '#0D0811' : '#FFFFFF') : undefined,
+            backgroundColor: isGirls ? (isDark ? '#FF6584' : '#C46D82') : 'transparent',
+            color: isGirls ? (isDark ? '#0D0811' : '#FFFFFF') : undefined,
           }}
         >
           <span>🎀</span>
-          <span className="hidden xs:inline">بناتي</span>
+          <span>بناتي</span>
         </button>
       </div>
 

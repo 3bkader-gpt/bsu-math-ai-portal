@@ -450,7 +450,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div 
-      className="min-h-screen flex flex-col transition-colors selection:bg-purple-500/25 selection:text-purple-200"
+      className="min-h-screen flex flex-col transition-colors selection:bg-teal-500/25 selection:text-teal-200"
       style={{
         backgroundColor: 'var(--bg-page)',
         color: 'var(--text-primary)'
@@ -553,7 +553,7 @@ export default function AdminDashboardPage() {
                 color: 'var(--text-primary)'
               }}
             >
-              <ExternalLink className="w-4 h-4 text-purple-500" />
+              <ExternalLink className="w-4 h-4 text-teal-500" />
               <span className="hidden sm:inline">بوابة الطلاب</span>
             </Link>
 
@@ -1256,7 +1256,7 @@ export default function AdminDashboardPage() {
                 <span>كيف يعمل خط الإنتاج الذكي؟</span>
               </h4>
               <p className="text-sm sm:text-base leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                1. بمجرد رفع الـ PDF، يسحب السيرفر تلقائياً <strong className="font-black text-purple-600 dark:text-purple-300">البرومبت الرئيسي للمادة</strong> الذي تم إعداده خصيصاً (المشروح بالمصري والموجّه لأسلوب امتحانات بني سويف).
+                1. بمجرد رفع الـ PDF، يسحب السيرفر تلقائياً <strong className="font-black text-cyan-600 dark:text-cyan-300">البرومبت الرئيسي للمادة</strong> الذي تم إعداده خصيصاً (المشروح بالمصري والموجّه لأسلوب امتحانات بني سويف).
               </p>
               <p className="text-sm sm:text-base leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
                 2. يقوم <strong className="font-black text-teal-600 dark:text-teal-300">NotebookLM</strong> بإنتاج البودكاست الصوتي والفيديو والكويز والملخص بالتوازي في السحابة.
