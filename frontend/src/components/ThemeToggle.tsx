@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-export type PersonaType = 'boys' | 'girls';
+export type PersonaType = 'boys' | 'academic' | 'girls';
 export type ModeType = 'light' | 'dark';
 
 export const THEME_PALETTES = {
@@ -52,6 +52,52 @@ export const THEME_PALETTES = {
     '--math-block-border': '#1E3A5F',
     '--card-shadow': '0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.06)',
     '--card-shadow-hover': '0 20px 48px -10px rgba(45, 212, 191, 0.15), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12)',
+  },
+  'academic-light': {
+    '--bg-page': '#F6F4FB',
+    '--bg-surface': '#FFFFFF',
+    '--bg-surface-elevated': '#F0ECF9',
+    '--bg-surface-translucent': 'rgba(255, 255, 255, 0.93)',
+    '--text-primary': '#21133D',
+    '--text-secondary': '#3D2758',
+    '--text-muted': '#6D5985',
+    '--border-subtle': '#E2DBF0',
+    '--border-prominent': '#D1C4E7',
+    '--border-interactive': '#7C3AED',
+    '--accent-primary': '#7C3AED',
+    '--accent-primary-hover': '#6D28D9',
+    '--accent-cyan': '#0284C7',
+    '--accent-emerald': '#059669',
+    '--accent-amber': '#D97706',
+    '--accent-rose': '#BE123C',
+    '--math-formula-color': '#21133D',
+    '--math-block-bg': '#F0ECF9',
+    '--math-block-border': '#D1C4E7',
+    '--card-shadow': '0 4px 20px -2px rgba(124, 58, 237, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
+    '--card-shadow-hover': '0 12px 28px -4px rgba(124, 58, 237, 0.16), 0 2px 6px -1px rgba(0, 0, 0, 0.05)',
+  },
+  'academic-dark': {
+    '--bg-page': '#0E0918',
+    '--bg-surface': '#181126',
+    '--bg-surface-elevated': '#241A38',
+    '--bg-surface-translucent': 'rgba(24, 17, 38, 0.94)',
+    '--text-primary': '#F5F0FF',
+    '--text-secondary': '#D4C7EB',
+    '--text-muted': '#9E8EB8',
+    '--border-subtle': 'rgba(188, 146, 224, 0.18)',
+    '--border-prominent': 'rgba(188, 146, 224, 0.35)',
+    '--border-interactive': '#A78BFA',
+    '--accent-primary': '#A78BFA',
+    '--accent-primary-hover': '#C4B5FD',
+    '--accent-cyan': '#38BDF8',
+    '--accent-emerald': '#34D399',
+    '--accent-amber': '#FBBF24',
+    '--accent-rose': '#FB7185',
+    '--math-formula-color': '#C4B5FD',
+    '--math-block-bg': '#150C24',
+    '--math-block-border': '#3B245D',
+    '--card-shadow': '0 16px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 1px 0 rgba(255, 255, 255, 0.07)',
+    '--card-shadow-hover': '0 20px 48px -10px rgba(167, 139, 250, 0.25), 0 0 25px rgba(167, 139, 250, 0.15)',
   },
   'girls-light': {
     '--bg-page': '#FAF5F0',
@@ -102,7 +148,7 @@ export const THEME_PALETTES = {
 };
 
 export function ThemeToggle({ className = '' }: { className?: string }) {
-  const [persona, setPersona] = useState<PersonaType>('boys');
+  const [persona, setPersona] = useState<PersonaType>('academic');
   const [mode, setMode] = useState<ModeType>('light');
   const [mounted, setMounted] = useState(false);
 
@@ -141,7 +187,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
 
   useEffect(() => {
     try {
-      const savedPersona = (localStorage.getItem('bsu_portal_persona') as PersonaType) || 'boys';
+      const savedPersona = (localStorage.getItem('bsu_portal_persona') as PersonaType) || 'academic';
       let savedMode = localStorage.getItem('bsu_portal_mode') as ModeType | null;
 
       if (!savedMode) {
@@ -172,13 +218,12 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
   if (!mounted) {
     return (
       <div className={`inline-flex items-center gap-1.5 p-1 rounded-2xl border border-slate-300 dark:border-white/10 bg-slate-100 dark:bg-slate-900/50 opacity-60 ${className}`}>
-        <div className="w-16 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="w-24 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
         <div className="w-14 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
       </div>
     );
   }
 
-  const isGirls = persona === 'girls';
   const isDark = mode === 'dark';
 
   return (
@@ -191,7 +236,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       role="region"
       aria-label="إعدادات المظهر والنسخة"
     >
-      {/* 1. Persona Selector (Boys vs Girls) */}
+      {/* 1. Persona Selector (Boys vs Academic vs Girls) */}
       <div
         className="flex items-center p-0.5 rounded-xl border"
         style={{
@@ -203,36 +248,54 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           type="button"
           onClick={() => handlePersonaChange('boys')}
           title="النسخة الشبابية: طابع تيل كلاسيكي وستيلث تكنو"
-          className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-            !isGirls
+          className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+            persona === 'boys'
               ? 'shadow-sm text-white scale-[1.02]'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
           }`}
           style={{
-            backgroundColor: !isGirls ? (isDark ? '#2DD4BF' : '#184E4E') : 'transparent',
-            color: !isGirls ? (isDark ? '#0B0F14' : '#FFFFFF') : undefined,
+            backgroundColor: persona === 'boys' ? (isDark ? '#2DD4BF' : '#184E4E') : 'transparent',
+            color: persona === 'boys' ? (isDark ? '#0B0F14' : '#FFFFFF') : undefined,
           }}
         >
           <span>⚡</span>
-          <span>شبابي</span>
+          <span className="hidden xs:inline">شبابي</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handlePersonaChange('academic')}
+          title="النسخة الأكاديمية الملكية: لافندر ملكي متوازن ووقور"
+          className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+            persona === 'academic'
+              ? 'shadow-sm text-white scale-[1.02]'
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
+          }`}
+          style={{
+            backgroundColor: persona === 'academic' ? (isDark ? '#A78BFA' : '#7C3AED') : 'transparent',
+            color: persona === 'academic' ? (isDark ? '#0E0918' : '#FFFFFF') : undefined,
+          }}
+        >
+          <span>👑</span>
+          <span>أكاديمي</span>
         </button>
 
         <button
           type="button"
           onClick={() => handlePersonaChange('girls')}
           title="نسخة البنات: درجات كوزي روز بودري وميدنايت بيري"
-          className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-            isGirls
+          className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+            persona === 'girls'
               ? 'shadow-sm text-white scale-[1.02]'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
           }`}
           style={{
-            backgroundColor: isGirls ? (isDark ? '#FF6584' : '#C46D82') : 'transparent',
-            color: isGirls ? (isDark ? '#0D0811' : '#FFFFFF') : undefined,
+            backgroundColor: persona === 'girls' ? (isDark ? '#FF6584' : '#C46D82') : 'transparent',
+            color: persona === 'girls' ? (isDark ? '#0D0811' : '#FFFFFF') : undefined,
           }}
         >
           <span>🎀</span>
-          <span>بناتي</span>
+          <span className="hidden xs:inline">بناتي</span>
         </button>
       </div>
 
