@@ -12,10 +12,6 @@ export function getApiBaseUrl(): string {
     if (override && override.trim()) {
       return override.trim().replace(/\/+$/, '');
     }
-    // If running on localhost in browser, default to local FastAPI port 8000
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://127.0.0.1:8000';
-    }
   }
 
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
