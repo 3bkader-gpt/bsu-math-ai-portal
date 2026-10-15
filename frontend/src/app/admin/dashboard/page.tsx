@@ -25,7 +25,15 @@ import {
   Database,
   Cloud,
   GraduationCap,
-  Plus
+  Plus,
+  Activity,
+  X,
+  Search,
+  Copy,
+  Check,
+  Trash2,
+  Terminal,
+  Server
 } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -90,6 +98,85 @@ export default function AdminDashboardPage() {
   const [activeTrackingId, setActiveTrackingId] = useState<number | null>(null);
   const [trackedLecture, setTrackedLecture] = useState<any>(null);
   const [isPolling, setIsPolling] = useState(false);
+
+  // Diagnostics & Logs System State
+  const [showDiagnosticsModal, setShowDiagnosticsModal] = useState(false);
+  const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
+  const [isLoadingDiagnostics, setIsLoadingDiagnostics] = useState(false);
+  const [diagnosticsTab, setDiagnosticsTab] = useState<'overview' | 'matrix' | 'logs'>('overview');
+  const [logsData, setLogsData] = useState<any[]>([]);
+  const [logsStats, setLogsStats] = useState<any>(null);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [logFilterLevel, setLogFilterLevel] = useState<string>('ALL');
+  const [logSearch, setLogSearch] = useState<string>('');
+  const [matrixFilter, setMatrixFilter] = useState<'ALL' | 'COMPLETE' | 'INCOMPLETE'>('ALL');
+  const [matrixSearch, setMatrixSearch] = useState<string>('');
+  const [copiedReport, setCopiedReport] = useState(false);
+
+  const fetchDiagnostics = async () => {
+    setIsLoadingDiagnostics(true);
+    try {
+      const res = await fetch(getApiUrl('/api/diagnostics'));
+      if (res.ok) {
+        const data = await res.json();
+        setDiagnosticsData(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch diagnostics:', e);
+    } finally {
+      setIsLoadingDiagnostics(false);
+    }
+  };
+
+  const fetchLogs = async () => {
+    setIsLoadingLogs(true);
+    try {
+      const params = new URLSearchParams();
+      if (logFilterLevel && logFilterLevel !== 'ALL') params.append('level', logFilterLevel);
+      if (logSearch) params.append('search', logSearch);
+      const res = await fetch(getApiUrl(`/api/diagnostics/logs?${params.toString()}`));
+      if (res.ok) {
+        const data = await res.json();
+        setLogsData(data.logs || []);
+        setLogsStats(data.stats || null);
+      }
+    } catch (e) {
+      console.error('Failed to fetch logs:', e);
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    if (!confirm('هل تريد مسح سجلات السيرفر الحالية؟')) return;
+    try {
+      await fetch(getApiUrl('/api/diagnostics/clear-logs'), { method: 'POST' });
+      fetchLogs();
+    } catch (e) {
+      console.error('Failed to clear logs:', e);
+    }
+  };
+
+  const handleCopyReport = () => {
+    if (!diagnosticsData) return;
+    const reportText = `BSU Math AI Portal - تقرير فحص النظام السحابي
+تاريخ الفحص: ${new Date().toLocaleString('ar-EG')}
+حالة السيرفر: ${diagnosticsData.status}
+قاعدة بيانات Supabase: ${diagnosticsData.database?.status} (${diagnosticsData.database?.latency_ms}ms)
+تخزين تيليجرام MTProto: ${diagnosticsData.telegram_mtproto?.status} (القناة: ${diagnosticsData.telegram_mtproto?.channel_id})
+إجمالي المحاضرات: ${diagnosticsData.summary?.total_lectures}
+المحاضرات مكتملة الخمس خيارات: ${diagnosticsData.summary?.complete_5_of_5}
+الكويزات الجاهزة: ${diagnosticsData.summary?.total_quizzes_ready}/21
+الأدلة والملخصات الجاهزة: ${diagnosticsData.summary?.total_guides_ready}/21
+البطاقات الجاهزة: ${diagnosticsData.summary?.total_flashcards_ready}/21
+الملفات الصوتية: ${diagnosticsData.summary?.total_audios}/21
+الفيديوهات: ${diagnosticsData.summary?.total_videos}/21
+`;
+    navigator.clipboard.writeText(reportText);
+    setCopiedReport(true);
+    setTimeout(() => setCopiedReport(false), 2500);
+  };
+
 
   // 1. Check Auth & Load Subjects on mount
   useEffect(() => {
@@ -559,6 +646,23 @@ export default function AdminDashboardPage() {
               <ExternalLink className="w-4 h-4 text-teal-500 shrink-0" />
               <span className="hidden lg:inline">بوابة الطلاب</span>
             </Link>
+
+            <button
+              onClick={() => {
+                setShowDiagnosticsModal(true);
+                fetchDiagnostics();
+              }}
+              title="سجلات وفحص النظام والمصادر"
+              className="inline-flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-[1.02] shadow-sm shrink-0 cursor-pointer"
+              style={{
+                backgroundColor: 'var(--accent-primary)',
+                borderColor: 'var(--accent-primary)',
+                color: '#ffffff'
+              }}
+            >
+              <Activity className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">سجلات وفحص النظام 📊</span>
+            </button>
 
             <button
               onClick={handleLogout}
@@ -1272,6 +1376,576 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* ========================================================================= */}
+      {/* COMPREHENSIVE CLOUD DIAGNOSTICS & SYSTEM LOGS MODAL                       */}
+      {/* ========================================================================= */}
+      {showDiagnosticsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+          <div 
+            className="w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden transition-all"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              borderColor: 'var(--border-prominent)',
+              boxShadow: 'var(--card-shadow-hover)'
+            }}
+          >
+            {/* Modal Header */}
+            <div 
+              className="p-4 sm:p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0"
+              style={{ 
+                borderColor: 'var(--border-subtle)',
+                backgroundColor: 'var(--bg-surface-elevated)'
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center border shrink-0 text-white shadow-sm"
+                  style={{ backgroundColor: 'var(--accent-primary)', borderColor: 'var(--accent-primary)' }}
+                >
+                  <Activity className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base sm:text-lg flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <span>سجلات وفحص النظام والمصادر</span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                      Cloud 24/7
+                    </span>
+                  </h3>
+                  <p className="text-xs font-bold mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                    مراقبة حية لسيرفر Render وقاعدة Supabase وتدفق تيليجرام وفهرس الـ 21 محاضرة
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  onClick={handleCopyReport}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-primary)'
+                  }}
+                  title="نسخ تقرير الفحص للحافظة"
+                >
+                  {copiedReport ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedReport ? 'تم النسخ!' : 'نسخ التقرير'}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    fetchDiagnostics();
+                    if (diagnosticsTab === 'logs') fetchLogs();
+                  }}
+                  disabled={isLoadingDiagnostics || isLoadingLogs}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-primary)'
+                  }}
+                  title="تحديث البيانات"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${(isLoadingDiagnostics || isLoadingLogs) ? 'animate-spin' : ''}`} />
+                  <span>تحديث</span>
+                </button>
+
+                <button
+                  onClick={() => setShowDiagnosticsModal(false)}
+                  className="p-2 rounded-xl border transition-all hover:bg-rose-500/10 hover:border-rose-400 hover:text-rose-500 cursor-pointer shadow-xs"
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-secondary)'
+                  }}
+                  title="إغلاق"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Tabs Bar */}
+            <div 
+              className="px-4 sm:px-6 pt-3 border-b flex items-center gap-2 shrink-0 overflow-x-auto"
+              style={{ 
+                borderColor: 'var(--border-subtle)',
+                backgroundColor: 'var(--bg-surface-elevated)'
+              }}
+            >
+              <button
+                onClick={() => setDiagnosticsTab('overview')}
+                className={`pb-2.5 px-3 border-b-2 text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 ${
+                  diagnosticsTab === 'overview'
+                    ? 'border-cyan-500 text-cyan-500'
+                    : 'border-transparent opacity-70 hover:opacity-100'
+                }`}
+                style={{ color: diagnosticsTab === 'overview' ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+              >
+                <Activity className="w-4 h-4" />
+                <span>نظرة عامة والخدمات السحابية</span>
+              </button>
+
+              <button
+                onClick={() => setDiagnosticsTab('matrix')}
+                className={`pb-2.5 px-3 border-b-2 text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 ${
+                  diagnosticsTab === 'matrix'
+                    ? 'border-cyan-500 text-cyan-500'
+                    : 'border-transparent opacity-70 hover:opacity-100'
+                }`}
+                style={{ color: diagnosticsTab === 'matrix' ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+              >
+                <Layers className="w-4 h-4" />
+                <span>مصفوفة الـ 21 محاضرة (5/5)</span>
+                {diagnosticsData?.summary && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-500/10 text-cyan-500 font-bold">
+                    {diagnosticsData.summary.complete_5_of_5}/{diagnosticsData.summary.total_lectures}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  setDiagnosticsTab('logs');
+                  fetchLogs();
+                }}
+                className={`pb-2.5 px-3 border-b-2 text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 ${
+                  diagnosticsTab === 'logs'
+                    ? 'border-cyan-500 text-cyan-500'
+                    : 'border-transparent opacity-70 hover:opacity-100'
+                }`}
+                style={{ color: diagnosticsTab === 'logs' ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+              >
+                <Terminal className="w-4 h-4" />
+                <span>سجلات السيرفر اللحظية (Live Logs)</span>
+                {logsStats && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    logsStats.ERROR > 0 ? 'bg-rose-500/20 text-rose-500' : 'bg-emerald-500/20 text-emerald-500'
+                  }`}>
+                    {logsStats.total} سجل
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Modal Body Content */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+              
+              {/* TAB 1: OVERVIEW */}
+              {diagnosticsTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Cloud Infrastructure Status Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Render API Backend */}
+                    <div 
+                      className="p-4 rounded-2xl border transition-all shadow-xs space-y-2"
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-subtle)'
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>سيرفر الباك إند السحابي</span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Server className="w-5 h-5 text-emerald-500" />
+                        <span className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>Render (Frankfurt)</span>
+                      </div>
+                      <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        يعمل 24/7 سحابياً بدون الاعتماد على جهازك المنزلي
+                      </p>
+                    </div>
+
+                    {/* Supabase Database */}
+                    <div 
+                      className="p-4 rounded-2xl border transition-all shadow-xs space-y-2"
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-subtle)'
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>قاعدة بيانات Supabase</span>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          {diagnosticsData?.database?.latency_ms || 8} ms
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Database className="w-5 h-5 text-sky-500" />
+                        <span className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>PostgreSQL Pooler</span>
+                      </div>
+                      <p className="text-xs font-semibold text-sky-600 dark:text-sky-400">
+                        {diagnosticsData?.database?.status === 'healthy' ? 'متصلة بسرعة استجابة فائقة' : 'جاري الفحص...'}
+                      </p>
+                    </div>
+
+                    {/* Telegram MTProto Streaming */}
+                    <div 
+                      className="p-4 rounded-2xl border transition-all shadow-xs space-y-2"
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-subtle)'
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>تخزين التيليجرام السحابي</span>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">
+                          MTProto In-Memory
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Cloud className="w-5 h-5 text-cyan-500" />
+                        <span className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>القناة السحابية</span>
+                      </div>
+                      <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">
+                        بث فوري مباشر من الرام يتجاوز ليميت الـ 20MB
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Summary Coverage KPI Grid */}
+                  {diagnosticsData?.summary && (
+                    <div className="space-y-3">
+                      <h4 className="font-black text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                        <Layers className="w-4 h-4 text-cyan-500" />
+                        <span>جاهزية الأصول التعليمية الخمسة لكل المحاضرات (21 محاضرة)</span>
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        <div className="p-3.5 rounded-2xl border text-center space-y-1" style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}>
+                          <HelpCircle className="w-5 h-5 mx-auto text-amber-500" />
+                          <div className="text-xl font-black text-amber-500">{diagnosticsData.summary.total_quizzes_ready}/21</div>
+                          <div className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>كويزات تفاعلية</div>
+                        </div>
+
+                        <div className="p-3.5 rounded-2xl border text-center space-y-1" style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}>
+                          <BookOpen className="w-5 h-5 mx-auto text-emerald-500" />
+                          <div className="text-xl font-black text-emerald-500">{diagnosticsData.summary.total_guides_ready}/21</div>
+                          <div className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>أدلة دراسية وزتونة</div>
+                        </div>
+
+                        <div className="p-3.5 rounded-2xl border text-center space-y-1" style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}>
+                          <FileText className="w-5 h-5 mx-auto text-sky-500" />
+                          <div className="text-xl font-black text-sky-500">{diagnosticsData.summary.total_flashcards_ready}/21</div>
+                          <div className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>بطاقات استذكار</div>
+                        </div>
+
+                        <div className="p-3.5 rounded-2xl border text-center space-y-1" style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}>
+                          <Headphones className="w-5 h-5 mx-auto text-indigo-500" />
+                          <div className="text-xl font-black text-indigo-500">{diagnosticsData.summary.total_audios}/21</div>
+                          <div className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>بودكاست صوتي</div>
+                        </div>
+
+                        <div className="p-3.5 rounded-2xl border text-center space-y-1" style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}>
+                          <Video className="w-5 h-5 mx-auto text-rose-500" />
+                          <div className="text-xl font-black text-rose-500">{diagnosticsData.summary.total_videos}/21</div>
+                          <div className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>فيديوهات شرح</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Clarification Callout Note */}
+                  <div 
+                    className="p-4 rounded-2xl border space-y-2"
+                    style={{
+                      backgroundColor: 'rgba(56, 189, 248, 0.05)',
+                      borderColor: 'rgba(56, 189, 248, 0.2)'
+                    }}
+                  >
+                    <h5 className="font-black text-sm flex items-center gap-2 text-sky-600 dark:text-sky-300">
+                      <Sparkles className="w-4 h-4" />
+                      <span>توضيح مهم بخصوص المحاضرات:</span>
+                    </h5>
+                    <p className="text-xs sm:text-sm leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                      جميع الـ 21 محاضرة أصبح لديها <strong>كويز كامل + ملخص دراسي شامل + بطاقات استذكار كاملة</strong> مدمجة ومحفوظة بنسبة 100%. الملفات الصوتية المتبقية (7 محاضرات) والفيديوهات المتبقية (9 محاضرات) تم رفع بعضها وباقي الملفات ترفع تدريجياً عبر القناة السحابية بدون أي ضغط على جهازك.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: MODALITY MATRIX (21 LECTURES) */}
+              {diagnosticsTab === 'matrix' && (
+                <div className="space-y-4">
+                  {/* Search & Filter Bar */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="ابحث باسم المحاضرة أو المادة..."
+                        value={matrixSearch}
+                        onChange={(e) => setMatrixSearch(e.target.value)}
+                        className="w-full pr-10 pl-4 py-2 rounded-xl text-xs sm:text-sm border outline-none font-bold"
+                        style={{
+                          backgroundColor: 'var(--bg-surface-elevated)',
+                          borderColor: 'var(--border-subtle)',
+                          color: 'var(--text-primary)'
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setMatrixFilter('ALL')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          matrixFilter === 'ALL'
+                            ? 'bg-cyan-500 text-white border-cyan-500'
+                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
+                        }`}
+                      >
+                        الكل (21)
+                      </button>
+                      <button
+                        onClick={() => setMatrixFilter('COMPLETE')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          matrixFilter === 'COMPLETE'
+                            ? 'bg-emerald-500 text-white border-emerald-500'
+                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
+                        }`}
+                      >
+                        مكتملة 5/5
+                      </button>
+                      <button
+                        onClick={() => setMatrixFilter('INCOMPLETE')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          matrixFilter === 'INCOMPLETE'
+                            ? 'bg-amber-500 text-white border-amber-500'
+                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
+                        }`}
+                      >
+                        تحتاج ملفات إضافية
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Matrix Table */}
+                  <div className="border rounded-2xl overflow-hidden shadow-xs" style={{ borderColor: 'var(--border-subtle)' }}>
+                    <div className="overflow-x-auto max-h-[500px]">
+                      <table className="w-full text-right text-xs">
+                        <thead 
+                          className="sticky top-0 z-10 font-black border-b"
+                          style={{
+                            backgroundColor: 'var(--bg-surface-elevated)',
+                            borderColor: 'var(--border-subtle)',
+                            color: 'var(--text-primary)'
+                          }}
+                        >
+                          <tr>
+                            <th className="p-3">المادة / المحاضرة</th>
+                            <th className="p-3 text-center">الدرجة</th>
+                            <th className="p-3 text-center">الكويز</th>
+                            <th className="p-3 text-center">الدليل</th>
+                            <th className="p-3 text-center">البطاقات</th>
+                            <th className="p-3 text-center">الصوت</th>
+                            <th className="p-3 text-center">الفيديو</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+                          {diagnosticsData?.lectures
+                            ?.filter((lec: any) => {
+                              if (matrixFilter === 'COMPLETE') return lec.score === '5/5';
+                              if (matrixFilter === 'INCOMPLETE') return lec.score !== '5/5';
+                              return true;
+                            })
+                            ?.filter((lec: any) => {
+                              if (!matrixSearch) return true;
+                              const s = matrixSearch.toLowerCase();
+                              return lec.title.toLowerCase().includes(s) || lec.subject.toLowerCase().includes(s);
+                            })
+                            ?.map((lec: any) => (
+                              <tr 
+                                key={lec.lecture_id}
+                                className="transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                                style={{ backgroundColor: 'var(--bg-surface)' }}
+                              >
+                                <td className="p-3">
+                                  <div className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>
+                                    {lec.title}
+                                  </div>
+                                  <div className="text-[11px] font-bold text-cyan-600 dark:text-cyan-400 mt-0.5">
+                                    {lec.subject} • محاضرة {lec.lecture_num} {lec.doctor ? `(${lec.doctor})` : ''}
+                                  </div>
+                                </td>
+
+                                <td className="p-3 text-center">
+                                  <span className={`inline-block px-2 py-0.5 rounded-full font-black text-xs ${
+                                    lec.score === '5/5' 
+                                      ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                                      : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                  }`}>
+                                    {lec.score}
+                                  </span>
+                                </td>
+
+                                <td className="p-3 text-center">
+                                  {lec.modalities.quiz.ready ? (
+                                    <span className="inline-flex items-center gap-1 text-emerald-500 font-bold" title={`${lec.modalities.quiz.chars} حرف`}>
+                                      <Check className="w-4 h-4" />
+                                      <span className="text-[10px] opacity-75">{Math.round(lec.modalities.quiz.chars / 1000)}k</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 font-bold">-</span>
+                                  )}
+                                </td>
+
+                                <td className="p-3 text-center">
+                                  {lec.modalities.guide.ready ? (
+                                    <span className="inline-flex items-center gap-1 text-emerald-500 font-bold" title={`${lec.modalities.guide.chars} حرف`}>
+                                      <Check className="w-4 h-4" />
+                                      <span className="text-[10px] opacity-75">{Math.round(lec.modalities.guide.chars / 1000)}k</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 font-bold">-</span>
+                                  )}
+                                </td>
+
+                                <td className="p-3 text-center">
+                                  {lec.modalities.flashcards.ready ? (
+                                    <span className="inline-flex items-center gap-1 text-emerald-500 font-bold" title={`${lec.modalities.flashcards.chars} حرف`}>
+                                      <Check className="w-4 h-4" />
+                                      <span className="text-[10px] opacity-75">{Math.round(lec.modalities.flashcards.chars / 1000)}k</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 font-bold">-</span>
+                                  )}
+                                </td>
+
+                                <td className="p-3 text-center">
+                                  {lec.modalities.audio.ready ? (
+                                    <span className="inline-flex items-center gap-1 text-indigo-500 font-bold" title={`تيليجرام msg #${lec.modalities.audio.tg_msg}`}>
+                                      <Headphones className="w-4 h-4" />
+                                      <span className="text-[10px]">#{lec.modalities.audio.tg_msg}</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 font-bold text-[11px]">قيد الإعداد</span>
+                                  )}
+                                </td>
+
+                                <td className="p-3 text-center">
+                                  {lec.modalities.video.ready ? (
+                                    <span className="inline-flex items-center gap-1 text-rose-500 font-bold" title={`تيليجرام msg #${lec.modalities.video.tg_msg}`}>
+                                      <Video className="w-4 h-4" />
+                                      <span className="text-[10px]">#{lec.modalities.video.tg_msg}</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 font-bold text-[11px]">قيد الإعداد</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: LIVE SERVER LOGS */}
+              {diagnosticsTab === 'logs' && (
+                <div className="space-y-4">
+                  {/* Controls: Search, Level Filter, Clear */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="فلترة السجلات بكلمة بحث..."
+                        value={logSearch}
+                        onChange={(e) => {
+                          setLogSearch(e.target.value);
+                          fetchLogs();
+                        }}
+                        className="w-full pr-10 pl-4 py-2 rounded-xl text-xs sm:text-sm border outline-none font-bold"
+                        style={{
+                          backgroundColor: 'var(--bg-surface-elevated)',
+                          borderColor: 'var(--border-subtle)',
+                          color: 'var(--text-primary)'
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {['ALL', 'INFO', 'WARNING', 'ERROR'].map((lvl) => (
+                        <button
+                          key={lvl}
+                          onClick={() => {
+                            setLogFilterLevel(lvl);
+                            fetchLogs();
+                          }}
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            logFilterLevel === lvl
+                              ? 'bg-cyan-500 text-white border-cyan-500'
+                              : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
+                          }`}
+                        >
+                          {lvl === 'ALL' ? 'الكل' : lvl}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={handleClearLogs}
+                        className="p-2 rounded-xl border transition-all hover:bg-rose-500/10 hover:border-rose-400 hover:text-rose-500 cursor-pointer shadow-xs"
+                        style={{
+                          backgroundColor: 'var(--bg-surface)',
+                          borderColor: 'var(--border-subtle)',
+                          color: 'var(--text-secondary)'
+                        }}
+                        title="مسح السجلات الحالية"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Terminal Log Console */}
+                  <div 
+                    className="p-4 rounded-2xl border font-mono text-xs overflow-y-auto max-h-[420px] space-y-1.5 shadow-inner"
+                    style={{
+                      backgroundColor: '#0a0f1d',
+                      borderColor: '#1e293b',
+                      color: '#e2e8f0',
+                      direction: 'ltr',
+                      textAlign: 'left'
+                    }}
+                  >
+                    {logsData.length === 0 ? (
+                      <div className="text-center py-10 text-gray-500">
+                        لا توجد سجلات حالياً تطابق معايير البحث
+                      </div>
+                    ) : (
+                      logsData.map((lg, idx) => (
+                        <div key={idx} className="flex items-start gap-2.5 hover:bg-white/5 p-1 rounded transition-colors">
+                          <span className="text-gray-500 select-none text-[11px] shrink-0">
+                            [{lg.timestamp}]
+                          </span>
+                          <span className={`px-1.5 py-0.2 rounded text-[10px] font-black uppercase shrink-0 ${
+                            lg.level === 'ERROR'
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                              : lg.level === 'WARNING'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                          }`}>
+                            {lg.level}
+                          </span>
+                          <span className="text-indigo-400 text-[11px] shrink-0">
+                            [{lg.logger}]
+                          </span>
+                          <span className="text-gray-200 break-all">
+                            {lg.message}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

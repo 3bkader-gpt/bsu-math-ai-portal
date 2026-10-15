@@ -45,6 +45,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import time
+from fastapi import Request
+
+@app.middleware("http")
+async def request_logging_middleware(request: Request, call_next):
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+        duration_ms = round((time.time() - start_time) * 1000, 1)
+        # Don't flood logs with frequent root health checks
+        if request.url.path not in ["/"]:
+            logger.info(f"[{response.status_code}] {request.method} {request.url.path} ({duration_ms}ms)")
+        return response
+    except Exception as exc:
+        duration_ms = round((time.time() - start_time) * 1000, 1)
+        logger.error(f"[ERR] {request.method} {request.url.path} ({duration_ms}ms): {exc}", exc_info=True)
+        raise exc
+
+
 # Include routers
 app.include_router(auth.router)
 app.include_router(lectures.router)

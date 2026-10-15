@@ -1,15 +1,24 @@
 import time
 import logging
-from fastapi import APIRouter, Depends
+from typing import Optional
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import Subject, Lecture, MediaAsset
 from app.services.telethon_service import telethon_streamer
+from app.services.logger_service import log_handler
 from app.config import settings
 
 logger = logging.getLogger("DiagnosticsRouter")
 
 router = APIRouter(prefix="/api/diagnostics", tags=["System Diagnostics & Logs"])
+
+class ClientLogPayload(BaseModel):
+    level: str = "ERROR"
+    message: str
+    context: Optional[dict] = None
+
 
 @router.get("")
 async def get_system_diagnostics(db: Session = Depends(get_db)):
@@ -104,3 +113,51 @@ async def get_system_diagnostics(db: Session = Depends(get_db)):
         "summary": summary,
         "lectures": lecture_audits
     }
+
+@router.get("/logs")
+async def get_system_logs(
+    limit: int = Query(default=100, ge=1, le=300),
+    level: Optional[str] = Query(default=None),
+    search: Optional[str] = Query(default=None)
+):
+    """
+    Returns live in-memory logs filtered by level or search keyword,
+    along with aggregate log statistics.
+    """
+    logs = log_handler.get_logs(limit=limit, level=level, search=search)
+    stats = log_handler.get_stats()
+    return {
+        "status": "success",
+        "stats": stats,
+        "count": len(logs),
+        "logs": logs
+    }
+
+@router.post("/client-log")
+async def record_client_error(payload: ClientLogPayload):
+    """
+    Allows frontend clients to report errors (audio load failures, network drops, etc.)
+    into the server diagnostics stream.
+    """
+    msg = f"[CLIENT_{payload.level.upper()}] {payload.message}"
+    if payload.context:
+        msg += f" | context: {payload.context}"
+    
+    if payload.level.upper() == "ERROR":
+        logger.error(msg)
+    elif payload.level.upper() == "WARNING":
+        logger.warning(msg)
+    else:
+        logger.info(msg)
+        
+    return {"status": "recorded"}
+
+@router.post("/clear-logs")
+async def clear_system_logs():
+    """
+    Clears the in-memory log buffer.
+    """
+    log_handler.clear()
+    logger.info("System logs buffer was cleared by admin.")
+    return {"status": "cleared"}
+

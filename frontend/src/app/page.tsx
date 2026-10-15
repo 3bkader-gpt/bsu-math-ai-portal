@@ -1561,9 +1561,41 @@ export default function Home() {
               {activeTab === 'quiz' && (
                 <div className="space-y-6 max-w-3xl mx-auto">
                   {quizQuestions.length === 0 ? (
-                    <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
-                      <HelpCircle className="w-10 h-10 mx-auto mb-3 opacity-50" />
-                      <span className="text-base font-semibold">{content.quizTab.loading}</span>
+                    <div className="text-center py-16 space-y-3" style={{ color: 'var(--text-muted)' }}>
+                      <HelpCircle className="w-12 h-12 mx-auto mb-3 opacity-40 animate-pulse" />
+                      <p className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+                        {isLoadingBundle ? 'جاري تجهيز وتحميل أسئلة الكويز...' : 'لم يتم العثور على أسئلة لهذا الكويز حالياً'}
+                      </p>
+                      {!isLoadingBundle && (
+                        <div className="flex items-center justify-center gap-3 pt-2">
+                          <button
+                            onClick={() => {
+                              if (activeBundle && typeof activeBundle.lecture_id === 'number') {
+                                openLecture(activeBundle.lecture_id);
+                              }
+                            }}
+                            className="px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+                            style={{
+                              backgroundColor: 'var(--accent-primary)',
+                              borderColor: 'var(--accent-primary)',
+                              color: '#ffffff'
+                            }}
+                          >
+                            إعادة المحاولة 🔄
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('guide')}
+                            className="px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+                            style={{
+                              backgroundColor: 'var(--bg-surface)',
+                              borderColor: 'var(--border-subtle)',
+                              color: 'var(--text-secondary)'
+                            }}
+                          >
+                            الانتقال للدليل والزتونة 📖
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-6">
