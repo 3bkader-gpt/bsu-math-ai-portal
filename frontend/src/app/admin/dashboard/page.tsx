@@ -465,23 +465,23 @@ export default function AdminDashboardPage() {
           borderColor: 'var(--border-subtle)'
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Logo & Platform Info */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div 
-              className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg"
+              className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shadow-lg shrink-0"
               style={{ backgroundColor: 'var(--accent-primary)', color: '#ffffff' }}
             >
-              <Sparkles className="w-6 h-6" />
+              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-black text-xl sm:text-2xl tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="font-black text-sm xs:text-base sm:text-xl lg:text-2xl tracking-tight truncate leading-tight" style={{ color: 'var(--text-primary)' }}>
                   لوحة الإدارة والرفع الذكي
                 </h1>
                 <span 
-                  className="hidden sm:inline-block px-2.5 py-0.5 text-xs font-black uppercase tracking-wider rounded-lg border shadow-xs"
+                  className="hidden md:inline-block px-2.5 py-0.5 text-xs font-black uppercase tracking-wider rounded-lg border shadow-xs shrink-0"
                   style={{
                     backgroundColor: 'var(--bg-surface-elevated)',
                     borderColor: 'var(--border-prominent)',
@@ -491,14 +491,14 @@ export default function AdminDashboardPage() {
                   PRO ENGINE
                 </span>
               </div>
-              <p className="text-sm hidden sm:block font-bold mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-xs sm:text-sm hidden md:block font-bold mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>
                 قسم الرياضيات | جامعة بني سويف
               </p>
             </div>
           </div>
 
           {/* Infrastructure Health Status */}
-          <div className="hidden lg:flex items-center gap-3 text-sm font-bold">
+          <div className="hidden xl:flex items-center gap-3 text-sm font-bold">
             <div 
               className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors shadow-xs"
               style={{
@@ -540,27 +540,28 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Top Action Buttons & Theme Switcher */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <ThemeToggle />
 
             <Link
               href="/"
               target="_blank"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-black border transition-all hover:scale-[1.02] shadow-sm"
+              title="بوابة الطلاب"
+              className="inline-flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-[1.02] shadow-sm shrink-0"
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)'
               }}
             >
-              <ExternalLink className="w-4 h-4 text-teal-500" />
-              <span className="hidden sm:inline">بوابة الطلاب</span>
+              <ExternalLink className="w-4 h-4 text-teal-500 shrink-0" />
+              <span className="hidden lg:inline">بوابة الطلاب</span>
             </Link>
 
             <button
               onClick={handleLogout}
               title="تسجيل الخروج"
-              className="p-2.5 rounded-xl border transition-all hover:text-rose-500 hover:border-rose-400 cursor-pointer shadow-sm"
+              className="p-2 sm:p-2.5 rounded-xl border transition-all hover:text-rose-500 hover:border-rose-400 cursor-pointer shadow-sm shrink-0"
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',

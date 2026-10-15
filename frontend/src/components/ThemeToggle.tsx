@@ -200,7 +200,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
     >
       {/* 1. Persona Selector (Boys vs Girls) */}
       <div
-        className="flex items-center p-0.5 rounded-xl border"
+        className="flex items-center p-0.5 rounded-xl border shrink-0"
         style={{
           backgroundColor: 'var(--bg-surface)',
           borderColor: 'var(--border-subtle)',
@@ -210,7 +210,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           type="button"
           onClick={() => handlePersonaChange('boys')}
           title="النسخة الشبابية: طابع تيل كلاسيكي وستيلث تكنو"
-          className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+          className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
             !isGirls
               ? 'shadow-sm text-white scale-[1.02]'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
@@ -221,14 +221,14 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           }}
         >
           <span>⚡</span>
-          <span>شبابي</span>
+          <span className="hidden md:inline">شبابي</span>
         </button>
 
         <button
           type="button"
           onClick={() => handlePersonaChange('girls')}
           title="نسخة البنات: درجات كوزي روز بودري وميدنايت بيري"
-          className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+          className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
             isGirls
               ? 'shadow-sm text-white scale-[1.02]'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 opacity-75'
@@ -239,13 +239,13 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           }}
         >
           <span>🎀</span>
-          <span>بناتي</span>
+          <span className="hidden md:inline">بناتي</span>
         </button>
       </div>
 
       {/* Vertical Divider */}
       <div
-        className="h-4 w-px mx-0.5 opacity-40"
+        className="h-4 w-px mx-0.5 opacity-40 shrink-0"
         style={{ backgroundColor: 'var(--border-prominent)' }}
       />
 
@@ -254,7 +254,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
         type="button"
         onClick={handleModeToggle}
         title={isDark ? 'التبديل إلى الوضع النهاري (Light Mode)' : 'التبديل إلى الوضع الليلي (Dark Mode)'}
-        className="px-2.5 sm:px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs"
+        className="p-1 sm:px-2.5 sm:py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border shadow-xs shrink-0"
         style={{
           backgroundColor: 'var(--bg-surface)',
           borderColor: 'var(--border-subtle)',
@@ -264,12 +264,12 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
         {isDark ? (
           <>
             <Sun className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">نهاري</span>
+            <span className="hidden md:inline">نهاري</span>
           </>
         ) : (
           <>
             <Moon className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
-            <span className="hidden sm:inline">ليلي</span>
+            <span className="hidden md:inline">ليلي</span>
           </>
         )}
       </button>
