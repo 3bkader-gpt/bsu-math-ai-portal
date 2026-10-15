@@ -134,10 +134,6 @@ export default function AdminLoginPage() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>{content.adminLogin.serverStatus}</span>
-            </div>
             <ThemeToggle />
           </div>
         </div>
@@ -257,25 +253,6 @@ export default function AdminLoginPage() {
             )}
           </button>
         </form>
-
-        {/* Footer Infrastructure Indicators */}
-        <div
-          className="mt-6 pt-5 border-t flex items-center justify-between text-[11px] font-medium"
-          style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
-        >
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
-            <span>{content.adminLogin.dbLabel}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-            <span>{content.adminLogin.cdnLabel}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-            <span>{content.adminLogin.modelLabel}</span>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -94,17 +94,17 @@
     "adminPortalLink": "دخول هيئة التدريس"
   },
   "adminLogin": {
-    "title": "بوابة رفع المحاضرات",
-    "subtitle": "من هنا بنظبط المناهج ونرفع المحاضرات للدفعة",
-    "backToPortal": "ارجع لمنصة الطلبة",
-    "serverStatus": "السيرفر شغال وتمام",
-    "usernameLabel": "اليوزر نيم",
-    "passwordLabel": "الباسورد",
-    "autofillButton": "⚡ اكتب البيانات التجريبية",
-    "loginButton": "سجل دخولك",
-    "loadingButton": "بيحمل وبيسجل دخول...",
-    "dbLabel": "الداتا بيز",
-    "cdnLabel": "سيرفرات التخزين",
-    "modelLabel": "محرك الـ AI"
+    "title": "بوابة الإدارة الأكاديمية",
+    "subtitle": "إدارة ورفع محاضرات قسم الرياضيات",
+    "backToPortal": "العودة لمنصة المحاضرات",
+    "serverStatus": "النظام متصل",
+    "usernameLabel": "اسم المستخدم",
+    "passwordLabel": "كلمة المرور",
+    "autofillButton": "⚡ ملء البيانات",
+    "loginButton": "تسجيل الدخول",
+    "loadingButton": "جاري التحقق وتسجيل الدخول...",
+    "dbLabel": "",
+    "cdnLabel": "",
+    "modelLabel": ""
   }
 }

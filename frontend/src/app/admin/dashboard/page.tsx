@@ -565,66 +565,12 @@ export default function AdminDashboardPage() {
               <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="font-black text-sm xs:text-base sm:text-xl lg:text-2xl tracking-tight truncate leading-tight" style={{ color: 'var(--text-primary)' }}>
-                  لوحة الإدارة والرفع الذكي
-                </h1>
-                <span 
-                  className="hidden md:inline-block px-2.5 py-0.5 text-xs font-black uppercase tracking-wider rounded-lg border shadow-xs shrink-0"
-                  style={{
-                    backgroundColor: 'var(--bg-surface-elevated)',
-                    borderColor: 'var(--border-prominent)',
-                    color: 'var(--accent-primary)'
-                  }}
-                >
-                  PRO ENGINE
-                </span>
-              </div>
+              <h1 className="font-black text-sm xs:text-base sm:text-xl lg:text-2xl tracking-tight truncate leading-tight" style={{ color: 'var(--text-primary)' }}>
+                لوحة الإدارة والرفع الذكي
+              </h1>
               <p className="text-xs sm:text-sm hidden md:block font-bold mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>
                 قسم الرياضيات | جامعة بني سويف
               </p>
-            </div>
-          </div>
-
-          {/* Infrastructure Health Status */}
-          <div className="hidden xl:flex items-center gap-3 text-sm font-bold">
-            <div 
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors shadow-xs"
-              style={{
-                backgroundColor: 'var(--bg-surface-elevated)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--text-secondary)'
-              }}
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>الربط السحابي:</span>
-              <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">Supabase Edge</span>
-            </div>
-
-            <div 
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors shadow-xs"
-              style={{
-                backgroundColor: 'var(--bg-surface-elevated)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--text-secondary)'
-              }}
-            >
-              <Database className="w-4 h-4 text-cyan-500" />
-              <span>قاعدة البيانات:</span>
-              <span className="font-black text-cyan-600 dark:text-cyan-400">PostgreSQL</span>
-            </div>
-
-            <div 
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors shadow-xs"
-              style={{
-                backgroundColor: 'var(--bg-surface-elevated)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--text-secondary)'
-              }}
-            >
-              <Cloud className="w-4 h-4 text-sky-500" />
-              <span>المعالجة الذكية:</span>
-              <span className="font-black text-sky-600 dark:text-sky-400">Cloud 24/7</span>
             </div>
           </div>
 
