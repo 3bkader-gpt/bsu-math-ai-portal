@@ -122,20 +122,20 @@ export default function AdminLoginPage() {
         <div className="flex items-center justify-between gap-2 mb-6">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all hover:border-blue-400"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-105 shadow-xs"
             style={{
               backgroundColor: 'var(--bg-surface-elevated)',
               borderColor: 'var(--border-subtle)',
-              color: 'var(--text-secondary)',
+              color: 'var(--text-primary)',
             }}
           >
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4" />
             <span>{content.adminLogin.backToPortal}</span>
           </Link>
 
           <div className="flex items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 bg-emerald-500/10">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>{content.adminLogin.serverStatus}</span>
             </div>
             <ThemeToggle />
@@ -149,31 +149,31 @@ export default function AdminLoginPage() {
               backgroundColor: 'var(--accent-primary)',
               color: '#ffffff',
             }}
-            className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 mb-3.5"
+            className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20 mb-3.5"
           >
             <Sparkles className="w-7 h-7" />
           </div>
 
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
             {content.adminLogin.title}
           </h1>
-          <p className="text-xs sm:text-sm font-medium mt-1.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-sm sm:text-base font-bold mt-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
             {content.adminLogin.subtitle}
           </p>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-rose-600 dark:text-rose-300 text-xs sm:text-sm animate-in fade-in">
+          <div className="mb-5 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-rose-600 dark:text-rose-300 text-sm font-bold animate-in fade-in">
             <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-            <div className="flex-1 text-right font-medium">{error}</div>
+            <div className="flex-1 text-right font-bold">{error}</div>
           </div>
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+            <label className="block text-sm sm:text-base font-black mb-2" style={{ color: 'var(--text-primary)' }}>
               {content.adminLogin.usernameLabel}
             </label>
             <div className="relative">
@@ -189,21 +189,21 @@ export default function AdminLoginPage() {
                   borderColor: 'var(--border-prominent)',
                   color: 'var(--text-primary)',
                 }}
-                className="w-full px-4 py-3 pl-10 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                className="w-full px-4 py-3.5 pl-10 rounded-2xl border text-base focus:outline-none transition-all font-bold"
               />
-              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <User className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm sm:text-base font-black" style={{ color: 'var(--text-primary)' }}>
                 {content.adminLogin.passwordLabel}
               </label>
               <button
                 type="button"
                 onClick={handleAutofill}
-                className="text-xs font-bold hover:underline transition-colors cursor-pointer"
+                className="text-xs sm:text-sm font-black hover:underline transition-colors cursor-pointer"
                 style={{ color: 'var(--accent-primary)' }}
               >
                 {content.adminLogin.autofillButton}
@@ -222,15 +222,15 @@ export default function AdminLoginPage() {
                   borderColor: 'var(--border-prominent)',
                   color: 'var(--text-primary)',
                 }}
-                className="w-full px-4 py-3 pl-10 pr-10 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                className="w-full px-4 py-3.5 pl-10 pr-10 rounded-2xl border text-base focus:outline-none transition-all font-bold"
               />
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Lock className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -242,11 +242,11 @@ export default function AdminLoginPage() {
               backgroundColor: 'var(--accent-primary)',
               color: '#ffffff',
             }}
-            className="w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 shadow-lg hover:opacity-95 active:scale-[0.98] cursor-pointer mt-2"
+            className="w-full py-4 px-5 rounded-2xl font-black text-base sm:text-lg transition-all flex items-center justify-center gap-2.5 shadow-lg hover:opacity-95 active:scale-[0.98] cursor-pointer mt-2"
           >
             {isLoading ? (
               <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 <span>{content.adminLogin.loadingButton}</span>
               </>
             ) : (

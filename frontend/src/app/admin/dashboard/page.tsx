@@ -470,18 +470,18 @@ export default function AdminDashboardPage() {
           {/* Logo & Platform Info */}
           <div className="flex items-center gap-3">
             <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
+              className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg"
               style={{ backgroundColor: 'var(--accent-primary)', color: '#ffffff' }}
             >
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-extrabold text-lg tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                <h1 className="font-black text-xl sm:text-2xl tracking-tight" style={{ color: 'var(--text-primary)' }}>
                   لوحة الإدارة والرفع الذكي
                 </h1>
                 <span 
-                  className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border"
+                  className="hidden sm:inline-block px-2.5 py-0.5 text-xs font-black uppercase tracking-wider rounded-lg border shadow-xs"
                   style={{
                     backgroundColor: 'var(--bg-surface-elevated)',
                     borderColor: 'var(--border-prominent)',
@@ -491,51 +491,51 @@ export default function AdminDashboardPage() {
                   PRO ENGINE
                 </span>
               </div>
-              <p className="text-xs hidden sm:block font-medium" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-sm hidden sm:block font-bold mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                 قسم الرياضيات | جامعة بني سويف
               </p>
             </div>
           </div>
 
           {/* Infrastructure Health Status */}
-          <div className="hidden lg:flex items-center gap-3 text-xs">
+          <div className="hidden lg:flex items-center gap-3 text-sm font-bold">
             <div 
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors shadow-xs"
               style={{
                 backgroundColor: 'var(--bg-surface-elevated)',
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-secondary)'
               }}
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>الربط السحابي:</span>
-              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">Supabase Edge</span>
+              <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">Supabase Edge</span>
             </div>
 
             <div 
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors shadow-xs"
               style={{
                 backgroundColor: 'var(--bg-surface-elevated)',
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-secondary)'
               }}
             >
-              <Database className="w-3.5 h-3.5 text-cyan-500" />
+              <Database className="w-4 h-4 text-cyan-500" />
               <span>قاعدة البيانات:</span>
-              <span className="font-bold text-cyan-600 dark:text-cyan-400">PostgreSQL</span>
+              <span className="font-black text-cyan-600 dark:text-cyan-400">PostgreSQL</span>
             </div>
 
             <div 
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors shadow-xs"
               style={{
                 backgroundColor: 'var(--bg-surface-elevated)',
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-secondary)'
               }}
             >
-              <Cloud className="w-3.5 h-3.5 text-sky-500" />
+              <Cloud className="w-4 h-4 text-sky-500" />
               <span>المعالجة الذكية:</span>
-              <span className="font-bold text-sky-600 dark:text-sky-400">Cloud 24/7</span>
+              <span className="font-black text-sky-600 dark:text-sky-400">Cloud 24/7</span>
             </div>
           </div>
 
@@ -546,25 +546,25 @@ export default function AdminDashboardPage() {
             <Link
               href="/"
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all hover:border-purple-400 shadow-xs"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-black border transition-all hover:scale-[1.02] shadow-sm"
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
-                color: 'var(--text-secondary)'
+                color: 'var(--text-primary)'
               }}
             >
-              <ExternalLink className="w-3.5 h-3.5 text-purple-500" />
+              <ExternalLink className="w-4 h-4 text-purple-500" />
               <span className="hidden sm:inline">بوابة الطلاب</span>
             </Link>
 
             <button
               onClick={handleLogout}
               title="تسجيل الخروج"
-              className="p-2 rounded-xl border transition-all hover:text-rose-500 hover:border-rose-400 cursor-pointer shadow-xs"
+              className="p-2.5 rounded-xl border transition-all hover:text-rose-500 hover:border-rose-400 cursor-pointer shadow-sm"
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
-                color: 'var(--text-muted)'
+                color: 'var(--text-secondary)'
               }}
             >
               <LogOut className="w-4 h-4" />
@@ -577,9 +577,9 @@ export default function AdminDashboardPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* KPI Quick Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           <div 
-            className="p-5 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
+            className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
@@ -587,27 +587,27 @@ export default function AdminDashboardPage() {
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-sm sm:text-base font-black uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                 المواد المسجلة
               </span>
               <div 
-                className="w-8 h-8 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 rounded-xl flex items-center justify-center shadow-xs"
                 style={{ backgroundColor: 'var(--bg-surface-elevated)', color: 'var(--accent-primary)' }}
               >
-                <BookOpen className="w-4 h-4" />
+                <BookOpen className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
               {subjects.length}
             </div>
-            <div className="text-[11px] mt-1.5 flex items-center gap-1 font-bold" style={{ color: 'var(--accent-primary)' }}>
-              <CheckCircle2 className="w-3 h-3" />
+            <div className="text-xs sm:text-sm mt-2 flex items-center gap-1.5 font-black" style={{ color: 'var(--accent-primary)' }}>
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>جاهزة ومربوطة بالبرومبتس</span>
             </div>
           </div>
 
           <div 
-            className="p-5 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
+            className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
@@ -615,26 +615,27 @@ export default function AdminDashboardPage() {
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-sm sm:text-base font-black uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                 المحاضرات الجاهزة
               </span>
               <div 
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-cyan-500"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-cyan-500 shadow-xs"
                 style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
               >
-                <GraduationCap className="w-4 h-4" />
+                <GraduationCap className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
               {subjects.reduce((sum, s) => sum + s.lecture_count, 0)}
             </div>
-            <div className="text-[11px] text-cyan-600 dark:text-cyan-400 mt-1.5 flex items-center gap-1 font-bold">
+            <div className="text-xs sm:text-sm text-cyan-600 dark:text-cyan-300 mt-2 flex items-center gap-1.5 font-black">
+              <GraduationCap className="w-4 h-4 shrink-0" />
               <span>باقة متكاملة متاحة للطلاب</span>
             </div>
           </div>
 
           <div 
-            className="p-5 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
+            className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
@@ -642,26 +643,27 @@ export default function AdminDashboardPage() {
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-sm sm:text-base font-black uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                 سعة التخزين
               </span>
               <div 
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-sky-500"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-sky-500 shadow-xs"
                 style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
               >
-                <Cloud className="w-4 h-4" />
+                <Cloud className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
               ∞ لا نهائي
             </div>
-            <div className="text-[11px] text-sky-600 dark:text-sky-400 mt-1.5 flex items-center gap-1 font-bold">
+            <div className="text-xs sm:text-sm text-sky-600 dark:text-sky-300 mt-2 flex items-center gap-1.5 font-black">
+              <Cloud className="w-4 h-4 shrink-0" />
               <span>سحابة تليجرام CDN (حتى 2GB)</span>
             </div>
           </div>
 
           <div 
-            className="p-5 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
+            className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
@@ -669,20 +671,21 @@ export default function AdminDashboardPage() {
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-sm sm:text-base font-black uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                 محرك الذكاء
               </span>
               <div 
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-emerald-500"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-emerald-500 shadow-xs"
                 style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
               >
-                <Headphones className="w-4 h-4" />
+                <Headphones className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-2xl font-black tracking-tight truncate" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-2xl sm:text-3xl font-black tracking-tight truncate" style={{ color: 'var(--text-primary)' }}>
               المصرية 🇪🇬
             </div>
-            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1.5 flex items-center gap-1 font-bold">
+            <div className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-300 mt-2 flex items-center gap-1.5 font-black">
+              <Headphones className="w-4 h-4 shrink-0" />
               <span>بودكاست وفيديو وكويز</span>
             </div>
           </div>
@@ -722,7 +725,7 @@ export default function AdminDashboardPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span 
-                      className="text-xs font-bold px-2.5 py-0.5 rounded-full border"
+                      className="text-xs sm:text-sm font-black px-3 py-1 rounded-full border"
                       style={{
                         backgroundColor: 'var(--bg-surface-elevated)',
                         borderColor: 'var(--border-prominent)',
@@ -731,9 +734,9 @@ export default function AdminDashboardPage() {
                     >
                       متابعة خط الإنتاج اللحظي
                     </span>
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>#{trackedLecture.id}</span>
+                    <span className="text-xs sm:text-sm font-bold font-mono" style={{ color: 'var(--text-secondary)' }}>#{trackedLecture.id}</span>
                   </div>
-                  <h3 className="text-lg font-black mt-1" style={{ color: 'var(--text-primary)' }}>
+                  <h3 className="text-xl sm:text-2xl font-black mt-1.5" style={{ color: 'var(--text-primary)' }}>
                     {trackedLecture.title || `المحاضرة ${trackedLecture.lecture_num}`}
                   </h3>
                 </div>
@@ -742,18 +745,18 @@ export default function AdminDashboardPage() {
               {/* Status Badge */}
               <div className="flex items-center gap-2 self-start md:self-center">
                 {trackedLecture.status === 'completed' ? (
-                  <span className="px-4 py-2 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-bold text-sm flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span className="px-4 py-2.5 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-black text-sm sm:text-base flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                     <span>اكتملت جميع المخرجات بنجاح</span>
                   </span>
                 ) : trackedLecture.status === 'failed' ? (
-                  <span className="px-4 py-2 rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-500/30 font-bold text-sm flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-rose-500" />
+                  <span className="px-4 py-2.5 rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-500/30 font-black text-sm sm:text-base flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-rose-500" />
                     <span>فشلت العملية</span>
                   </span>
                 ) : (
                   <span 
-                    className="px-4 py-2 rounded-2xl border font-bold text-sm flex items-center gap-2"
+                    className="px-4 py-2.5 rounded-2xl border font-black text-sm sm:text-base flex items-center gap-2"
                     style={{
                       backgroundColor: 'var(--bg-surface-elevated)',
                       borderColor: 'var(--border-interactive)',
@@ -770,79 +773,79 @@ export default function AdminDashboardPage() {
             {/* Stepper Visualization */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
               <div 
-                className="p-3 rounded-2xl border text-center transition-all"
+                className="p-3.5 rounded-2xl border text-center transition-all"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)'
                 }}
               >
-                <FileText className="w-4 h-4 mx-auto mb-1 text-cyan-500" />
-                <span className="block text-xs font-bold" style={{ color: 'var(--text-primary)' }}>1. استلام الـ PDF</span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">تم التأكيد ✓</span>
+                <FileText className="w-5 h-5 mx-auto mb-1 text-cyan-500" />
+                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>1. استلام الـ PDF</span>
+                <span className="text-xs text-emerald-600 dark:text-emerald-300 font-bold">تم التأكيد ✓</span>
               </div>
               <div 
-                className="p-3 rounded-2xl border text-center transition-all"
+                className="p-3.5 rounded-2xl border text-center transition-all"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)'
                 }}
               >
-                <Brain className="w-4 h-4 mx-auto mb-1 text-purple-500" />
-                <span className="block text-xs font-bold" style={{ color: 'var(--text-primary)' }}>2. حقن البرومبت</span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">المادة المعتمدة ✓</span>
+                <Brain className="w-5 h-5 mx-auto mb-1 text-purple-500" />
+                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>2. حقن البرومبت</span>
+                <span className="text-xs text-emerald-600 dark:text-emerald-300 font-bold">المادة المعتمدة ✓</span>
               </div>
               <div 
-                className="p-3 rounded-2xl border text-center transition-all"
+                className="p-3.5 rounded-2xl border text-center transition-all"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)'
                 }}
               >
-                <Headphones className="w-4 h-4 mx-auto mb-1 text-teal-500" />
-                <span className="block text-xs font-bold" style={{ color: 'var(--text-primary)' }}>3. بودكاست مصري</span>
-                <span className="text-[10px] text-teal-600 dark:text-teal-300 font-bold">NotebookLM</span>
+                <Headphones className="w-5 h-5 mx-auto mb-1 text-teal-500" />
+                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>3. بودكاست مصري</span>
+                <span className="text-xs text-teal-600 dark:text-teal-300 font-bold">NotebookLM</span>
               </div>
               <div 
-                className="p-3 rounded-2xl border text-center transition-all"
+                className="p-3.5 rounded-2xl border text-center transition-all"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)'
                 }}
               >
-                <Video className="w-4 h-4 mx-auto mb-1 text-amber-500" />
-                <span className="block text-xs font-bold" style={{ color: 'var(--text-primary)' }}>4. فيديو وكويز</span>
-                <span className="text-[10px] text-amber-600 dark:text-amber-300 font-bold">إنتاج الباقة</span>
+                <Video className="w-5 h-5 mx-auto mb-1 text-amber-500" />
+                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>4. فيديو وكويز</span>
+                <span className="text-xs text-amber-600 dark:text-amber-300 font-bold">إنتاج الباقة</span>
               </div>
               <div 
-                className="p-3 rounded-2xl border text-center col-span-2 sm:col-span-1 transition-all"
+                className="p-3.5 rounded-2xl border text-center col-span-2 sm:col-span-1 transition-all"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)'
                 }}
               >
-                <Cloud className="w-4 h-4 mx-auto mb-1 text-sky-500" />
-                <span className="block text-xs font-bold" style={{ color: 'var(--text-primary)' }}>5. رفع تليجرام CDN</span>
-                <span className="text-[10px] text-sky-600 dark:text-sky-300 font-bold">التخزين الدائم</span>
+                <Cloud className="w-5 h-5 mx-auto mb-1 text-sky-500" />
+                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>5. رفع تليجرام CDN</span>
+                <span className="text-xs text-sky-600 dark:text-sky-300 font-bold">التخزين الدائم</span>
               </div>
             </div>
 
             {/* Generated Assets Preview (when complete) */}
             {trackedLecture.assets && trackedLecture.assets.length > 0 && (
               <div className="mt-6 pt-5 border-t flex flex-wrap items-center justify-between gap-3" style={{ borderColor: 'var(--border-subtle)' }}>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5">
                   {trackedLecture.assets.map((asset: LectureAsset) => (
                     <span 
                       key={asset.id} 
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold shadow-xs"
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-black shadow-xs"
                       style={{
                         backgroundColor: 'var(--bg-surface-elevated)',
                         borderColor: 'var(--border-subtle)',
                         color: 'var(--text-primary)'
                       }}
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                       <span>{asset.title}</span>
-                      <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
+                      <span className="text-xs font-mono font-bold" style={{ color: 'var(--text-secondary)' }}>
                         ({(asset.file_size_bytes / (1024*1024)).toFixed(1)}MB)
                       </span>
                     </span>
@@ -851,10 +854,10 @@ export default function AdminDashboardPage() {
 
                 <Link
                   href={`/`}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white font-bold text-xs shadow-lg hover:opacity-95 transition-all"
+                  className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-white font-black text-sm shadow-lg hover:opacity-95 transition-all"
                   style={{ backgroundColor: 'var(--accent-primary)' }}
                 >
-                  <Play className="w-3.5 h-3.5" />
+                  <Play className="w-4 h-4" />
                   <span>معاينة في بوابة الطلاب</span>
                 </Link>
               </div>
@@ -877,11 +880,11 @@ export default function AdminDashboardPage() {
             
             <div className="flex items-center justify-between mb-6 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <div>
-                <h2 className="text-xl font-black flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
-                  <UploadCloud className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+                <h2 className="text-xl sm:text-2xl font-black flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
+                  <UploadCloud className="w-7 h-7" style={{ color: 'var(--accent-primary)' }} />
                   <span>رفع محاضرة جديدة وإطلاق الذكاء الاصطناعي</span>
                 </h2>
-                <p className="text-xs font-medium mt-1 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-sm sm:text-base font-bold mt-1.5 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   ارفع ملف الـ PDF وسيقوم المحرك بتوليد الشرح الصوتي، الفيديو، الكويز، والملخص تلقائياً في السحابة.
                 </p>
               </div>
@@ -898,7 +901,7 @@ export default function AdminDashboardPage() {
               
               {/* Step 1: Subject Picker */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider mb-2.5" style={{ color: 'var(--text-secondary)' }}>
+                <label className="block text-sm sm:text-base font-black mb-3" style={{ color: 'var(--text-primary)' }}>
                   1. اختر المادة الدراسية (11 مادة متاحة)
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -909,19 +912,19 @@ export default function AdminDashboardPage() {
                         type="button"
                         key={sub.id}
                         onClick={() => setSelectedSubjectId(sub.id)}
-                        className="p-3 rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer"
+                        className="p-3.5 sm:p-4 rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[92px]"
                         style={{
                           backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
                           borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                          boxShadow: isSelected ? '0 0 0 2px var(--accent-primary)' : 'none',
+                          boxShadow: isSelected ? '0 0 0 2.5px var(--accent-primary)' : 'none',
                           color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
                         }}
                       >
-                        <span className="font-bold text-xs leading-snug line-clamp-2">{sub.name}</span>
-                        <div className="mt-2.5 flex items-center justify-between text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                          <span className="font-semibold">{sub.lecture_count} محاضرات</span>
+                        <span className="font-black text-sm sm:text-base leading-snug line-clamp-2">{sub.name}</span>
+                        <div className="mt-2.5 flex items-center justify-between text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+                          <span className="font-bold">{sub.lecture_count} محاضرات</span>
                           {sub.has_prompt && (
-                            <span className="font-extrabold" style={{ color: 'var(--accent-primary)' }}>
+                            <span className="font-black px-1.5 py-0.5 rounded border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-prominent)', color: 'var(--accent-primary)' }}>
                               برومبت ✓
                             </span>
                           )}
@@ -935,10 +938,10 @@ export default function AdminDashboardPage() {
               {/* Optional Doctor Picker if subject has multiple doctor tracks */}
               {selectedSubject?.doctors && selectedSubject.doctors.length > 0 && (
                 <div className="pt-2">
-                  <label className="block text-xs font-black uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
+                  <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
                     مسار الدكتور / أستاذ المادة
                   </label>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-3">
                     {selectedSubject.doctors.map((doc) => {
                       const isSelected = selectedDoctor === doc;
                       return (
@@ -946,15 +949,15 @@ export default function AdminDashboardPage() {
                           type="button"
                           key={doc}
                           onClick={() => setSelectedDoctor(doc)}
-                          className="p-3 rounded-2xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                          className="p-3.5 sm:p-4 rounded-2xl border text-sm sm:text-base font-black flex items-center justify-center gap-2.5 transition-all cursor-pointer"
                           style={{
                             backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
                             borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                            boxShadow: isSelected ? '0 0 0 2px var(--accent-primary)' : 'none',
+                            boxShadow: isSelected ? '0 0 0 2.5px var(--accent-primary)' : 'none',
                             color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
                           }}
                         >
-                          <span>{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
+                          <span className="text-base">{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
                           <span>{doc}</span>
                         </button>
                       );
@@ -966,7 +969,7 @@ export default function AdminDashboardPage() {
               {/* Step 2: Lecture Info */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
+                  <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
                     رقم المحاضرة
                   </label>
                   <input
@@ -974,7 +977,7 @@ export default function AdminDashboardPage() {
                     min="1"
                     value={lectureNum}
                     onChange={(e) => setLectureNum(parseInt(e.target.value) || 1)}
-                    className="w-full px-4 py-3 rounded-2xl border text-sm font-bold focus:outline-none transition-all"
+                    className="w-full px-4 py-3.5 rounded-2xl border text-base sm:text-lg font-black focus:outline-none transition-all"
                     style={{
                       backgroundColor: 'var(--bg-surface-elevated)',
                       borderColor: 'var(--border-prominent)',
@@ -985,7 +988,7 @@ export default function AdminDashboardPage() {
                 </div>
                 
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-black uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
+                  <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
                     عنوان المحاضرة (اختياري)
                   </label>
                   <input
@@ -993,7 +996,7 @@ export default function AdminDashboardPage() {
                     value={lectureTitle}
                     onChange={(e) => setLectureTitle(e.target.value)}
                     placeholder="مثال: مفهوم المنحنى وطول القوس في الفراغ"
-                    className="w-full px-4 py-3 rounded-2xl border text-sm font-medium focus:outline-none transition-all"
+                    className="w-full px-4 py-3.5 rounded-2xl border text-base font-bold focus:outline-none transition-all placeholder:text-slate-400"
                     style={{
                       backgroundColor: 'var(--bg-surface-elevated)',
                       borderColor: 'var(--border-prominent)',
@@ -1005,7 +1008,7 @@ export default function AdminDashboardPage() {
 
               {/* Step 3: Drag & Drop Zone */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
+                <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
                   2. رفع ملف المحاضرة (PDF)
                 </label>
                 
@@ -1013,7 +1016,7 @@ export default function AdminDashboardPage() {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all group"
+                  className="border-2 border-dashed rounded-3xl p-8 sm:p-10 text-center cursor-pointer transition-all group"
                   style={{
                     backgroundColor: 'var(--bg-surface-elevated)',
                     borderColor: 'var(--border-prominent)'
@@ -1029,35 +1032,35 @@ export default function AdminDashboardPage() {
                   />
 
                   <div 
-                    className="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm"
+                    className="w-16 h-16 mx-auto mb-3.5 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm"
                     style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--accent-primary)' }}
                   >
-                    <UploadCloud className="w-7 h-7" />
+                    <UploadCloud className="w-8 h-8" />
                   </div>
 
-                  <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-                    اسحب ملف الـ PDF وأفلته هنا، أو <span style={{ color: 'var(--accent-primary)' }} className="underline">تصفح ملفاتك</span>
+                  <p className="text-base sm:text-lg font-black" style={{ color: 'var(--text-primary)' }}>
+                    اسحب ملف الـ PDF وأفلته هنا، أو <span style={{ color: 'var(--accent-primary)' }} className="underline font-black">تصفح ملفاتك</span>
                   </p>
-                  <p className="text-xs font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
+                  <p className="text-sm font-bold mt-2" style={{ color: 'var(--text-secondary)' }}>
                     يمكنك رفع ملف المحاضرة الأساسي ومراجع إضافية ملحقة معاً
                   </p>
 
                   {/* Selected files preview badge */}
                   {selectedFiles.length > 0 && (
-                    <div className="mt-4 pt-3 border-t flex flex-wrap justify-center gap-2" style={{ borderColor: 'var(--border-subtle)' }}>
+                    <div className="mt-4 pt-3.5 border-t flex flex-wrap justify-center gap-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
                       {selectedFiles.map((f, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold shadow-xs"
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-black shadow-xs"
                           style={{
                             backgroundColor: 'var(--bg-surface)',
                             borderColor: 'var(--border-interactive)',
                             color: 'var(--accent-primary)'
                           }}
                         >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span className="truncate max-w-[200px]">{f.name}</span>
-                          <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
+                          <FileText className="w-4 h-4 shrink-0" />
+                          <span className="truncate max-w-[220px]">{f.name}</span>
+                          <span className="text-xs font-mono font-bold" style={{ color: 'var(--text-secondary)' }}>
                             ({(f.size / (1024*1024)).toFixed(2)} MB)
                           </span>
                         </span>
@@ -1069,39 +1072,39 @@ export default function AdminDashboardPage() {
 
               {/* Step 4: Included AI Bundle Highlights */}
               <div 
-                className="p-4 rounded-2xl border transition-colors"
+                className="p-5 rounded-2xl border transition-colors shadow-xs"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)',
                   color: 'var(--text-secondary)'
                 }}
               >
-                <span className="text-xs font-bold block mb-2.5" style={{ color: 'var(--text-primary)' }}>
+                <span className="text-sm sm:text-base font-black block mb-3" style={{ color: 'var(--text-primary)' }}>
                   ✨ ما سيتم إنتاجه تلقائياً من خلال هذا الرفع:
                 </span>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-semibold">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs sm:text-sm font-black">
                   <div className="flex items-center gap-2 text-sky-600 dark:text-sky-300">
-                    <Headphones className="w-4 h-4 text-sky-500 shrink-0" />
+                    <Headphones className="w-4.5 h-4.5 text-sky-500 shrink-0" />
                     <span>بودكاست مصري (30د)</span>
                   </div>
                   <div className="flex items-center gap-2 text-purple-600 dark:text-purple-300">
-                    <Video className="w-4 h-4 text-purple-500 shrink-0" />
+                    <Video className="w-4.5 h-4.5 text-purple-500 shrink-0" />
                     <span>فيديو شرح توضيحي</span>
                   </div>
                   <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-300">
-                    <HelpCircle className="w-4 h-4 text-cyan-500 shrink-0" />
+                    <HelpCircle className="w-4.5 h-4.5 text-cyan-500 shrink-0" />
                     <span>كويز تفاعلي فوري</span>
                   </div>
                   <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-300">
-                    <FileCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <FileCheck className="w-4.5 h-4.5 text-emerald-500 shrink-0" />
                     <span>دليل دراسي وملخص</span>
                   </div>
                   <div className="flex items-center gap-2 text-amber-600 dark:text-amber-300">
-                    <Layers className="w-4 h-4 text-amber-500 shrink-0" />
+                    <Layers className="w-4.5 h-4.5 text-amber-500 shrink-0" />
                     <span>بطاقات استذكار</span>
                   </div>
                   <div className="flex items-center gap-2 text-sky-600 dark:text-sky-300">
-                    <Cloud className="w-4 h-4 text-sky-500 shrink-0" />
+                    <Cloud className="w-4.5 h-4.5 text-sky-500 shrink-0" />
                     <span>تخزين تليجرام CDN</span>
                   </div>
                 </div>
@@ -1111,7 +1114,7 @@ export default function AdminDashboardPage() {
               <button
                 type="submit"
                 disabled={isUploading || selectedFiles.length === 0}
-                className="w-full py-4 px-6 rounded-2xl font-bold text-base transition-all flex items-center justify-center gap-3 shadow-xl hover:opacity-95 active:scale-[0.99] cursor-pointer disabled:opacity-50 text-white"
+                className="w-full py-4.5 px-6 rounded-2xl font-black text-base sm:text-lg transition-all flex items-center justify-center gap-3 shadow-xl hover:opacity-95 active:scale-[0.99] cursor-pointer disabled:opacity-50 text-white"
                 style={{
                   backgroundColor: 'var(--accent-primary)',
                   boxShadow: 'var(--card-shadow-hover)'
@@ -1145,44 +1148,44 @@ export default function AdminDashboardPage() {
             >
               <div className="flex items-center justify-between mb-4 pb-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
                 <div>
-                  <h3 className="font-black text-base flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                    <BookOpen className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                  <h3 className="font-black text-lg sm:text-xl flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
+                    <BookOpen className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
                     <span>محاضرات {selectedSubject?.name || 'المادة المحددة'}</span>
                   </h3>
-                  <p className="text-xs font-medium mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                  <p className="text-sm font-bold mt-1" style={{ color: 'var(--text-secondary)' }}>
                     إجمالي {subjectLectures.length} محاضرة مسجلة في قاعدة البيانات
                   </p>
                 </div>
               </div>
 
               {subjectLectures.length === 0 ? (
-                <div className="text-center py-10" style={{ color: 'var(--text-muted)' }}>
+                <div className="text-center py-10" style={{ color: 'var(--text-secondary)' }}>
                   <div 
-                    className="w-12 h-12 mx-auto mb-3 rounded-2xl flex items-center justify-center border"
+                    className="w-14 h-14 mx-auto mb-3.5 rounded-2xl flex items-center justify-center border shadow-xs"
                     style={{
                       backgroundColor: 'var(--bg-surface-elevated)',
                       borderColor: 'var(--border-subtle)'
                     }}
                   >
-                    <GraduationCap className="w-6 h-6" />
+                    <GraduationCap className="w-7 h-7" />
                   </div>
-                  <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>لم يتم رفع أي محاضرات لهذه المادة بعد</p>
-                  <p className="text-xs font-medium mt-1">ارفع أول محاضرة الآن من لوحة الرفع على اليمين!</p>
+                  <p className="text-base sm:text-lg font-black" style={{ color: 'var(--text-primary)' }}>لم يتم رفع أي محاضرات لهذه المادة بعد</p>
+                  <p className="text-sm font-bold mt-1.5" style={{ color: 'var(--text-secondary)' }}>ارفع أول محاضرة الآن من لوحة الرفع على اليمين!</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {subjectLectures.map((lec) => (
                     <div
                       key={lec.id}
-                      className="p-4 rounded-2xl border transition-all flex items-start justify-between gap-3 group hover:shadow-xs"
+                      className="p-4 sm:p-5 rounded-2xl border transition-all flex items-start justify-between gap-3 group hover:shadow-md"
                       style={{
                         backgroundColor: 'var(--bg-surface-elevated)',
                         borderColor: 'var(--border-subtle)'
                       }}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-3.5">
                         <div 
-                          className="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 font-black text-sm"
+                          className="w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 font-black text-base shadow-xs"
                           style={{
                             backgroundColor: 'var(--bg-surface)',
                             borderColor: 'var(--border-prominent)',
@@ -1192,13 +1195,13 @@ export default function AdminDashboardPage() {
                           {lec.lecture_num}
                         </div>
                         <div>
-                          <h4 className="font-bold text-sm transition-colors" style={{ color: 'var(--text-primary)' }}>
+                          <h4 className="font-black text-base sm:text-lg transition-colors leading-tight" style={{ color: 'var(--text-primary)' }}>
                             {lec.title}
                           </h4>
                           {lec.doctor && (
-                            <div className="mt-1">
+                            <div className="mt-1.5">
                               <span 
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs sm:text-sm font-black border"
                                 style={{
                                   backgroundColor: 'var(--bg-surface)',
                                   borderColor: 'var(--border-prominent)',
@@ -1209,13 +1212,13 @@ export default function AdminDashboardPage() {
                               </span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2 mt-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-                            <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
+                          <div className="flex items-center gap-2.5 mt-2 text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            <span className="flex items-center gap-1.5 font-black text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="w-4 h-4 shrink-0" />
                               <span>{lec.assets_count} أصول مكتملة</span>
                             </span>
                             <span>•</span>
-                            <span className="text-[11px] font-medium">
+                            <span className="font-bold">
                               {new Date(lec.created_at).toLocaleDateString('ar-EG')}
                             </span>
                           </div>
@@ -1224,11 +1227,11 @@ export default function AdminDashboardPage() {
 
                       <button
                         onClick={() => setActiveTrackingId(lec.id)}
-                        className="px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs hover:border-purple-400"
+                        className="px-4 py-2 rounded-xl border text-xs sm:text-sm font-black transition-all shrink-0 cursor-pointer shadow-xs hover:scale-105"
                         style={{
                           backgroundColor: 'var(--bg-surface)',
                           borderColor: 'var(--border-subtle)',
-                          color: 'var(--text-secondary)'
+                          color: 'var(--text-primary)'
                         }}
                       >
                         معاينة
@@ -1241,25 +1244,25 @@ export default function AdminDashboardPage() {
 
             {/* Platform Feature Guide Box */}
             <div 
-              className="p-6 rounded-3xl border text-xs space-y-3 shadow-md"
+              className="p-6 rounded-3xl border space-y-3.5 shadow-md"
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
-                color: 'var(--text-muted)'
+                color: 'var(--text-secondary)'
               }}
             >
-              <h4 className="font-black text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                <Brain className="w-4 h-4 text-cyan-500" />
+              <h4 className="font-black text-base sm:text-lg flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
+                <Brain className="w-5 h-5 text-cyan-500" />
                 <span>كيف يعمل خط الإنتاج الذكي؟</span>
               </h4>
-              <p className="leading-relaxed">
-                1. بمجرد رفع الـ PDF، يسحب السيرفر تلقائياً <strong>البرومبت الرئيسي للمادة</strong> الذي تم إعداده خصيصاً (المشروح بالمصري والموجّه لأسلوب امتحانات بني سويف).
+              <p className="text-sm sm:text-base leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                1. بمجرد رفع الـ PDF، يسحب السيرفر تلقائياً <strong className="font-black text-purple-600 dark:text-purple-300">البرومبت الرئيسي للمادة</strong> الذي تم إعداده خصيصاً (المشروح بالمصري والموجّه لأسلوب امتحانات بني سويف).
               </p>
-              <p className="leading-relaxed">
-                2. يقوم <strong>NotebookLM</strong> بإنتاج البودكاست الصوتي والفيديو والكويز والملخص بالتوازي في السحابة.
+              <p className="text-sm sm:text-base leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                2. يقوم <strong className="font-black text-teal-600 dark:text-teal-300">NotebookLM</strong> بإنتاج البودكاست الصوتي والفيديو والكويز والملخص بالتوازي في السحابة.
               </p>
-              <p className="leading-relaxed">
-                3. تُرفع كافة الملفات إلى <strong>قناة تليجرام السحابية</strong>، وتُسجل الروابط فورياً في <strong>Supabase</strong> لتظهر في بوابة الطلاب مباشرة!
+              <p className="text-sm sm:text-base leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                3. تُرفع كافة الملفات إلى <strong className="font-black text-sky-600 dark:text-sky-300">قناة تليجرام السحابية</strong>، وتُسجل الروابط فورياً في <strong className="font-black text-emerald-600 dark:text-emerald-300">Supabase</strong> لتظهر في بوابة الطلاب مباشرة!
               </p>
             </div>
           </div>
