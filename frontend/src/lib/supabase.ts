@@ -31,6 +31,13 @@ export interface SupabaseLectureItem {
   stage_info: string | null;
   created_at: string;
   assets_count: number;
+  study_resources_count: number;
+  has_audio: boolean;
+  has_video: boolean;
+  has_quiz: boolean;
+  has_guide: boolean;
+  has_flashcards: boolean;
+  is_ready: boolean;
 }
 
 export interface SupabaseMediaAsset {
@@ -123,7 +130,7 @@ export async function getDirectSupabaseLectures(
   subjectId: number,
   doctor?: string
 ): Promise<SupabaseLectureItem[]> {
-  let url = `${SUPABASE_URL}/rest/v1/lectures?subject_id=eq.${subjectId}&select=id,lecture_num,title,doctor,status,stage_info,created_at,media_assets(id)&order=lecture_num.asc`;
+  let url = `${SUPABASE_URL}/rest/v1/lectures?subject_id=eq.${subjectId}&select=id,lecture_num,title,doctor,status,stage_info,created_at,media_assets(id,asset_type)&order=lecture_num.asc`;
   if (doctor && doctor !== 'الكل' && doctor.trim()) {
     url += `&doctor=eq.${encodeURIComponent(doctor.trim())}`;
   }
@@ -132,16 +139,44 @@ export async function getDirectSupabaseLectures(
   if (!res.ok) throw new Error(`Supabase lectures error: ${res.statusText}`);
   const data = await res.json();
 
-  return data.map((l: any) => ({
-    id: l.id,
-    lecture_num: l.lecture_num,
-    title: l.title,
-    doctor: l.doctor,
-    status: l.status,
-    stage_info: l.stage_info,
-    created_at: l.created_at,
-    assets_count: l.media_assets ? l.media_assets.length : 0,
-  }));
+  return data.map((l: any) => {
+    const rawAssets: any[] = l.media_assets || [];
+    const hasAudio = rawAssets.some((a) => a.asset_type === 'audio');
+    const hasVideo = rawAssets.some((a) => a.asset_type === 'video');
+    const hasQuiz = rawAssets.some((a) => a.asset_type === 'quiz_md');
+    const hasGuide = rawAssets.some((a) => a.asset_type === 'study_guide_md');
+    const hasFlashcards = rawAssets.some(
+      (a) => a.asset_type === 'flashcards_md' || a.asset_type === 'flashcards_json'
+    );
+
+    let studyCount = 0;
+    if (hasAudio) studyCount++;
+    if (hasVideo) studyCount++;
+    if (hasQuiz) studyCount++;
+    if (hasGuide) studyCount++;
+    if (hasFlashcards) studyCount++;
+
+    // A lecture is truly ready for studying if core modalities are generated (not just raw PDF)
+    const isReady = (hasAudio || hasQuiz || hasGuide) && l.status === 'completed';
+
+    return {
+      id: l.id,
+      lecture_num: l.lecture_num,
+      title: l.title,
+      doctor: l.doctor,
+      status: l.status,
+      stage_info: l.stage_info,
+      created_at: l.created_at,
+      assets_count: studyCount,
+      study_resources_count: studyCount,
+      has_audio: hasAudio,
+      has_video: hasVideo,
+      has_quiz: hasQuiz,
+      has_guide: hasGuide,
+      has_flashcards: hasFlashcards,
+      is_ready: isReady,
+    };
+  });
 }
 
 /**

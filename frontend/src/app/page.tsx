@@ -323,6 +323,13 @@ interface Lecture {
   stage_info?: string | null;
   created_at: string;
   assets_count: number;
+  study_resources_count?: number;
+  has_audio?: boolean;
+  has_video?: boolean;
+  has_quiz?: boolean;
+  has_guide?: boolean;
+  has_flashcards?: boolean;
+  is_ready?: boolean;
 }
 
 interface LectureBundle {
@@ -1078,7 +1085,8 @@ export default function Home() {
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-4 sm:gap-5">
                   {displayedLectures.map((lec) => {
-                      const isReady = lec.status === 'completed' && lec.assets_count > 0;
+                    const isReady = lec.is_ready !== undefined ? lec.is_ready : (lec.status === 'completed' && (lec.study_resources_count || lec.assets_count) > 0);
+                    const resourceCount = lec.study_resources_count !== undefined ? lec.study_resources_count : lec.assets_count;
                       return (
                         <div
                           key={lec.id}
@@ -1137,8 +1145,10 @@ export default function Home() {
                                 </h4>
                                 <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
                                   {isReady 
-                                    ? (isGirls ? 'المحاضرة جاهزة ومية مية للمذاكرة 🎀✨' : 'المحاضرة جاهزة للمذاكرة بالكامل') 
-                                    : (isGirls ? 'بنجهزهالك يا شطورة بروقان ⏳' : 'جاري تجهيز المحاضرة')}
+                                    ? (resourceCount >= 5 
+                                        ? (isGirls ? 'المحاضرة مكتملة بجميع المصادر 🎀✨' : 'المحاضرة مكتملة بجميع مصادر المذاكرة (5/5)')
+                                        : (isGirls ? `متاح ${resourceCount} من 5 مصادر للمذاكرة 🌸` : `متاح ${resourceCount} من 5 مصادر للمذاكرة`))
+                                    : (isGirls ? 'قيد المعالجة السحابية بروقان ⏳' : 'قيد المعالجة السحابية')}
                                 </p>
                               </div>
                             </div>
@@ -1148,21 +1158,57 @@ export default function Home() {
                             className="pt-4 border-t flex flex-wrap items-center justify-between gap-3"
                             style={{ borderColor: 'var(--border-subtle)' }}
                           >
-                            <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                              <span className="flex items-center gap-1 text-cyan-400">
+                            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                              <span 
+                                className={`flex items-center gap-1 transition-opacity ${lec.has_audio ? 'text-cyan-500 dark:text-cyan-400 font-bold opacity-100' : 'opacity-30'}`}
+                                title={lec.has_audio ? 'بودكاست صوتي متاح' : 'البودكاست قيد التجهيز'}
+                              >
                                 <Headphones className="w-4 h-4" />
-                                {isGirls ? 'بودكاست 🌸' : 'بودكاست'}
+                                <span className="hidden sm:inline">{isGirls ? 'بودكاست 🌸' : 'بودكاست'}</span>
                               </span>
-                              <span className="flex items-center gap-1 text-purple-400">
+
+                              <span 
+                                className={`flex items-center gap-1 transition-opacity ${lec.has_video ? 'text-purple-500 dark:text-purple-400 font-bold opacity-100' : 'opacity-30'}`}
+                                title={lec.has_video ? 'فيديو توضيحي متاح' : 'الفيديو قيد التجهيز'}
+                              >
                                 <Video className="w-4 h-4" />
+                                <span className="hidden sm:inline">فيديو</span>
                               </span>
-                              <span className="flex items-center gap-1 text-amber-400">
+
+                              <span 
+                                className={`flex items-center gap-1 transition-opacity ${lec.has_quiz ? 'text-amber-500 dark:text-amber-400 font-bold opacity-100' : 'opacity-30'}`}
+                                title={lec.has_quiz ? 'كويز تفاعلي متاح' : 'الكويز قيد التجهيز'}
+                              >
                                 <HelpCircle className="w-4 h-4" />
+                                <span className="hidden sm:inline">كويز</span>
                               </span>
-                              <span className="flex items-center gap-1 text-emerald-400">
+
+                              <span 
+                                className={`flex items-center gap-1 transition-opacity ${lec.has_guide ? 'text-emerald-500 dark:text-emerald-400 font-bold opacity-100' : 'opacity-30'}`}
+                                title={lec.has_guide ? 'دليل دراسي متاح' : 'الدليل قيد التجهيز'}
+                              >
                                 <FileText className="w-4 h-4" />
+                                <span className="hidden sm:inline">زتونة</span>
                               </span>
-                              <span className="mr-1">{content.lecturesSection.resourcesFormat.replace('{count}', lec.assets_count.toString())}</span>
+
+                              <span 
+                                className={`flex items-center gap-1 transition-opacity ${lec.has_flashcards ? 'text-pink-500 dark:text-pink-400 font-bold opacity-100' : 'opacity-30'}`}
+                                title={lec.has_flashcards ? 'بطاقات استذكار متاحة' : 'البطاقات قيد التجهيز'}
+                              >
+                                <Layers className="w-4 h-4" />
+                                <span className="hidden sm:inline">كروت</span>
+                              </span>
+
+                              <span 
+                                className="mr-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs"
+                                style={{
+                                  backgroundColor: isReady ? 'var(--bg-surface)' : 'var(--bg-surface-elevated)',
+                                  borderColor: isReady ? 'var(--border-prominent)' : 'var(--border-subtle)',
+                                  color: isReady ? 'var(--accent-primary)' : 'var(--text-muted)'
+                                }}
+                              >
+                                {resourceCount > 0 ? `${resourceCount}/5 مصادر` : 'قيد الإنتاج'}
+                              </span>
                             </div>
 
                             <button
