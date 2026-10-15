@@ -47,6 +47,7 @@ export interface SupabaseMediaAsset {
   file_size_bytes: number | null;
   has_telegram: boolean;
   telegram_file_id: string | null;
+  telegram_message_id: number | null;
   content_text: string | null;
   stream_url: string;
 }
@@ -198,8 +199,9 @@ export async function getDirectSupabaseBundle(
     asset_type: a.asset_type,
     title: a.title,
     file_size_bytes: a.file_size_bytes,
-    has_telegram: Boolean(a.telegram_file_id),
+    has_telegram: Boolean(a.telegram_file_id || a.telegram_message_id),
     telegram_file_id: a.telegram_file_id,
+    telegram_message_id: a.telegram_message_id || null,
     content_text: a.content_text || null,
     stream_url: `${fallbackBaseUrl}/api/stream/${a.id}`,
   }));

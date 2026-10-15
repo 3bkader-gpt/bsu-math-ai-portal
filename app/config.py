@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     TELEGRAM_CHANNEL_ID: str = os.getenv("TELEGRAM_CHANNEL_ID", "")  # e.g., "-1001234567890" or "@my_storage_channel"
     TELEGRAM_API_ID: int = int(os.getenv("TELEGRAM_API_ID", "0"))
     TELEGRAM_API_HASH: str = os.getenv("TELEGRAM_API_HASH", "")
+    TELETHON_SESSION_STRING: str = os.getenv("TELETHON_SESSION_STRING", "")
+    ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "*")
     
     # Supabase Settings
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")

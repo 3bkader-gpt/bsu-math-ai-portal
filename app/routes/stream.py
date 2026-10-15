@@ -7,6 +7,7 @@ from app.config import settings
 from app.db.database import get_db
 from app.db.models import MediaAsset
 from app.services.telegram_storage import telegram_storage
+from app.services.telethon_service import telethon_streamer
 
 router = APIRouter(prefix="/api", tags=["Media Streaming"])
 
@@ -48,15 +49,9 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
     if asset.content_text:
         return Response(content=asset.content_text, media_type="text/plain; charset=utf-8")
 
-    # 2. If telegram_file_id is available, redirect (307) immediately to Telegram's global CDN
-    if asset.telegram_file_id:
-        tg_url = await telegram_storage.get_direct_download_url(asset.telegram_file_id)
-        if tg_url:
-            return Response(status_code=307, headers={"Location": tg_url})
-
     local_path = Path(asset.local_file_path) if asset.local_file_path else None
 
-    # Validate path safety
+    # Validate path safety if local_path exists
     if local_path and not is_safe_path(local_path):
         raise HTTPException(status_code=403, detail="Access to specified file path is forbidden")
 
@@ -67,20 +62,61 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
                 content = f.read()
             return Response(content=content, media_type="text/plain; charset=utf-8")
 
-    # 3. Fallback to local file streaming only if Telegram is unavailable
+    media_types = {
+        "audio": "audio/mp4",
+        "video": "video/mp4",
+        "pdf": "application/pdf"
+    }
+    content_type = media_types.get(asset.asset_type, "application/octet-stream")
+
+    # 2. Primary Cloud Streaming: If telegram_message_id is available, stream via Telethon MTProto
+    if asset.telegram_message_id:
+        try:
+            meta = await telethon_streamer.get_file_metadata(asset.telegram_message_id)
+            if meta and meta.get("file_size"):
+                file_size = meta["file_size"]
+                range_header = request.headers.get("Range")
+
+                if range_header:
+                    range_val = range_header.strip().replace("bytes=", "")
+                    parts = range_val.split("-")
+                    start = int(parts[0]) if parts[0] else 0
+                    end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
+
+                    if start >= file_size:
+                        raise HTTPException(status_code=416, detail="Requested Range Not Satisfiable")
+
+                    headers = {
+                        "Content-Range": f"bytes {start}-{end}/{file_size}",
+                        "Accept-Ranges": "bytes",
+                        "Content-Length": str(end - start + 1),
+                        "Content-Type": content_type
+                    }
+                    return StreamingResponse(
+                        telethon_streamer.stream_media_chunks(asset.telegram_message_id, start, end),
+                        status_code=206,
+                        headers=headers
+                    )
+                else:
+                    headers = {
+                        "Content-Length": str(file_size),
+                        "Accept-Ranges": "bytes",
+                        "Content-Type": content_type
+                    }
+                    return StreamingResponse(
+                        telethon_streamer.stream_media_chunks(asset.telegram_message_id, 0, file_size - 1),
+                        headers=headers
+                    )
+        except Exception as e:
+            # Log error and fall back to next handlers
+            pass
+
+    # 3. Fallback to local file streaming if present on disk
     if local_path and local_path.exists():
         file_size = local_path.stat().st_size
         range_header = request.headers.get("Range")
 
-        media_types = {
-            "audio": "audio/mp4",
-            "video": "video/mp4",
-            "pdf": "application/pdf"
-        }
-        content_type = media_types.get(asset.asset_type, "application/octet-stream")
-
         if range_header:
-            # Parse Range: bytes=start-end
             range_val = range_header.strip().replace("bytes=", "")
             parts = range_val.split("-")
             start = int(parts[0]) if parts[0] else 0
@@ -107,7 +143,7 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
                 headers={"Accept-Ranges": "bytes"}
             )
 
-    # If only telegram_file_id is available, redirect to direct Telegram download URL
+    # 4. Fallback: Telegram Bot API direct download for files under 20MB
     if asset.telegram_file_id:
         tg_url = await telegram_storage.get_direct_download_url(asset.telegram_file_id)
         if tg_url:

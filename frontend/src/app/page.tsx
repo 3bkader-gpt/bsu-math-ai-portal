@@ -310,6 +310,7 @@ interface LectureAsset {
   title: string;
   file_size_bytes?: number | null;
   has_telegram: boolean;
+  telegram_message_id?: number | null;
   content_text?: string | null;
   stream_url: string;
 }
@@ -1482,6 +1483,23 @@ export default function Home() {
                           </button>
                         ))}
                       </div>
+
+                      {audioAsset.telegram_message_id && (
+                        <div className="pt-4 flex justify-center">
+                          <a
+                            href={`https://t.me/c/4453609138/${audioAsset.telegram_message_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm hover:scale-105 active:scale-95"
+                            style={{
+                              backgroundColor: '#229ED9',
+                              color: '#ffffff',
+                            }}
+                          >
+                            <span>فتح واستماع في تطبيق تليجرام ✈️</span>
+                          </a>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>{content.audioTab.empty}</p>
@@ -1515,6 +1533,23 @@ export default function Home() {
                         <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{videoAsset.title}</span>
                         <span>{content.videoTab.fileSizeFormat.replace('{size}', (((videoAsset.file_size_bytes || 0) / (1024*1024)).toFixed(1)))}</span>
                       </div>
+
+                      {videoAsset.telegram_message_id && (
+                        <div className="p-3 bg-black/40 flex justify-center border-t border-white/5">
+                          <a
+                            href={`https://t.me/c/4453609138/${videoAsset.telegram_message_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm hover:scale-105 active:scale-95"
+                            style={{
+                              backgroundColor: '#229ED9',
+                              color: '#ffffff',
+                            }}
+                          >
+                            <span>مشاهدة وتحميل في تطبيق تليجرام 🎬</span>
+                          </a>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>{content.videoTab.empty}</p>
