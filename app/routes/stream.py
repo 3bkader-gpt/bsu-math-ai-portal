@@ -1,5 +1,9 @@
 import os
+import logging
 from pathlib import Path
+
+logger = logging.getLogger("stream_router")
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy.orm import Session
@@ -41,9 +45,12 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
     Streams media assets (Audio, Video, PDF, Markdown) with HTTP Range support (206)
     and HTTP HEAD probe support for HTML5 audio and video players.
     """
-    asset = db.query(MediaAsset).filter(MediaAsset.id == asset_id).first()
+    asset = db.query(MediaAsset).filter(
+        (MediaAsset.id == asset_id) | (MediaAsset.telegram_message_id == asset_id)
+    ).first()
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
+
 
     is_head = request.method == "HEAD"
 
@@ -114,8 +121,8 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
                         headers=headers
                     )
         except Exception as e:
-            # Log error and fall back to next handlers
-            pass
+            logger.error(f"Telethon streaming exception for msg {asset.telegram_message_id} (Asset #{asset.id}): {e}", exc_info=True)
+
 
 
     # 3. Fallback to local file streaming if present on disk
