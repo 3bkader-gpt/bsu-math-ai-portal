@@ -577,7 +577,7 @@ export default function AdminDashboardPage() {
               href="/"
               target="_blank"
               title="بوابة الطلاب"
-              className="inline-flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-[1.02] shadow-sm shrink-0"
+              className="inline-flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all sm:hover:scale-[1.02] shadow-sm shrink-0"
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
@@ -594,7 +594,7 @@ export default function AdminDashboardPage() {
                 fetchDiagnostics();
               }}
               title="سجلات وفحص النظام والمصادر"
-              className="inline-flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-[1.02] shadow-sm shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all sm:hover:scale-[1.02] shadow-sm shrink-0 cursor-pointer"
               style={{
                 backgroundColor: 'var(--accent-primary)',
                 borderColor: 'var(--accent-primary)',
@@ -969,7 +969,7 @@ export default function AdminDashboardPage() {
                         key={sub.id}
                         onClick={() => setSelectedSubjectId(sub.id)}
                         className={`p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[72px] sm:min-h-[75px] w-[138px] xs:w-[150px] md:w-auto shrink-0 snap-start ${
-                          isSelected ? 'ring-2 ring-cyan-500/50 shadow-md scale-[1.02]' : 'hover:scale-[1.01]'
+                          isSelected ? 'ring-2 ring-cyan-500/50 shadow-md sm:scale-[1.02]' : 'sm:hover:scale-[1.01]'
                         }`}
                         style={{
                           backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
