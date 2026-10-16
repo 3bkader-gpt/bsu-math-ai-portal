@@ -11,47 +11,13 @@ from sqlalchemy.orm import Session
 from app.db.models import Lecture, MediaAsset
 from app.services.telegram_storage import telegram_storage
 
+from app.services.notebooklm_client import run_notebooklm_cmd, run_notebooklm_cmd_async
+
 logger = logging.getLogger("notebooklm_pipeline")
 
-def run_cmd(args: list[str]) -> tuple[int, str]:
-    """Helper to run synchronous subprocess command cleanly with automated headless refresh."""
-    try:
-        env = os.environ.copy()
-        env["NOTEBOOKLM_HEADLESS_REAUTH"] = "1"
-        refresh_script = str(Path(r"d:\الكليه\BOT\refresh_notebooklm_auth.py").resolve())
-        env["NOTEBOOKLM_REFRESH_CMD"] = f"python {refresh_script}"
-        env["NOTEBOOKLM_REFRESH_CMD_USE_SHELL"] = "1"
-
-        proc = subprocess.run(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            env=env
-        )
-        # If auth/CSRF error, auto-heal and retry once
-        if proc.returncode != 0 and ("CSRF token not found" in proc.stdout or "Authentication expired" in proc.stdout):
-            logger.warning("NotebookLM auth issue detected, running automated headless refresh...")
-            subprocess.run([sys.executable, refresh_script], check=False)
-            proc = subprocess.run(
-                args,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                env=env
-            )
-        return proc.returncode, proc.stdout
-    except Exception as e:
-        return 1, str(e)
-
-async def run_cmd_async(args: list[str]) -> tuple[int, str]:
-    """Asynchronous wrapper around subprocess execution."""
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, run_cmd, args)
+# Maintain backward compatibility for existing pipeline references
+run_cmd = run_notebooklm_cmd
+run_cmd_async = run_notebooklm_cmd_async
 
 def make_telegram_caption(subject_name: str, lecture_num: int, title: str, doctor: str | None, asset_label: str, filename: str = "") -> str:
     """Formats structured, readable captions for Telegram storage channel."""
