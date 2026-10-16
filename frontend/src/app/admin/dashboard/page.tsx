@@ -48,6 +48,7 @@ import {
   AcademicLecture as Lecture, 
   AcademicMediaAsset as LectureAsset 
 } from '@/types/academic';
+import { lockBodyScroll, unlockBodyScroll } from '@/lib/scrollLock';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -89,6 +90,16 @@ export default function AdminDashboardPage() {
   const [matrixFilter, setMatrixFilter] = useState<'ALL' | 'COMPLETE' | 'INCOMPLETE'>('ALL');
   const [matrixSearch, setMatrixSearch] = useState<string>('');
   const [copiedReport, setCopiedReport] = useState(false);
+
+  // Freeze background page scroll completely when diagnostics modal is open
+  useEffect(() => {
+    if (showDiagnosticsModal) {
+      lockBodyScroll();
+      return () => {
+        unlockBodyScroll();
+      };
+    }
+  }, [showDiagnosticsModal]);
 
   const fetchDiagnostics = async () => {
     setIsLoadingDiagnostics(true);
@@ -1321,9 +1332,15 @@ export default function AdminDashboardPage() {
       {/* COMPREHENSIVE CLOUD DIAGNOSTICS & SYSTEM LOGS MODAL                       */}
       {/* ========================================================================= */}
       {showDiagnosticsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowDiagnosticsModal(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200 touch-none overscroll-contain"
+        >
           <div 
-            className="w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden transition-all"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden transition-all touch-auto overscroll-contain"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-prominent)',
@@ -1471,7 +1488,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Modal Body Content */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 overscroll-contain">
               
               {/* TAB 1: OVERVIEW */}
               {diagnosticsTab === 'overview' && (
