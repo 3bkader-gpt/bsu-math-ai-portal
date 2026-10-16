@@ -1336,11 +1336,11 @@ export default function AdminDashboardPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowDiagnosticsModal(false);
           }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200 touch-none overscroll-contain"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden transition-all touch-auto overscroll-contain"
+            className="w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden transition-all overscroll-contain"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-prominent)',
@@ -1488,7 +1488,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Modal Body Content */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 overscroll-contain">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 overscroll-contain touch-pan-y">
               
               {/* TAB 1: OVERVIEW */}
               {diagnosticsTab === 'overview' && (
