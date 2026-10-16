@@ -1,23 +1,72 @@
 import time
+import json
 import logging
+import threading
+from collections import defaultdict
 from typing import Optional
-from pydantic import BaseModel
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from pydantic import BaseModel, Field, field_validator
+from fastapi import APIRouter, Depends, Query, Request, HTTPException, status
+from sqlalchemy.orm import Session, joinedload, selectinload
 from app.db.database import get_db
-from app.db.models import Subject, Lecture, MediaAsset
+from app.db.models import Subject, Lecture, MediaAsset, User
 from app.services.telethon_service import telethon_streamer
 from app.services.logger_service import log_handler
+from app.services.auth_service import get_current_user
 from app.config import settings
 
 logger = logging.getLogger("DiagnosticsRouter")
 
 router = APIRouter(prefix="/api/diagnostics", tags=["System Diagnostics & Logs"])
 
+# In-memory sliding window rate limiter for client error reporting: max 15 requests per minute per IP
+_RATE_LIMIT_MAX_REQUESTS = 15
+_RATE_LIMIT_WINDOW_SECONDS = 60.0
+_client_log_tracker: dict[str, list[float]] = defaultdict(list)
+_rate_limit_lock = threading.Lock()
+
+def check_client_log_rate_limit(client_ip: str) -> bool:
+    now = time.time()
+    cutoff = now - _RATE_LIMIT_WINDOW_SECONDS
+    with _rate_limit_lock:
+        timestamps = _client_log_tracker[client_ip]
+        valid_timestamps = [t for t in timestamps if t > cutoff]
+        if len(valid_timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
+            _client_log_tracker[client_ip] = valid_timestamps
+            return False
+        valid_timestamps.append(now)
+        _client_log_tracker[client_ip] = valid_timestamps
+        # Periodic cleanup of idle IPs to bound memory usage
+        if len(_client_log_tracker) > 1000:
+            for ip in list(_client_log_tracker.keys()):
+                if not _client_log_tracker[ip] or _client_log_tracker[ip][-1] < cutoff:
+                    _client_log_tracker.pop(ip, None)
+        return True
+
 class ClientLogPayload(BaseModel):
-    level: str = "ERROR"
-    message: str
+    level: str = Field(default="ERROR", max_length=10)
+    message: str = Field(..., min_length=1, max_length=1000)
     context: Optional[dict] = None
+
+    @field_validator("level")
+    @classmethod
+    def validate_level(cls, v: str) -> str:
+        allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        upper = v.strip().upper()
+        if upper not in allowed:
+            return "ERROR"
+        return upper
+
+    @field_validator("context")
+    @classmethod
+    def validate_context(cls, v: Optional[dict]) -> Optional[dict]:
+        if v is not None:
+            try:
+                s = json.dumps(v)
+                if len(s) > 2000:
+                    raise ValueError("Context size exceeds maximum permitted limit")
+            except (TypeError, OverflowError):
+                raise ValueError("Context must be JSON serializable")
+        return v
 
 
 @router.get("")
@@ -31,7 +80,16 @@ async def get_system_diagnostics(db: Session = Depends(get_db)):
     # 1. Database Check
     db_status = "healthy"
     try:
-        lectures = db.query(Lecture).join(Subject).order_by(Subject.name, Lecture.lecture_num).all()
+        lectures = (
+            db.query(Lecture)
+            .join(Subject)
+            .options(
+                joinedload(Lecture.subject),
+                selectinload(Lecture.assets)
+            )
+            .order_by(Subject.name, Lecture.lecture_num)
+            .all()
+        )
         db_latency_ms = round((time.time() - t0) * 1000, 2)
     except Exception as e:
         db_status = f"unhealthy: {e}"
@@ -56,7 +114,7 @@ async def get_system_diagnostics(db: Session = Depends(get_db)):
     }
 
     for lec in lectures:
-        assets = db.query(MediaAsset).filter(MediaAsset.lecture_id == lec.id).all()
+        assets = lec.assets
         
         quiz = next((a for a in assets if a.asset_type == 'quiz_md'), None)
         guide = next((a for a in assets if a.asset_type == 'study_guide_md'), None)
@@ -108,7 +166,7 @@ async def get_system_diagnostics(db: Session = Depends(get_db)):
         },
         "telegram_mtproto": {
             "status": tg_status,
-            "channel_id": settings.TELEGRAM_CHANNEL_ID
+            "configured": bool(settings.TELEGRAM_CHANNEL_ID)
         },
         "summary": summary,
         "lectures": lecture_audits
@@ -118,12 +176,18 @@ async def get_system_diagnostics(db: Session = Depends(get_db)):
 async def get_system_logs(
     limit: int = Query(default=100, ge=1, le=300),
     level: Optional[str] = Query(default=None),
-    search: Optional[str] = Query(default=None)
+    search: Optional[str] = Query(default=None),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Returns live in-memory logs filtered by level or search keyword,
-    along with aggregate log statistics.
+    Returns live in-memory logs filtered by level or search keyword.
+    Restricted strictly to authenticated administrative users.
     """
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="غير مصرح: الوصول إلى السجلات مقتصر على المشرفين فقط"
+        )
     logs = log_handler.get_logs(limit=limit, level=level, search=search)
     stats = log_handler.get_stats()
     return {
@@ -134,12 +198,20 @@ async def get_system_logs(
     }
 
 @router.post("/client-log")
-async def record_client_error(payload: ClientLogPayload):
+async def record_client_error(payload: ClientLogPayload, request: Request):
     """
-    Allows frontend clients to report errors (audio load failures, network drops, etc.)
-    into the server diagnostics stream.
+    Allows frontend clients to report legitimate browser errors into the diagnostic stream.
+    Protected by per-IP sliding window rate limiting and strict payload length validation.
     """
-    msg = f"[CLIENT_{payload.level.upper()}] {payload.message}"
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_client_log_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="تم تجاوز الحد المسموح لإرسال السجلات، يرجى المحاولة لاحقاً"
+        )
+
+    clean_msg = payload.message.strip()
+    msg = f"[CLIENT_{payload.level.upper()}] {clean_msg}"
     if payload.context:
         msg += f" | context: {payload.context}"
     
@@ -153,11 +225,18 @@ async def record_client_error(payload: ClientLogPayload):
     return {"status": "recorded"}
 
 @router.post("/clear-logs")
-async def clear_system_logs():
+async def clear_system_logs(current_user: User = Depends(get_current_user)):
     """
     Clears the in-memory log buffer.
+    Restricted strictly to authenticated administrative users.
     """
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="غير مصرح: مسح السجلات مقتصر على المشرفين فقط"
+        )
     log_handler.clear()
-    logger.info("System logs buffer was cleared by admin.")
+    logger.info(f"System logs buffer was cleared by admin user '{current_user.username}'.")
     return {"status": "cleared"}
+
 

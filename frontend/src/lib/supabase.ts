@@ -14,22 +14,20 @@ const HEADERS = {
   Accept: 'application/json',
 };
 
-export interface SupabaseSubject {
-  id: number;
-  name: string;
-  has_prompt: boolean;
-  lecture_count: number;
+import { 
+  AcademicSubject, 
+  AcademicLecture, 
+  AcademicMediaAsset, 
+  AcademicLectureBundle 
+} from '@/types/academic';
+
+export interface SupabaseSubject extends AcademicSubject {
   doctors: string[];
 }
 
-export interface SupabaseLectureItem {
-  id: number;
-  lecture_num: number;
-  title: string;
+export interface SupabaseLectureItem extends AcademicLecture {
   doctor: string | null;
-  status: string;
   stage_info: string | null;
-  created_at: string;
   assets_count: number;
   study_resources_count: number;
   has_audio: boolean;
@@ -40,31 +38,8 @@ export interface SupabaseLectureItem {
   is_ready: boolean;
 }
 
-export interface SupabaseMediaAsset {
-  id: number;
-  asset_type: string;
-  title: string;
-  file_size_bytes: number | null;
-  has_telegram: boolean;
-  telegram_file_id: string | null;
-  telegram_message_id: number | null;
-  content_text: string | null;
-  stream_url: string;
-}
-
-export interface SupabaseLectureBundle {
-  id: number;
-  subject_id: number;
-  subject_name?: string;
-  lecture_num: number;
-  title: string;
-  doctor: string | null;
-  status: string;
-  stage_info: string | null;
-  error_message: string | null;
-  assets: SupabaseMediaAsset[];
-  created_at: string;
-}
+export type SupabaseMediaAsset = AcademicMediaAsset;
+export type SupabaseLectureBundle = AcademicLectureBundle;
 
 export const OFFICIAL_SUBJECT_DOCTORS: Record<string, string[]> = {
   'هندسه تفاضلية': ['د/ سيد'],
@@ -94,10 +69,13 @@ export const OFFICIAL_SUBJECT_DOCTORS: Record<string, string[]> = {
  * Fetches all academic subjects directly from Supabase edge CDN.
  */
 export async function getDirectSupabaseSubjects(): Promise<SupabaseSubject[]> {
-  const [subRes, lecRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path`, { headers: HEADERS }),
-    fetch(`${SUPABASE_URL}/rest/v1/lectures?select=id,subject_id,doctor,status`, { headers: HEADERS }),
-  ]);
+  // Query subjects: Try with semester column first; if remote schema hasn't applied migration yet, fallback to legacy select
+  let subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path,semester`, { headers: HEADERS });
+  if (!subRes.ok && subRes.status === 400) {
+    subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path`, { headers: HEADERS });
+  }
+
+  const lecRes = await fetch(`${SUPABASE_URL}/rest/v1/lectures?select=id,subject_id,doctor,status`, { headers: HEADERS });
 
   if (!subRes.ok) throw new Error(`Supabase subjects error: ${subRes.statusText}`);
   const subjects = await subRes.json();
@@ -114,9 +92,12 @@ export async function getDirectSupabaseSubjects(): Promise<SupabaseSubject[]> {
       ? officialDocs 
       : (Array.from(new Set(subLecs.map((l: any) => l.doctor).filter(Boolean))) as string[]);
 
+    const sem = (typeof s.semester === 'number' && (s.semester === 1 || s.semester === 2)) ? s.semester : 1;
+
     return {
       id: s.id,
       name: s.name,
+      semester: sem,
       has_prompt: Boolean(s.prompt_path),
       lecture_count: subLecs.length,
       doctors: docs,

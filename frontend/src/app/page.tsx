@@ -38,24 +38,13 @@ import {
   getDirectSupabaseLectures, 
   getDirectSupabaseBundle 
 } from '@/lib/supabase';
+import { 
+  AcademicSubject, 
+  CanonicalCourse 
+} from '@/types/academic';
 
-interface Subject {
-  id: number;
-  name: string;
-  has_prompt: boolean;
-  lecture_count: number;
-  doctors?: string[];
-  canonicalDoctor?: string;
-  icon?: string;
-}
-
-export interface CanonicalCourse {
-  canonicalName: string;
-  doctor: string;
-  icon: string;
-  aliases: string[];
-  fallbackId: number;
-}
+type Subject = AcademicSubject;
+export type { CanonicalCourse };
 
 export const CANONICAL_COURSES: CanonicalCourse[] = [
   {
@@ -382,6 +371,7 @@ export default function Home() {
   const isDark = currentMode === 'dark';
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [selectedSemester, setSelectedSemester] = useState<1 | 2>(1);
   const [activeSubjectId, setActiveSubjectId] = useState<number | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<string>('الكل');
   const [subjectLectures, setSubjectLectures] = useState<Lecture[]>([]);
@@ -410,30 +400,126 @@ export default function Home() {
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
-  // Build Unified 12 Courses from Backend + Canonical Registry
-  const mergeSubjects = (backendSubjects: any[]): Subject[] => {
-    return CANONICAL_COURSES.map((course) => {
-      // Find matching backend subject by aliases or fallbackId
-      const found = backendSubjects.find(
-        (b) =>
-          course.aliases.some((a) => a.trim().toLowerCase() === (b.name || '').trim().toLowerCase()) ||
-          b.id === course.fallbackId
-      );
+  // Switch Semester and auto-select appropriate active subject
+  const handleSemesterChange = (semester: 1 | 2) => {
+    setSelectedSemester(semester);
+    const targetSubjects = subjects.filter(s => (s.semester ?? 1) === semester);
+    if (targetSubjects.length > 0) {
+      const stillValid = targetSubjects.some(s => s.id === activeSubjectId);
+      if (!stillValid) {
+        setActiveSubjectId(targetSubjects[0].id);
+      }
+    } else {
+      setActiveSubjectId(null);
+    }
+  };
 
-      const doctorsList = found?.doctors && found.doctors.length > 0 
+  // Build Unified Courses from Backend + Canonical Registry (Dynamic Semester 1 & 2 Extensibility)
+  const mergeSubjects = (backendSubjects: any[]): Subject[] => {
+    const rawBackendList = Array.isArray(backendSubjects) ? backendSubjects : [];
+    const matchedBackendIds = new Set<number>();
+    const matchedBackendNames = new Set<string>();
+    const assignedSubjectIds = new Set<number>();
+    const assignedSubjectNames = new Set<string>();
+
+    // 1. Process Canonical Courses (Preserve rich canonical metadata & order)
+    const canonicalList: Subject[] = CANONICAL_COURSES.map((course) => {
+      // Match by stable fallbackId or canonical aliases / name
+      const found = rawBackendList.find((b) => {
+        if (!b) return false;
+        if (typeof b.id === 'number' && b.id === course.fallbackId) return true;
+        const bName = (b.name || '').trim().toLowerCase();
+        if (!bName) return false;
+        return (
+          course.canonicalName.trim().toLowerCase() === bName ||
+          course.aliases.some((a) => a.trim().toLowerCase() === bName)
+        );
+      });
+
+      if (found) {
+        if (typeof found.id === 'number') matchedBackendIds.add(found.id);
+        if (found.name) matchedBackendNames.add(found.name.trim().toLowerCase());
+      }
+
+      const resolvedId = typeof found?.id === 'number' ? found.id : course.fallbackId;
+      assignedSubjectIds.add(resolvedId);
+      assignedSubjectNames.add(course.canonicalName.trim().toLowerCase());
+
+      const doctorsList = found?.doctors && Array.isArray(found.doctors) && found.doctors.length > 0 
         ? found.doctors 
         : (course.doctor.includes('+') ? course.doctor.split('+').map((d: string) => d.trim()) : [course.doctor]);
 
+      const sem = (typeof found?.semester === 'number' && (found.semester === 1 || found.semester === 2))
+        ? found.semester
+        : (course.semester ?? 1);
+
       return {
-        id: found?.id ?? course.fallbackId,
+        id: resolvedId,
         name: course.canonicalName,
+        semester: sem,
         has_prompt: found?.has_prompt ?? true,
-        lecture_count: found?.lecture_count ?? 0,
+        lecture_count: typeof found?.lecture_count === 'number' ? found.lecture_count : 0,
         doctors: doctorsList,
         canonicalDoctor: course.doctor,
         icon: course.icon,
       };
     });
+
+    // 2. Dynamically Append Genuinely New Subjects (e.g., Semester 2 or custom courses)
+    const dynamicSubjects: Subject[] = [];
+    for (const b of rawBackendList) {
+      if (!b || typeof b !== 'object') continue;
+      const rawName = typeof b.name === 'string' ? b.name.trim() : '';
+      if (!rawName) continue;
+
+      // Filter out internal system or utility folders
+      if (['كتب كامله', 'BOT', 'subjects'].includes(rawName) || rawName.startsWith('.')) {
+        continue;
+      }
+
+      const normalizedName = rawName.toLowerCase();
+      const isAlreadyMatchedById = typeof b.id === 'number' && (matchedBackendIds.has(b.id) || assignedSubjectIds.has(b.id));
+      const isAlreadyMatchedByName = matchedBackendNames.has(normalizedName) || assignedSubjectNames.has(normalizedName);
+      const matchesAnyCanonical = CANONICAL_COURSES.some((c) =>
+        c.canonicalName.trim().toLowerCase() === normalizedName ||
+        c.aliases.some((a) => a.trim().toLowerCase() === normalizedName) ||
+        (typeof b.id === 'number' && c.fallbackId === b.id)
+      );
+
+      if (isAlreadyMatchedById || isAlreadyMatchedByName || matchesAnyCanonical) {
+        continue;
+      }
+
+      // Ensure stable unique ID
+      const newSubjectId = typeof b.id === 'number' ? b.id : 1000 + dynamicSubjects.length;
+      if (assignedSubjectIds.has(newSubjectId)) {
+        continue;
+      }
+      assignedSubjectIds.add(newSubjectId);
+      assignedSubjectNames.add(normalizedName);
+
+      // Extract doctors safely without inventing placeholder instructor data
+      const cleanDoctors = Array.isArray(b.doctors)
+        ? b.doctors.map((d: any) => (typeof d === 'string' ? d.trim() : '')).filter(Boolean)
+        : [];
+      const canonicalDoc = cleanDoctors.length > 0 ? cleanDoctors.join(' + ') : undefined;
+
+      const rawSem = typeof b.semester === 'number' ? b.semester : 1;
+      const validSem = (rawSem === 2) ? 2 : 1;
+
+      dynamicSubjects.push({
+        id: newSubjectId,
+        name: rawName,
+        semester: validSem,
+        has_prompt: Boolean(b.has_prompt),
+        lecture_count: typeof b.lecture_count === 'number' ? b.lecture_count : 0,
+        doctors: cleanDoctors,
+        canonicalDoctor: canonicalDoc,
+        icon: '📚',
+      });
+    }
+
+    return [...canonicalList, ...dynamicSubjects];
   };
 
   // 1. Fetch Subjects on Mount (Supabase Edge First <100ms)
@@ -442,9 +528,12 @@ export default function Home() {
       .then(data => {
         const unified = mergeSubjects(data);
         setSubjects(unified);
-        const diff = unified.find((s) => s.name === 'هندسة تفاضلية');
+        const term1 = unified.filter(s => (s.semester ?? 1) === 1);
+        const diff = term1.find((s) => s.name === 'هندسة تفاضلية');
         if (diff) {
           setActiveSubjectId(diff.id);
+        } else if (term1.length > 0) {
+          setActiveSubjectId(term1[0].id);
         } else if (unified.length > 0) {
           setActiveSubjectId(unified[0].id);
         }
@@ -456,9 +545,12 @@ export default function Home() {
           .then(data => {
             const unified = mergeSubjects(data);
             setSubjects(unified);
-            const diff = unified.find((s) => s.name === 'هندسة تفاضلية');
+            const term1 = unified.filter(s => (s.semester ?? 1) === 1);
+            const diff = term1.find((s) => s.name === 'هندسة تفاضلية');
             if (diff) {
               setActiveSubjectId(diff.id);
+            } else if (term1.length > 0) {
+              setActiveSubjectId(term1[0].id);
             } else if (unified.length > 0) {
               setActiveSubjectId(unified[0].id);
             }
@@ -467,7 +559,12 @@ export default function Home() {
             console.error('All subjects fetch failed, using offline canonical:', apiErr);
             const fallbackUnified = mergeSubjects([]);
             setSubjects(fallbackUnified);
-            setActiveSubjectId(fallbackUnified[0].id);
+            const term1 = fallbackUnified.filter(s => (s.semester ?? 1) === 1);
+            if (term1.length > 0) {
+              setActiveSubjectId(term1[0].id);
+            } else if (fallbackUnified.length > 0) {
+              setActiveSubjectId(fallbackUnified[0].id);
+            }
           });
       });
   }, []);
@@ -679,8 +776,9 @@ export default function Home() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Filter subjects by search (name, canonical doctor, or doctor track)
-  const filteredSubjects = subjects.filter(s => 
+  // Filter subjects by selected semester and search query (name, canonical doctor, or doctor track)
+  const semesterSubjects = subjects.filter(s => (s.semester ?? 1) === selectedSemester);
+  const filteredSubjects = semesterSubjects.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (s.canonicalDoctor && s.canonicalDoctor.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (s.doctors && s.doctors.some(d => d.toLowerCase().includes(searchQuery.toLowerCase())))
@@ -829,21 +927,99 @@ export default function Home() {
       {/* Main Content Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         
-        {/* Subjects Grid */}
+        {/* Subjects Grid & Semester Selector */}
         <section>
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
               <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
                 {isGirls && <span className="text-2xl">🌸</span>}
-                <span>مواد الترم الأول ({filteredSubjects.length} مواد معتمدة)</span>
+                <span>
+                  {selectedSemester === 1 ? 'مواد الترم الأول' : 'مواد الترم الثاني'} ({filteredSubjects.length} {filteredSubjects.length === 1 ? 'مادة' : 'مواد'})
+                </span>
               </h3>
               <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
-                {isGirls ? 'اختاري المادة واستمتعي بالمحاضرات والشرح والزتونة 🎀' : 'اختار المادة وتصفح المحاضرات والشرح والملخصات'}
+                {isGirls 
+                  ? 'اختاري المادة واستمتعي بالمحاضرات والشرح والزتونة 🎀' 
+                  : 'اختار المادة وتصفح المحاضرات والشرح والملخصات الذكية'}
               </p>
+            </div>
+
+            {/* Semester Switcher Tabs */}
+            <div 
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+              }}
+              className="inline-flex items-center p-1 rounded-2xl border self-start sm:self-auto shadow-sm"
+            >
+              <button
+                type="button"
+                onClick={() => handleSemesterChange(1)}
+                style={{
+                  backgroundColor: selectedSemester === 1 
+                    ? (isGirls ? '#F43F5E' : 'var(--accent-primary)') 
+                    : 'transparent',
+                  color: selectedSemester === 1 
+                    ? '#FFFFFF' 
+                    : 'var(--text-secondary)',
+                }}
+                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer"
+              >
+                <span>الترم الأول</span>
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
+                  {subjects.filter(s => (s.semester ?? 1) === 1).length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSemesterChange(2)}
+                style={{
+                  backgroundColor: selectedSemester === 2 
+                    ? (isGirls ? '#F43F5E' : 'var(--accent-primary)') 
+                    : 'transparent',
+                  color: selectedSemester === 2 
+                    ? '#FFFFFF' 
+                    : 'var(--text-secondary)',
+                }}
+                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer"
+              >
+                <span>الترم الثاني</span>
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
+                  {subjects.filter(s => (s.semester ?? 1) === 2).length}
+                </span>
+              </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,155px),1fr))] gap-3 sm:gap-4">
+          {filteredSubjects.length === 0 ? (
+            <div 
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+              }}
+              className="rounded-3xl border p-8 sm:p-12 text-center max-w-xl mx-auto my-6 transition-colors shadow-sm"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-3xl select-none">
+                {searchQuery ? '🔍' : (selectedSemester === 2 ? '⏳' : '📚')}
+              </div>
+              <h4 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                {searchQuery 
+                  ? 'لم يتم العثور على مقررات مطابقة للبحث'
+                  : selectedSemester === 2 
+                    ? 'مقررات الترم الثاني قيد الإعداد والتجهيز'
+                    : 'لا توجد مقررات دراسية متاحة حالياً'}
+              </h4>
+              <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                {searchQuery
+                  ? 'يرجى تجربة كلمات بحث أخرى أو التأكد من اختيار الترم الصحيح أعلاه.'
+                  : selectedSemester === 2
+                    ? 'سيتم إدراج المحاضرات والملخصات ومصادر الذكاء الاصطناعي للفصل الدراسي الثاني قريباً فور اعتمادها.'
+                    : 'يرجى مراجعة لوحة الإدارة لإضافة المقررات الدراسية.'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,155px),1fr))] gap-3 sm:gap-4">
             {filteredSubjects.map((sub) => {
               const isActive = sub.id === activeSubjectId;
               const styleConfig = SUBJECT_THEME_STYLES[sub.name] || {
@@ -953,11 +1129,12 @@ export default function Home() {
                 </button>
               );
             })}
-          </div>
+            </div>
+          )}
         </section>
 
         {/* Active Subject Lectures */}
-        {(() => {
+        {activeSubject && (() => {
           const activeSubjectConfig = SUBJECT_THEME_STYLES[activeSubject?.name || ''] || {
             charm: '🎀',
             badgeTag: 'مقرر دراسي 🌸',

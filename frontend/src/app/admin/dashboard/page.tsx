@@ -43,34 +43,11 @@ import {
   SUPABASE_URL, 
   SUPABASE_ANON_KEY 
 } from '@/lib/supabase';
-
-interface Subject {
-  id: number;
-  name: string;
-  has_prompt: boolean;
-  lecture_count: number;
-  doctors?: string[];
-}
-
-interface LectureAsset {
-  id: number;
-  asset_type: string;
-  title: string;
-  file_size_bytes: number;
-  has_telegram: boolean;
-  stream_url: string;
-}
-
-interface Lecture {
-  id: number;
-  lecture_num: number;
-  title: string;
-  doctor?: string;
-  status: string;
-  stage_info: string;
-  created_at: string;
-  assets_count: number;
-}
+import { 
+  AcademicSubject as Subject, 
+  AcademicLecture as Lecture, 
+  AcademicMediaAsset as LectureAsset 
+} from '@/types/academic';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -116,7 +93,9 @@ export default function AdminDashboardPage() {
   const fetchDiagnostics = async () => {
     setIsLoadingDiagnostics(true);
     try {
-      const res = await fetch(getApiUrl('/api/diagnostics'));
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(getApiUrl('/api/diagnostics'), { headers });
       if (res.ok) {
         const data = await res.json();
         setDiagnosticsData(data);
@@ -134,7 +113,9 @@ export default function AdminDashboardPage() {
       const params = new URLSearchParams();
       if (logFilterLevel && logFilterLevel !== 'ALL') params.append('level', logFilterLevel);
       if (logSearch) params.append('search', logSearch);
-      const res = await fetch(getApiUrl(`/api/diagnostics/logs?${params.toString()}`));
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(getApiUrl(`/api/diagnostics/logs?${params.toString()}`), { headers });
       if (res.ok) {
         const data = await res.json();
         setLogsData(data.logs || []);
@@ -150,7 +131,9 @@ export default function AdminDashboardPage() {
   const handleClearLogs = async () => {
     if (!confirm('هل تريد مسح سجلات السيرفر الحالية؟')) return;
     try {
-      await fetch(getApiUrl('/api/diagnostics/clear-logs'), { method: 'POST' });
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      await fetch(getApiUrl('/api/diagnostics/clear-logs'), { method: 'POST', headers });
       fetchLogs();
     } catch (e) {
       console.error('Failed to clear logs:', e);
@@ -899,7 +882,7 @@ export default function AdminDashboardPage() {
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                       <span>{asset.title}</span>
                       <span className="text-xs font-mono font-bold" style={{ color: 'var(--text-secondary)' }}>
-                        ({(asset.file_size_bytes / (1024*1024)).toFixed(1)}MB)
+                        ({asset.file_size_bytes ? `${(asset.file_size_bytes / (1024*1024)).toFixed(1)}MB` : 'مكتمل'})
                       </span>
                     </span>
                   ))}

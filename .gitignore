@@ -15,7 +15,9 @@
 bot_database.db
 bot_database.db-journal
 telethon_auth_cache.json
-test_*.py
+/test_*.py
+scripts/test_*.py
+!tests/
 refresh_*.py
 attach_*.py
 scan_*.py
