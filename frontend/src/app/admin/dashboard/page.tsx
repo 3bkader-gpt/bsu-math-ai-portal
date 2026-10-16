@@ -537,19 +537,20 @@ export default function AdminDashboardPage() {
           borderColor: 'var(--border-subtle)'
         }}
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-[4rem] sm:min-h-[4.5rem] py-2 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 min-h-[3.75rem] sm:min-h-[4.5rem] py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-4">
           
           {/* Logo & Platform Info */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
             <div 
-              className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shadow-lg shrink-0"
+              className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shadow-lg shrink-0"
               style={{ backgroundColor: 'var(--accent-primary)', color: '#ffffff' }}
             >
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Sparkles className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-              <h1 className="font-black text-sm xs:text-base sm:text-xl lg:text-2xl tracking-tight truncate leading-tight" style={{ color: 'var(--text-primary)' }}>
-                لوحة الإدارة والرفع الذكي
+              <h1 className="font-black text-xs xs:text-sm sm:text-xl lg:text-2xl tracking-tight leading-tight" style={{ color: 'var(--text-primary)' }}>
+                <span className="hidden sm:inline">لوحة الإدارة والرفع الذكي</span>
+                <span className="sm:hidden">لوحة الإدارة</span>
               </h1>
               <p className="text-xs sm:text-sm hidden md:block font-bold mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>
                 قسم الرياضيات | جامعة بني سويف
@@ -558,21 +559,21 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Top Action Buttons & Theme Switcher */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             <ThemeToggle />
 
             <Link
               href="/"
               target="_blank"
               title="بوابة الطلاب"
-              className="inline-flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-[1.02] shadow-sm shrink-0"
+              className="inline-flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-[1.02] shadow-sm shrink-0"
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)'
               }}
             >
-              <ExternalLink className="w-4 h-4 text-teal-500 shrink-0" />
+              <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-500 shrink-0" />
               <span className="hidden lg:inline">بوابة الطلاب</span>
             </Link>
 
@@ -582,28 +583,28 @@ export default function AdminDashboardPage() {
                 fetchDiagnostics();
               }}
               title="سجلات وفحص النظام والمصادر"
-              className="inline-flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-[1.02] shadow-sm shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all hover:scale-[1.02] shadow-sm shrink-0 cursor-pointer"
               style={{
                 backgroundColor: 'var(--accent-primary)',
                 borderColor: 'var(--accent-primary)',
                 color: '#ffffff'
               }}
             >
-              <Activity className="w-4 h-4 shrink-0" />
+              <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               <span className="hidden sm:inline">سجلات وفحص النظام 📊</span>
             </button>
 
             <button
               onClick={handleLogout}
               title="تسجيل الخروج"
-              className="p-2 sm:p-2.5 rounded-xl border transition-all hover:text-rose-500 hover:border-rose-400 cursor-pointer shadow-sm shrink-0"
+              className="p-1.5 sm:p-2.5 rounded-xl border transition-all hover:text-rose-500 hover:border-rose-400 cursor-pointer shadow-sm shrink-0"
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-secondary)'
               }}
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
@@ -914,33 +915,33 @@ export default function AdminDashboardPage() {
             }}
           >
             
-            <div className="flex items-center justify-between mb-6 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div className="flex items-center justify-between mb-5 pb-3.5 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <div>
-                <h2 className="text-xl sm:text-2xl font-black flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
-                  <UploadCloud className="w-7 h-7" style={{ color: 'var(--accent-primary)' }} />
+                <h2 className="text-base sm:text-lg md:text-xl font-extrabold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                  <UploadCloud className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: 'var(--accent-primary)' }} />
                   <span>رفع محاضرة جديدة وإطلاق الذكاء الاصطناعي</span>
                 </h2>
-                <p className="text-sm sm:text-base font-bold mt-1.5 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-xs sm:text-sm font-medium mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   ارفع ملف الـ PDF وسيقوم المحرك بتوليد الشرح الصوتي، الفيديو، الكويز، والملخص تلقائياً في السحابة.
                 </p>
               </div>
             </div>
 
             {uploadError && (
-              <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center gap-3 text-rose-600 dark:text-rose-300 text-sm font-bold">
-                <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+              <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center gap-2.5 text-rose-600 dark:text-rose-300 text-xs sm:text-sm font-bold">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                 <span>{uploadError}</span>
               </div>
             )}
 
-            <form onSubmit={handleUploadSubmit} className="space-y-6">
+            <form onSubmit={handleUploadSubmit} className="space-y-5">
               
               {/* Step 1: Subject Picker */}
               <div>
-                <label className="block text-sm sm:text-base font-black mb-3" style={{ color: 'var(--text-primary)' }}>
+                <label className="block text-xs sm:text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                   1. اختر المادة الدراسية (11 مادة متاحة)
                 </label>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,140px),1fr))] gap-2.5">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,135px),1fr))] gap-2 sm:gap-2.5">
                   {subjects.map((sub) => {
                     const isSelected = sub.id === selectedSubjectId;
                     return (
@@ -948,19 +949,19 @@ export default function AdminDashboardPage() {
                         type="button"
                         key={sub.id}
                         onClick={() => setSelectedSubjectId(sub.id)}
-                        className="p-3.5 sm:p-4 rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[92px]"
+                        className="p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[75px]"
                         style={{
                           backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
                           borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                          boxShadow: isSelected ? '0 0 0 2.5px var(--accent-primary)' : 'none',
+                          boxShadow: isSelected ? '0 0 0 2px var(--accent-primary)' : 'none',
                           color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
                         }}
                       >
-                        <span className="font-black text-sm sm:text-base leading-snug line-clamp-2">{sub.name}</span>
-                        <div className="mt-2.5 flex items-center justify-between text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-                          <span className="font-bold">{sub.lecture_count} محاضرات</span>
+                        <span className="font-bold text-xs sm:text-sm leading-snug line-clamp-2">{sub.name}</span>
+                        <div className="mt-2 flex items-center justify-between text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">{sub.lecture_count} محاضرات</span>
                           {sub.has_prompt && (
-                            <span className="font-black px-1.5 py-0.5 rounded border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-prominent)', color: 'var(--accent-primary)' }}>
+                            <span className="font-bold text-[10px] px-1 py-0.2 rounded border text-emerald-500" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-prominent)' }}>
                               برومبت ✓
                             </span>
                           )}
@@ -973,11 +974,11 @@ export default function AdminDashboardPage() {
 
               {/* Optional Doctor Picker if subject has multiple doctor tracks */}
               {selectedSubject?.doctors && selectedSubject.doctors.length > 0 && (
-                <div className="pt-2">
-                  <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
+                <div className="pt-1">
+                  <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
                     مسار الدكتور / أستاذ المادة
                   </label>
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,145px),1fr))] gap-2 sm:gap-2.5">
                     {selectedSubject.doctors.map((doc) => {
                       const isSelected = selectedDoctor === doc;
                       const isFemale = doc.includes('مروة') || doc.includes('ايمان') || doc.includes('ايه');
@@ -986,15 +987,15 @@ export default function AdminDashboardPage() {
                           type="button"
                           key={doc}
                           onClick={() => setSelectedDoctor(doc)}
-                          className="p-3.5 sm:p-4 rounded-2xl border text-sm sm:text-base font-black flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+                          className="p-2.5 sm:p-3 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
                           style={{
                             backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
                             borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                            boxShadow: isSelected ? '0 0 0 2.5px var(--accent-primary)' : 'none',
+                            boxShadow: isSelected ? '0 0 0 2px var(--accent-primary)' : 'none',
                             color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
                           }}
                         >
-                          <span className="text-base">{isFemale ? '👩‍🏫' : '👨‍🏫'}</span>
+                          <span className="text-sm">{isFemale ? '👩‍🏫' : '👨‍🏫'}</span>
                           <span>{doc}</span>
                         </button>
                       );
@@ -1004,9 +1005,9 @@ export default function AdminDashboardPage() {
               )}
 
               {/* Step 2: Lecture Info */}
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4 pt-2">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3 sm:gap-4 pt-1">
                 <div>
-                  <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
+                  <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
                     رقم المحاضرة
                   </label>
                   <input
@@ -1014,7 +1015,7 @@ export default function AdminDashboardPage() {
                     min="1"
                     value={lectureNum}
                     onChange={(e) => setLectureNum(parseInt(e.target.value) || 1)}
-                    className="w-full px-4 py-3.5 rounded-2xl border text-base sm:text-lg font-black focus:outline-none transition-all"
+                    className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border text-sm sm:text-base font-bold focus:outline-none transition-all"
                     style={{
                       backgroundColor: 'var(--bg-surface-elevated)',
                       borderColor: 'var(--border-prominent)',
@@ -1025,7 +1026,7 @@ export default function AdminDashboardPage() {
                 </div>
                 
                 <div className="sm:col-span-2">
-                  <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
+                  <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
                     عنوان المحاضرة (اختياري)
                   </label>
                   <input
@@ -1033,7 +1034,7 @@ export default function AdminDashboardPage() {
                     value={lectureTitle}
                     onChange={(e) => setLectureTitle(e.target.value)}
                     placeholder="مثال: مفهوم المنحنى وطول القوس في الفراغ"
-                    className="w-full px-4 py-3.5 rounded-2xl border text-base font-bold focus:outline-none transition-all placeholder:text-slate-400"
+                    className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border text-sm sm:text-base font-medium focus:outline-none transition-all placeholder:text-slate-400"
                     style={{
                       backgroundColor: 'var(--bg-surface-elevated)',
                       borderColor: 'var(--border-prominent)',
@@ -1045,7 +1046,7 @@ export default function AdminDashboardPage() {
 
               {/* Step 3: Drag & Drop Zone */}
               <div>
-                <label className="block text-sm sm:text-base font-black mb-2.5" style={{ color: 'var(--text-primary)' }}>
+                <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
                   2. رفع ملف المحاضرة (PDF)
                 </label>
                 
@@ -1053,7 +1054,7 @@ export default function AdminDashboardPage() {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-3xl p-8 sm:p-10 text-center cursor-pointer transition-all group"
+                  className="border-2 border-dashed rounded-2xl p-5 sm:p-7 text-center cursor-pointer transition-all group"
                   style={{
                     backgroundColor: 'var(--bg-surface-elevated)',
                     borderColor: 'var(--border-prominent)'
@@ -1069,16 +1070,16 @@ export default function AdminDashboardPage() {
                   />
 
                   <div 
-                    className="w-16 h-16 mx-auto mb-3.5 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm"
+                    className="w-12 h-12 mx-auto mb-2.5 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-xs"
                     style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--accent-primary)' }}
                   >
-                    <UploadCloud className="w-8 h-8" />
+                    <UploadCloud className="w-6 h-6" />
                   </div>
 
-                  <p className="text-base sm:text-lg font-black" style={{ color: 'var(--text-primary)' }}>
-                    اسحب ملف الـ PDF وأفلته هنا، أو <span style={{ color: 'var(--accent-primary)' }} className="underline font-black">تصفح ملفاتك</span>
+                  <p className="text-sm sm:text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+                    اسحب ملف الـ PDF وأفلته هنا، أو <span style={{ color: 'var(--accent-primary)' }} className="underline font-bold">تصفح ملفاتك</span>
                   </p>
-                  <p className="text-sm font-bold mt-2" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-secondary)' }}>
                     يمكنك رفع ملف المحاضرة الأساسي ومراجع إضافية ملحقة معاً
                   </p>
 
@@ -1214,15 +1215,15 @@ export default function AdminDashboardPage() {
                   {subjectLectures.map((lec) => (
                     <div
                       key={lec.id}
-                      className="p-4 sm:p-5 rounded-2xl border transition-all flex items-start justify-between gap-3 group hover:shadow-md"
+                      className="p-3.5 sm:p-5 rounded-2xl border transition-all flex flex-col xs:flex-row xs:items-start justify-between gap-3 group hover:shadow-md"
                       style={{
                         backgroundColor: 'var(--bg-surface-elevated)',
                         borderColor: 'var(--border-subtle)'
                       }}
                     >
-                      <div className="flex items-start gap-3.5">
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
                         <div 
-                          className="w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 font-black text-base shadow-xs"
+                          className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl border flex items-center justify-center shrink-0 font-bold text-sm sm:text-base shadow-xs"
                           style={{
                             backgroundColor: 'var(--bg-surface)',
                             borderColor: 'var(--border-prominent)',
@@ -1231,14 +1232,14 @@ export default function AdminDashboardPage() {
                         >
                           {lec.lecture_num}
                         </div>
-                        <div>
-                          <h4 className="font-black text-base sm:text-lg transition-colors leading-tight" style={{ color: 'var(--text-primary)' }}>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-sm sm:text-base transition-colors leading-tight break-words" style={{ color: 'var(--text-primary)' }}>
                             {lec.title}
                           </h4>
                           {lec.doctor && (
                             <div className="mt-1.5">
                               <span 
-                                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs sm:text-sm font-black border"
+                                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-bold border"
                                 style={{
                                   backgroundColor: 'var(--bg-surface)',
                                   borderColor: 'var(--border-prominent)',
@@ -1249,13 +1250,13 @@ export default function AdminDashboardPage() {
                               </span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2.5 mt-2 text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            <span className="flex items-center gap-1.5 font-black text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          <div className="flex flex-wrap items-center gap-2 mt-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                            <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                               <span>{lec.assets_count} أصول مكتملة</span>
                             </span>
                             <span>•</span>
-                            <span className="font-bold">
+                            <span className="font-medium">
                               {new Date(lec.created_at).toLocaleDateString('ar-EG')}
                             </span>
                           </div>
@@ -1264,7 +1265,7 @@ export default function AdminDashboardPage() {
 
                       <button
                         onClick={() => setActiveTrackingId(lec.id)}
-                        className="px-4 py-2 rounded-xl border text-xs sm:text-sm font-black transition-all shrink-0 cursor-pointer shadow-xs hover:scale-105"
+                        className="px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs hover:scale-105 self-start xs:self-center"
                         style={{
                           backgroundColor: 'var(--bg-surface)',
                           borderColor: 'var(--border-subtle)',
@@ -1397,10 +1398,11 @@ export default function AdminDashboardPage() {
 
             {/* Modal Tabs Bar */}
             <div 
-              className="px-4 sm:px-6 pt-3 border-b flex items-center gap-2 shrink-0 overflow-x-auto"
+              className="px-3 sm:px-6 pt-3 border-b flex items-center gap-1.5 sm:gap-2 shrink-0 overflow-x-auto no-scrollbar overscroll-x-contain touch-pan-x"
               style={{ 
                 borderColor: 'var(--border-subtle)',
-                backgroundColor: 'var(--bg-surface-elevated)'
+                backgroundColor: 'var(--bg-surface-elevated)',
+                WebkitOverflowScrolling: 'touch',
               }}
             >
               <button
@@ -1518,7 +1520,7 @@ export default function AdminDashboardPage() {
                         borderColor: 'var(--border-subtle)'
                       }}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-1">
                         <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>تخزين التيليجرام السحابي</span>
                         <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">
                           MTProto In-Memory
