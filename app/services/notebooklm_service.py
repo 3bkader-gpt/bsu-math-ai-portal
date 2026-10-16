@@ -6,8 +6,10 @@ import re
 import subprocess
 import sys
 import shutil
+import uuid
 from pathlib import Path
 from sqlalchemy.orm import Session
+from app.config import settings
 from app.db.models import Lecture, MediaAsset
 from app.services.telegram_storage import telegram_storage
 
@@ -85,7 +87,7 @@ class NotebookLMPipeline:
         5. Uploads to Telegram Storage Backend
         6. Updates DB Status
         """
-        temp_dir = Path(r"D:\الكليه\BOT\media_storage\temp") / f"lec_{lecture_id}"
+        temp_dir = settings.MEDIA_DIR / "temp" / f"lec_{lecture_id}_{uuid.uuid4().hex[:8]}"
         temp_dir.mkdir(parents=True, exist_ok=True)
 
         db: Session = db_factory()
@@ -243,6 +245,7 @@ class NotebookLMPipeline:
 
         except Exception as e:
             logger.exception("Pipeline failed")
+            shutil.rmtree(temp_dir, ignore_errors=True)
             try:
                 db.rollback()
             except Exception:
@@ -274,86 +277,115 @@ class NotebookLMPipeline:
     ):
         """
         Background worker running independently without blocking the lecture or user:
-        Polls NotebookLM until audio (and video) finish generating in Google's cloud,
+        Polls NotebookLM until audio and video finish generating in Google's cloud,
         then automatically downloads, uploads to Telegram, and attaches to the lecture.
         """
         logger.info(f"Started decoupled background media fetcher for lecture {lecture_id} (Notebook {nb_id})")
         audio_file = temp_dir / "audio_overview.m4a"
         video_file = temp_dir / "video_overview.mp4"
 
-        # Check every 15s for up to 60 iterations (15 minutes total)
-        for attempt in range(60):
-            await asyncio.sleep(15)
-            try:
-                # 1. Attempt to download audio
-                if not (audio_file.exists() and audio_file.stat().st_size > 1000):
-                    c, _ = await run_cmd_async(["notebooklm", "download", "audio", str(audio_file), "--force", "-n", nb_id])
-                    if c == 0 and audio_file.exists() and audio_file.stat().st_size > 1000:
-                        db = db_factory()
-                        try:
-                            existing_audio = db.query(MediaAsset).filter(
-                                MediaAsset.lecture_id == lecture_id,
-                                MediaAsset.asset_type == "audio"
-                            ).first()
-
-                            if not existing_audio:
-                                res = await telegram_storage.upload_asset(audio_file, "audio", f"🎧 بودكاست المحاضرة - {subject_name}")
-                                db.add(MediaAsset(
-                                    lecture_id=lecture_id,
-                                    asset_type="audio",
-                                    title="بودكاست الشرح الصوتي",
-                                    local_file_path=res.get("local_file_path"),
-                                    telegram_file_id=res.get("telegram_file_id"),
-                                    telegram_message_id=res.get("telegram_message_id"),
-                                    file_size_bytes=res.get("file_size")
-                                ))
-                                lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
-                                if lec:
-                                    lec.stage_info = "اكتملت جميع المخرجات والشرح الصوتي بنجاح ✅"
-                                db.commit()
-                                logger.info(f"Successfully attached audio to lecture {lecture_id}!")
-                        finally:
-                            db.close()
-
-                # 2. Attempt to download video if available
-                if not (video_file.exists() and video_file.stat().st_size > 1000):
-                    vc, _ = await run_cmd_async(["notebooklm", "download", "video", str(video_file), "--force", "-n", nb_id])
-                    if vc == 0 and video_file.exists() and video_file.stat().st_size > 1000:
-                        db = db_factory()
-                        try:
-                            existing_vid = db.query(MediaAsset).filter(
-                                MediaAsset.lecture_id == lecture_id,
-                                MediaAsset.asset_type == "video"
-                            ).first()
-                            if not existing_vid:
-                                res_v = await telegram_storage.upload_asset(video_file, "video", f"🎬 فيديو المحاضرة - {subject_name}")
-                                db.add(MediaAsset(
-                                    lecture_id=lecture_id,
-                                    asset_type="video",
-                                    title="فيديو الشرح التفاعلي",
-                                    local_file_path=res_v.get("local_file_path"),
-                                    telegram_file_id=res_v.get("telegram_file_id"),
-                                    telegram_message_id=res_v.get("telegram_message_id"),
-                                    file_size_bytes=res_v.get("file_size")
-                                ))
-                                db.commit()
-                                logger.info(f"Successfully attached video to lecture {lecture_id}!")
-                        finally:
-                            db.close()
-
-                # If both audio is fetched, we are completely done
-                if audio_file.exists() and audio_file.stat().st_size > 1000:
-                    break
-
-            except Exception as e:
-                logger.warning(f"Background media fetch attempt {attempt+1} encountered: {e}")
-
-        logger.info(f"Background media fetcher finished for lecture {lecture_id}")
         try:
-            shutil.rmtree(temp_dir, ignore_errors=True)
-            logger.info(f"Auto-purged temp directory for lecture {lecture_id} (0 bytes left on local disk).")
-        except Exception:
-            pass
+            # Check initial media presence to avoid redundant downloads if already attached
+            with db_factory() as check_db:
+                has_audio_init = check_db.query(MediaAsset).filter(
+                    MediaAsset.lecture_id == lecture_id,
+                    MediaAsset.asset_type == "audio"
+                ).first() is not None
+                has_video_init = check_db.query(MediaAsset).filter(
+                    MediaAsset.lecture_id == lecture_id,
+                    MediaAsset.asset_type == "video"
+                ).first() is not None
+
+            audio_completed = has_audio_init
+            video_completed = has_video_init
+
+            if audio_completed and video_completed:
+                logger.info(f"Both audio and video are already present for lecture {lecture_id}. No polling needed.")
+                return
+
+            # Check every 15s for up to 60 iterations (15 minutes total timeout)
+            for attempt in range(60):
+                await asyncio.sleep(15)
+                try:
+                    # 1. Attempt to download audio if not yet attached
+                    if not audio_completed:
+                        if not (audio_file.exists() and audio_file.stat().st_size > 1000):
+                            c, _ = await run_cmd_async(["notebooklm", "download", "audio", str(audio_file), "--force", "-n", nb_id])
+                        if audio_file.exists() and audio_file.stat().st_size > 1000:
+                            db = db_factory()
+                            try:
+                                existing_audio = db.query(MediaAsset).filter(
+                                    MediaAsset.lecture_id == lecture_id,
+                                    MediaAsset.asset_type == "audio"
+                                ).first()
+
+                                if not existing_audio:
+                                    res = await telegram_storage.upload_asset(audio_file, "audio", f"🎧 بودكاست المحاضرة - {subject_name}")
+                                    db.add(MediaAsset(
+                                        lecture_id=lecture_id,
+                                        asset_type="audio",
+                                        title="بودكاست الشرح الصوتي",
+                                        local_file_path=res.get("local_file_path"),
+                                        telegram_file_id=res.get("telegram_file_id"),
+                                        telegram_message_id=res.get("telegram_message_id"),
+                                        file_size_bytes=res.get("file_size")
+                                    ))
+                                    lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
+                                    if lec:
+                                        lec.stage_info = "اكتمل الشرح الصوتي بنجاح وجاري متابعة الفيديو 🎬"
+                                    db.commit()
+                                    logger.info(f"Successfully attached audio to lecture {lecture_id}!")
+                                audio_completed = True
+                            finally:
+                                db.close()
+
+                    # 2. Attempt to download video if not yet attached
+                    if not video_completed:
+                        if not (video_file.exists() and video_file.stat().st_size > 1000):
+                            vc, _ = await run_cmd_async(["notebooklm", "download", "video", str(video_file), "--force", "-n", nb_id])
+                        if video_file.exists() and video_file.stat().st_size > 1000:
+                            db = db_factory()
+                            try:
+                                existing_vid = db.query(MediaAsset).filter(
+                                    MediaAsset.lecture_id == lecture_id,
+                                    MediaAsset.asset_type == "video"
+                                ).first()
+                                if not existing_vid:
+                                    res_v = await telegram_storage.upload_asset(video_file, "video", f"🎬 فيديو المحاضرة - {subject_name}")
+                                    db.add(MediaAsset(
+                                        lecture_id=lecture_id,
+                                        asset_type="video",
+                                        title="فيديو الشرح التفاعلي",
+                                        local_file_path=res_v.get("local_file_path"),
+                                        telegram_file_id=res_v.get("telegram_file_id"),
+                                        telegram_message_id=res_v.get("telegram_message_id"),
+                                        file_size_bytes=res_v.get("file_size")
+                                    ))
+                                    lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
+                                    if lec:
+                                        lec.stage_info = "اكتملت جميع المخرجات والشرح الصوتي والمرئي بنجاح ✅"
+                                    db.commit()
+                                    logger.info(f"Successfully attached video to lecture {lecture_id}!")
+                                video_completed = True
+                            finally:
+                                db.close()
+
+                    # Completion Condition: Terminate early ONLY when BOTH audio and video are retrieved!
+                    if audio_completed and video_completed:
+                        logger.info(f"Both audio and video successfully fetched for lecture {lecture_id}.")
+                        break
+
+                except Exception as e:
+                    logger.warning(f"Background media fetch attempt {attempt+1} encountered: {e}")
+
+        finally:
+            logger.info(f"Background media fetcher finished for lecture {lecture_id}")
+            try:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                logger.info(f"Auto-purged temp directory for lecture {lecture_id} (0 bytes left on local disk).")
+            except Exception:
+                pass
+
 
     @classmethod
     async def sync_lecture_media(cls, lecture_id: int, db: Session) -> dict:
@@ -365,42 +397,46 @@ class NotebookLMPipeline:
         if not lecture or not lecture.notebook_id:
             return {"status": "no_notebook"}
 
-        temp_dir = Path(r"D:\الكليه\BOT\media_storage\temp") / f"lec_{lecture_id}"
+        temp_dir = settings.MEDIA_DIR / "temp" / f"sync_lec_{lecture_id}_{uuid.uuid4().hex[:8]}"
         temp_dir.mkdir(parents=True, exist_ok=True)
         nb_id = lecture.notebook_id or ""
         subject_name = lecture.subject.name if lecture.subject else ""
 
-        # Check audio
-        has_audio = db.query(MediaAsset).filter(MediaAsset.lecture_id == lecture_id, MediaAsset.asset_type == "audio").first()
-        if not has_audio:
-            audio_file = temp_dir / "audio_overview.m4a"
-            c, _ = await run_cmd_async(["notebooklm", "download", "audio", str(audio_file), "--force", "-n", nb_id])
-            if c == 0 and audio_file.exists() and audio_file.stat().st_size > 1000:
-                cap_audio = make_telegram_caption(subject_name, lecture.lecture_num, lecture.title, lecture.doctor, "🎧 بودكاست الشرح الصوتي بالمصرية")
-                res = await telegram_storage.upload_asset(audio_file, "audio", cap_audio)
-                db.add(MediaAsset(
-                    lecture_id=lecture.id, asset_type="audio", title="بودكاست الشرح الصوتي",
-                    local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
-                    telegram_message_id=res.get("telegram_message_id"), file_size_bytes=res.get("file_size")
-                ))
-                lecture.stage_info = "اكتملت جميع المخرجات والشرح الصوتي بنجاح ✅"
-                db.commit()
+        try:
+            # Check audio
+            has_audio = db.query(MediaAsset).filter(MediaAsset.lecture_id == lecture_id, MediaAsset.asset_type == "audio").first()
+            if not has_audio:
+                audio_file = temp_dir / "audio_overview.m4a"
+                c, _ = await run_cmd_async(["notebooklm", "download", "audio", str(audio_file), "--force", "-n", nb_id])
+                if c == 0 and audio_file.exists() and audio_file.stat().st_size > 1000:
+                    cap_audio = make_telegram_caption(subject_name, lecture.lecture_num, lecture.title, lecture.doctor, "🎧 بودكاست الشرح الصوتي بالمصرية")
+                    res = await telegram_storage.upload_asset(audio_file, "audio", cap_audio)
+                    db.add(MediaAsset(
+                        lecture_id=lecture.id, asset_type="audio", title="بودكاست الشرح الصوتي",
+                        local_file_path=res.get("local_file_path"), telegram_file_id=res.get("telegram_file_id"),
+                        telegram_message_id=res.get("telegram_message_id"), file_size_bytes=res.get("file_size")
+                    ))
+                    lecture.stage_info = "اكتملت جميع المخرجات والشرح الصوتي بنجاح ✅"
+                    db.commit()
 
-        # Check video
-        has_video = db.query(MediaAsset).filter(MediaAsset.lecture_id == lecture_id, MediaAsset.asset_type == "video").first()
-        if not has_video:
-            video_file = temp_dir / "video_overview.mp4"
-            vc, _ = await run_cmd_async(["notebooklm", "download", "video", str(video_file), "--force", "-n", nb_id])
-            if vc == 0 and video_file.exists() and video_file.stat().st_size > 1000:
-                cap_video = make_telegram_caption(subject_name, lecture.lecture_num, lecture.title, lecture.doctor, "🎬 فيديو الشرح المرئي التفاعلي")
-                res_v = await telegram_storage.upload_asset(video_file, "video", cap_video)
-                db.add(MediaAsset(
-                    lecture_id=lecture.id, asset_type="video", title="فيديو الشرح التفاعلي",
-                    local_file_path=res_v.get("local_file_path"), telegram_file_id=res_v.get("telegram_file_id"),
-                    telegram_message_id=res_v.get("telegram_message_id"), file_size_bytes=res_v.get("file_size")
-                ))
-                db.commit()
+            # Check video
+            has_video = db.query(MediaAsset).filter(MediaAsset.lecture_id == lecture_id, MediaAsset.asset_type == "video").first()
+            if not has_video:
+                video_file = temp_dir / "video_overview.mp4"
+                vc, _ = await run_cmd_async(["notebooklm", "download", "video", str(video_file), "--force", "-n", nb_id])
+                if vc == 0 and video_file.exists() and video_file.stat().st_size > 1000:
+                    cap_video = make_telegram_caption(subject_name, lecture.lecture_num, lecture.title, lecture.doctor, "🎬 فيديو الشرح المرئي التفاعلي")
+                    res_v = await telegram_storage.upload_asset(video_file, "video", cap_video)
+                    db.add(MediaAsset(
+                        lecture_id=lecture.id, asset_type="video", title="فيديو الشرح التفاعلي",
+                        local_file_path=res_v.get("local_file_path"), telegram_file_id=res_v.get("telegram_file_id"),
+                        telegram_message_id=res_v.get("telegram_message_id"), file_size_bytes=res_v.get("file_size")
+                    ))
+                    db.commit()
 
-        return {"ok": True}
+            return {"ok": True}
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
 
 

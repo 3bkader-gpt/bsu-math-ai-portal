@@ -106,18 +106,27 @@ class TelegramStorageService:
             "warning": last_error
         }
 
-    async def get_direct_download_url(self, file_id: str) -> str | None:
-        """Retrieves direct streaming URL from Telegram for a given file_id."""
-        if not self.is_configured or not file_id:
-            return None
+    async def stream_file_bytes(self, file_id: str, range_header: str | None = None):
+        """
+        Streams file bytes from Telegram Bot API internally without exposing the bot token to the client.
+        Returns a tuple of (httpx.Response, httpx.AsyncClient) or (None, None).
+        Caller must close both response and client when done.
+        """
+        download_url = await self.get_direct_download_url(file_id)
+        if not download_url:
+            return None, None
 
-        url = f"{self.api_base}/getFile?file_id={file_id}"
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.get(url)
-            data = resp.json()
-            if data.get("ok"):
-                file_path = data["result"]["file_path"]
-                return f"https://api.telegram.org/file/bot{self.bot_token}/{file_path}"
-        return None
+        headers = {}
+        if range_header:
+            headers["Range"] = range_header
+
+        client = httpx.AsyncClient(timeout=120.0)
+        try:
+            req = client.build_request("GET", download_url, headers=headers)
+            response = await client.send(req, stream=True)
+            return response, client
+        except Exception:
+            await client.aclose()
+            return None, None
 
 telegram_storage = TelegramStorageService()

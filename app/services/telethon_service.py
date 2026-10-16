@@ -1,3 +1,4 @@
+import time
 import asyncio
 import logging
 from pathlib import Path
@@ -16,6 +17,10 @@ class TelethonStreamService:
         self.session_str = settings.TELETHON_SESSION_STRING
         self.client: TelegramClient | None = None
         self._lock = asyncio.Lock()
+        # In-memory bounded cache for Telegram message objects to eliminate redundant GetMessages RPC calls (TEST-LAT-01)
+        self._message_cache: dict[int, tuple[float, any]] = {}
+        self._cache_ttl = 1800.0  # 30 minutes
+        self._cache_lock = asyncio.Lock()
 
     async def get_client(self) -> TelegramClient:
         async with self._lock:
@@ -43,12 +48,32 @@ class TelethonStreamService:
                 logger.info("Telethon client connected and authorized successfully.")
             return self.client
 
+    async def get_message(self, message_id: int):
+        """
+        Retrieves Telegram message object from memory cache if fresh,
+        or fetches from Telegram MTProto RPC once and caches it (TEST-LAT-01).
+        """
+        now = time.time()
+        async with self._cache_lock:
+            if message_id in self._message_cache:
+                cached_time, msg = self._message_cache[message_id]
+                if now - cached_time < self._cache_ttl:
+                    return msg
+
+        client = await self.get_client()
+        msg = await client.get_messages(self.channel_id, ids=message_id)
+        if msg and msg.media:
+            async with self._cache_lock:
+                if len(self._message_cache) > 200:
+                    oldest_id = min(self._message_cache.keys(), key=lambda k: self._message_cache[k][0])
+                    self._message_cache.pop(oldest_id, None)
+                self._message_cache[message_id] = (now, msg)
+        return msg
 
     async def get_file_metadata(self, message_id: int) -> dict | None:
-        """Fetches file metadata (name, size, mime_type) for a message."""
+        """Fetches file metadata (name, size, mime_type) for a message with zero redundant RPC overhead."""
         try:
-            client = await self.get_client()
-            msg = await client.get_messages(self.channel_id, ids=message_id)
+            msg = await self.get_message(message_id)
             if not msg or not msg.media or not getattr(msg, 'file', None):
                 return None
             return {
@@ -69,10 +94,10 @@ class TelethonStreamService:
     ) -> AsyncGenerator[bytes, None]:
         """
         Streams media chunks directly from Telegram MTProto with HTTP Range support.
-        No disk writes - pure in-memory streaming.
+        Reuses cached message metadata and gracefully cleans up resources upon client abort / cancellation (TEST-STR-01).
         """
         client = await self.get_client()
-        msg = await client.get_messages(self.channel_id, ids=message_id)
+        msg = await self.get_message(message_id)
         if not msg or not msg.media or not getattr(msg, 'file', None):
             raise FileNotFoundError(f"Message #{message_id} has no valid media file in channel.")
 
@@ -81,14 +106,27 @@ class TelethonStreamService:
             end = file_size - 1
 
         bytes_to_read = end - start + 1
+        download_gen = client.iter_download(msg.media, offset=start, request_size=chunk_size)
 
-        async for chunk in client.iter_download(msg.media, offset=start, request_size=chunk_size):
-            if bytes_to_read <= 0:
-                break
-            chunk_len = len(chunk)
-            if chunk_len > bytes_to_read:
-                chunk = chunk[:bytes_to_read]
-            bytes_to_read -= len(chunk)
-            yield chunk
+        try:
+            async for chunk in download_gen:
+                if bytes_to_read <= 0:
+                    break
+                chunk_len = len(chunk)
+                if chunk_len > bytes_to_read:
+                    chunk = chunk[:bytes_to_read]
+                bytes_to_read -= len(chunk)
+                yield chunk
+        except (asyncio.CancelledError, GeneratorExit):
+            logger.debug(f"Streaming cancelled by client for msg #{message_id} (offset {start})")
+            raise
+        finally:
+            # Ensure in-flight generator is cleanly closed and network resources are reclaimed (TEST-STR-01)
+            if hasattr(download_gen, "aclose"):
+                try:
+                    await download_gen.aclose()
+                except Exception:
+                    pass
 
 telethon_streamer = TelethonStreamService()
+

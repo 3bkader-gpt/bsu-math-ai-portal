@@ -1,35 +1,39 @@
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.stdout.reconfigure(encoding='utf-8')
 import asyncio
-import sys
-if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8')
 
 from telethon import TelegramClient
-
-API_ID = 23966686
-API_HASH = "0ba67a50ec826a4bbb5eb6a80c369bfc"
-CHANNEL_ID = -1004453609138
+from telethon.sessions import StringSession
+from app.config import settings
 
 async def main():
-    client = TelegramClient("academic_telethon", API_ID, API_HASH)
+    client = TelegramClient(StringSession(settings.TELETHON_SESSION_STRING), settings.TELEGRAM_API_ID, settings.TELEGRAM_API_HASH)
     await client.connect()
     if not await client.is_user_authorized():
-        print("User not authorized in academic_telethon.session")
+        print("Telegram not authorized")
         return
+    channel_id = int(settings.TELEGRAM_CHANNEL_ID)
+    channel = await client.get_entity(channel_id)
+    print("Connected to channel:", getattr(channel, "title", str(channel)))
+
     
-    entity = await client.get_entity(CHANNEL_ID)
-    print(f"Connected to channel: {entity.title} (ID: {CHANNEL_ID})")
-    
-    messages = await client.get_messages(entity, limit=20)
-    print(f"Fetched {len(messages)} recent messages from channel:")
-    media_count = 0
-    for m in messages:
-        if m.media:
-            media_count += 1
-            filename = getattr(m.file, 'name', 'unnamed') if m.file else 'unnamed'
-            size_mb = (m.file.size / (1024 * 1024)) if m.file and m.file.size else 0
-            caption = (m.text or "").replace("\n", " ")[:40]
-            print(f"  [Msg #{m.id}] {type(m.media).__name__} | File: {filename} ({size_mb:.2f} MB) | Caption: {caption}")
-    print(f"Total media messages found in sample: {media_count}")
+    media_messages = []
+    async for msg in client.iter_messages(channel, limit=200):
+        if msg.media:
+            kind = "unknown"
+            if msg.voice or msg.audio: kind = "audio"
+            elif msg.video: kind = "video"
+            elif msg.document: kind = "document"
+            media_messages.append({
+                "id": msg.id,
+                "date": str(msg.date),
+                "kind": kind,
+                "text": (msg.text or "")[:60].replace("\n", " ")
+            })
+    print(f"Found {len(media_messages)} media messages in Telegram channel:")
+    for m in media_messages[:20]:
+        print(f"Msg #{m['id']} | {m['kind']} | {m['text']}")
     await client.disconnect()
 
 if __name__ == "__main__":

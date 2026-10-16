@@ -32,7 +32,7 @@ app = FastAPI(
 )
 
 
-# CORS Configuration: restrict to authorized client origins
+# CORS Configuration: restrict strictly to authorized client origins
 allowed_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -41,14 +41,23 @@ allowed_origins = [
     "https://bsu-math-ai-portal.pages.dev",
 ]
 custom_origins = getattr(settings, "ALLOWED_ORIGINS", "") or ""
-if custom_origins:
+if custom_origins and custom_origins.strip() != "*":
     allowed_origins.extend([o.strip() for o in custom_origins.split(",") if o.strip()])
+
+# Deduplicate while preserving order and stripping trailing slashes
+seen_origins = set()
+trusted_origins = []
+for origin in allowed_origins:
+    norm = origin.strip().rstrip("/")
+    if norm and norm not in seen_origins:
+        seen_origins.add(norm)
+        trusted_origins.append(norm)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=trusted_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     allow_headers=["*"],
 )
 

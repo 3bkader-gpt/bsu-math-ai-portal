@@ -1,6 +1,6 @@
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, defer
 from app.db.database import get_db
 from app.db.models import Subject, Lecture, MediaAsset, User
 from app.services.auth_service import get_current_user
@@ -24,13 +24,27 @@ def get_subject_doctors(subject: Subject) -> list[str]:
 
 @router.get("/subjects")
 def list_subjects(db: Session = Depends(get_db)):
-    """Returns all 11 subjects registered in the system with their doctor tracks."""
-    subjects = db.query(Subject).all()
+    """Returns all subjects registered in the system with their doctor tracks and semester."""
+    try:
+        subjects = db.query(Subject).all()
+        has_semester = True
+    except Exception:
+        db.rollback()
+        subjects = db.query(Subject).options(defer(Subject.semester)).all()
+        has_semester = False
+
     res = []
     for s in subjects:
+        sem = 1
+        if has_semester:
+            try:
+                sem = int(getattr(s, "semester", 1) or 1)
+            except Exception:
+                sem = 1
         res.append({
             "id": s.id,
             "name": s.name,
+            "semester": sem,
             "has_prompt": bool(s.prompt_path),
             "lecture_count": len(s.lectures),
             "doctors": get_subject_doctors(s)

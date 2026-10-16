@@ -40,14 +40,32 @@ def range_stream_file(file_path: Path, start: int, end: int):
             yield chunk
 
 @router.api_route("/stream/{asset_id}", methods=["GET", "HEAD"])
-async def stream_media_asset(asset_id: int, request: Request, db: Session = Depends(get_db)):
+async def stream_media_asset(
+    asset_id: int,
+    request: Request,
+    by_message_id: bool = False,
+    db: Session = Depends(get_db)
+):
     """
     Streams media assets (Audio, Video, PDF, Markdown) with HTTP Range support (206)
     and HTTP HEAD probe support for HTML5 audio and video players.
+
+    Lookup Resolution Strategy (P0-STR-01):
+    1. If `by_message_id=True`, resolves strictly by `telegram_message_id`.
+    2. Otherwise, resolves primarily by primary key `MediaAsset.id`.
+    3. If no asset matches primary key `MediaAsset.id`, falls back to `telegram_message_id`
+       to maintain backward compatibility with legacy scripts.
+    Eliminates collision risks where an asset's primary key matches another asset's message ID.
     """
-    asset = db.query(MediaAsset).filter(
-        (MediaAsset.id == asset_id) | (MediaAsset.telegram_message_id == asset_id)
-    ).first()
+    if by_message_id:
+        asset = db.query(MediaAsset).filter(MediaAsset.telegram_message_id == asset_id).first()
+    else:
+        # Primary lookup: Primary key ID (standard for frontend and API consumers)
+        asset = db.query(MediaAsset).filter(MediaAsset.id == asset_id).first()
+        # Fallback lookup: Only if primary key yields no match, check telegram_message_id
+        if not asset:
+            asset = db.query(MediaAsset).filter(MediaAsset.telegram_message_id == asset_id).first()
+
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
 
@@ -171,10 +189,44 @@ async def stream_media_asset(asset_id: int, request: Request, db: Session = Depe
             )
 
 
-    # 4. Fallback: Telegram Bot API direct download for files under 20MB
+    # 4. Fallback: Telegram Bot API direct proxy streaming (Never expose bot token in client redirects!)
     if asset.telegram_file_id:
-        tg_url = await telegram_storage.get_direct_download_url(asset.telegram_file_id)
-        if tg_url:
-            return Response(status_code=307, headers={"Location": tg_url})
+        proxy_resp, proxy_client = await telegram_storage.stream_file_bytes(
+            asset.telegram_file_id,
+            request.headers.get("Range")
+        )
+        if proxy_resp and proxy_client:
+            if proxy_resp.status_code in (200, 206):
+                resp_headers = {
+                    "Accept-Ranges": "bytes",
+                    "Content-Type": content_type
+                }
+                if "content-length" in proxy_resp.headers:
+                    resp_headers["Content-Length"] = proxy_resp.headers["content-length"]
+                if "content-range" in proxy_resp.headers:
+                    resp_headers["Content-Range"] = proxy_resp.headers["content-range"]
+
+                if is_head:
+                    await proxy_resp.aclose()
+                    await proxy_client.aclose()
+                    return Response(status_code=proxy_resp.status_code, headers=resp_headers, media_type=content_type)
+
+                async def proxy_generator():
+                    try:
+                        async for chunk in proxy_resp.aiter_bytes(chunk_size=CHUNK_SIZE):
+                            yield chunk
+                    finally:
+                        await proxy_resp.aclose()
+                        await proxy_client.aclose()
+
+                return StreamingResponse(
+                    proxy_generator(),
+                    status_code=proxy_resp.status_code,
+                    headers=resp_headers,
+                    media_type=content_type
+                )
+            else:
+                await proxy_resp.aclose()
+                await proxy_client.aclose()
 
     raise HTTPException(status_code=404, detail="Media file content is unavailable")

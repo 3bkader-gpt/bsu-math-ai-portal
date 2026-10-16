@@ -22,14 +22,7 @@ class LoginResponse(BaseModel):
 def login(req: LoginRequest, db: Session = Depends(get_db)):
     """Logs in admin/uploader and issues a JWT Bearer Token."""
     user = db.query(User).filter(User.username == req.username).first()
-    is_valid = False
-    if user:
-        if verify_password(req.password, user.password_hash):
-            is_valid = True
-        elif req.password in ("admin123", "admin_academic_2026"):
-            is_valid = True
-
-    if not user or not is_valid:
+    if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="اسم المستخدم أو كلمة المرور غير صحيحة"

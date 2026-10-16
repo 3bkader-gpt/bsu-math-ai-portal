@@ -1,6 +1,6 @@
 """Database Models for Academic Content Pipeline."""
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import Optional, List, ClassVar
 from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
@@ -15,6 +15,7 @@ class Subject(Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
     folder_path: Mapped[str] = mapped_column(String(500), nullable=False)
     prompt_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    semester: Mapped[int] = mapped_column(default=1, server_default="1", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     lectures: Mapped[List["Lecture"]] = relationship("Lecture", back_populates="subject", cascade="all, delete-orphan")

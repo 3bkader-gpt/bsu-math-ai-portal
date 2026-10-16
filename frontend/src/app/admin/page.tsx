@@ -27,11 +27,6 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const handleAutofill = () => {
-    setUsername('admin');
-    setPassword('admin_academic_2026');
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -39,35 +34,6 @@ export default function AdminLoginPage() {
 
     const trimmedUser = username.trim();
     const trimmedPass = password.trim();
-
-    // Check credentials locally first to guarantee admin can NEVER get locked out by dead tunnels
-    const isDirectAdmin = (
-      trimmedUser.toLowerCase() === 'admin' &&
-      (trimmedPass === 'admin_academic_2026' || trimmedPass === 'admin123')
-    );
-
-    if (isDirectAdmin) {
-      // Direct instant authentication
-      const directToken = 'admin_academic_cloud_token_' + Date.now();
-      localStorage.setItem('adminToken', directToken);
-      localStorage.setItem('adminUser', 'admin');
-
-      // Attempt optional background sync with backend if online
-      try {
-        fetch(getApiUrl('/api/auth/login'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: trimmedUser, password: trimmedPass }),
-        }).then(res => res.json()).then(data => {
-          if (data?.access_token) {
-            localStorage.setItem('adminToken', data.access_token);
-          }
-        }).catch(() => {});
-      } catch {}
-
-      router.push('/admin/dashboard');
-      return;
-    }
 
     try {
       const res = await fetch(getApiUrl('/api/auth/login'), {
@@ -91,11 +57,13 @@ export default function AdminLoginPage() {
       // Navigate to dashboard
       router.push('/admin/dashboard');
     } catch (err: any) {
-      setError('اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى.');
+      setError(err.message || 'اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى.');
     } finally {
       setIsLoading(false);
     }
   };
+
+
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-3 sm:p-6 overflow-hidden transition-colors w-full max-w-[100vw]">
@@ -192,18 +160,10 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2">
               <label className="block text-sm sm:text-base font-black" style={{ color: 'var(--text-primary)' }}>
                 {content.adminLogin.passwordLabel}
               </label>
-              <button
-                type="button"
-                onClick={handleAutofill}
-                className="text-xs sm:text-sm font-black hover:underline transition-colors cursor-pointer"
-                style={{ color: 'var(--accent-primary)' }}
-              >
-                {content.adminLogin.autofillButton}
-              </button>
             </div>
             <div className="relative">
               <input

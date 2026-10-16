@@ -13,7 +13,7 @@ class InMemoryLogHandler(logging.Handler):
         super().__init__()
         self.capacity = capacity
         self.buffer: deque = deque(maxlen=capacity)
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
 
     def emit(self, record: logging.LogRecord):
         try:
