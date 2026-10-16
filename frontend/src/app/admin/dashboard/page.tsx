@@ -938,10 +938,18 @@ export default function AdminDashboardPage() {
               
               {/* Step 1: Subject Picker */}
               <div>
-                <label className="block text-xs sm:text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  1. اختر المادة الدراسية (11 مادة متاحة)
-                </label>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,135px),1fr))] gap-2 sm:gap-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs sm:text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                    1. اختر المادة الدراسية ({subjects.length} مادة متاحة)
+                  </label>
+                  <span className="md:hidden text-[11px] font-semibold flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+                    <span>اسحب المقررات أفقياً</span>
+                    <span className="text-[10px] opacity-75">↔</span>
+                  </span>
+                </div>
+                
+                {/* Horizontal Swipe Rail on Mobile, Grid on Tablet/Desktop */}
+                <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,135px),1fr))] overflow-x-auto md:overflow-x-visible overscroll-x-contain touch-pan-x snap-x snap-mandatory gap-2 sm:gap-2.5 pb-2.5 pt-1 md:py-0 px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {subjects.map((sub) => {
                     const isSelected = sub.id === selectedSubjectId;
                     return (
@@ -949,19 +957,20 @@ export default function AdminDashboardPage() {
                         type="button"
                         key={sub.id}
                         onClick={() => setSelectedSubjectId(sub.id)}
-                        className="p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[75px]"
+                        className={`p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[72px] sm:min-h-[75px] w-[138px] xs:w-[150px] md:w-auto shrink-0 snap-start ${
+                          isSelected ? 'ring-2 ring-cyan-500/50 shadow-md scale-[1.02]' : 'hover:scale-[1.01]'
+                        }`}
                         style={{
                           backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
                           borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                          boxShadow: isSelected ? '0 0 0 2px var(--accent-primary)' : 'none',
                           color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
                         }}
                       >
                         <span className="font-bold text-xs sm:text-sm leading-snug line-clamp-2">{sub.name}</span>
                         <div className="mt-2 flex items-center justify-between text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">{sub.lecture_count} محاضرات</span>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">{sub.lecture_count} محاضرات</span>
                           {sub.has_prompt && (
-                            <span className="font-bold text-[10px] px-1 py-0.2 rounded border text-emerald-500" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-prominent)' }}>
+                            <span className="font-bold text-[10px] px-1 py-0.5 rounded border text-emerald-500" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-prominent)' }}>
                               برومبت ✓
                             </span>
                           )}
@@ -978,7 +987,7 @@ export default function AdminDashboardPage() {
                   <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
                     مسار الدكتور / أستاذ المادة
                   </label>
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,145px),1fr))] gap-2 sm:gap-2.5">
+                  <div className="flex flex-wrap gap-2 sm:gap-2.5">
                     {selectedSubject.doctors.map((doc) => {
                       const isSelected = selectedDoctor === doc;
                       const isFemale = doc.includes('مروة') || doc.includes('ايمان') || doc.includes('ايه');
@@ -987,11 +996,12 @@ export default function AdminDashboardPage() {
                           type="button"
                           key={doc}
                           onClick={() => setSelectedDoctor(doc)}
-                          className="p-2.5 sm:p-3 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                          className={`p-2.5 sm:p-3 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer flex-1 min-w-[130px] ${
+                            isSelected ? 'ring-2 ring-cyan-500/50 shadow-sm' : ''
+                          }`}
                           style={{
                             backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
                             borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                            boxShadow: isSelected ? '0 0 0 2px var(--accent-primary)' : 'none',
                             color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
                           }}
                         >
