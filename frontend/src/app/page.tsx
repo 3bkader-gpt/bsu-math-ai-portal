@@ -42,6 +42,7 @@ import {
   AcademicSubject, 
   CanonicalCourse 
 } from '@/types/academic';
+import { lockBodyScroll, unlockBodyScroll } from '@/lib/scrollLock';
 
 type Subject = AcademicSubject;
 export type { CanonicalCourse };
@@ -399,6 +400,16 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
+  // Freeze background page scroll completely when lecture modal is open
+  useEffect(() => {
+    if (activeBundle) {
+      lockBodyScroll();
+      return () => {
+        unlockBodyScroll();
+      };
+    }
+  }, [activeBundle]);
 
   // Switch Semester and auto-select appropriate active subject
   const handleSemesterChange = (semester: 1 | 2) => {
@@ -1431,14 +1442,23 @@ export default function Home() {
 
       {/* Complete Lecture Modal */}
       {activeBundle && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in">
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setActiveBundle(null);
+              if (audioRef.current) audioRef.current.pause();
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in touch-none overscroll-contain"
+        >
           <div
+            onClick={(e) => e.stopPropagation()}
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
               boxShadow: 'var(--card-shadow)',
             }}
-            className="w-full max-w-4xl max-w-full h-[94dvh] sm:h-auto sm:max-h-[92vh] rounded-t-3xl sm:rounded-3xl border sm:border flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300 mx-auto"
+            className="w-full max-w-4xl max-w-full h-[94dvh] sm:h-auto sm:max-h-[92vh] rounded-t-3xl sm:rounded-3xl border sm:border flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300 mx-auto touch-auto overscroll-contain"
           >
             {/* Mobile Sheet Drag Indicator */}
             <div className="w-12 h-1 bg-slate-400/30 rounded-full mx-auto mt-2.5 mb-1 sm:hidden shrink-0"></div>
@@ -1561,7 +1581,7 @@ export default function Home() {
             </div>
 
             {/* Modal Body Panels */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 overscroll-contain">
               
               {/* TAB 1: AUDIO PODCAST PLAYER */}
               {activeTab === 'audio' && (

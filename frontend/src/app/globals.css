@@ -247,3 +247,16 @@ input, textarea {
 a {
   text-underline-offset: 4px;
 }
+
+/* Prevent Background Scrolling When Modal Is Active */
+body.modal-open,
+html.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: none !important;
+}
+
+.overscroll-contain {
+  overscroll-behavior: contain !important;
+}
+
