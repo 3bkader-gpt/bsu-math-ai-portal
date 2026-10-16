@@ -1081,7 +1081,7 @@ export default function Home() {
                       className={`relative p-3 sm:p-4 rounded-xl sm:rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer group w-[138px] xs:w-[150px] sm:w-[165px] md:w-auto shrink-0 snap-start ${
                         isActive 
                           ? 'ring-2 ring-cyan-500/40' 
-                          : 'hover:scale-[1.01]'
+                          : 'sm:hover:scale-[1.01]'
                       }`}
                     >
                       {/* Active sticker tag: Girls or Boys */}
