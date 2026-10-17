@@ -640,11 +640,18 @@ export default function Home() {
       const questionBody = questionLines.join(' ').trim();
 
       if (options.length > 0) {
+        // Dynamic Shuffle: Randomize options to eliminate positional bias (where option A is always correct)
+        const items = options.map((opt, idx) => ({ opt, isCorrect: idx === correctIndex }));
+        for (let i = items.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [items[i], items[j]] = [items[j], items[i]];
+        }
+
         questions.push({
           number: qNum,
           question: questionBody || `السؤال رقم ${qNum}`,
-          options,
-          correctIndex,
+          options: items.map(it => it.opt),
+          correctIndex: items.findIndex(it => it.isCorrect),
           hint
         });
       }
@@ -1954,6 +1961,19 @@ export default function Home() {
                                   setUserAnswers({});
                                   setShowHints({});
                                   setScore(null);
+                                  // Reshuffle options for an engaging retry challenge
+                                  setQuizQuestions(prev => prev.map(q => {
+                                    const items = q.options.map((opt, idx) => ({ opt, isCorrect: idx === q.correctIndex }));
+                                    for (let i = items.length - 1; i > 0; i--) {
+                                      const j = Math.floor(Math.random() * (i + 1));
+                                      [items[i], items[j]] = [items[j], items[i]];
+                                    }
+                                    return {
+                                      ...q,
+                                      options: items.map(it => it.opt),
+                                      correctIndex: items.findIndex(it => it.isCorrect)
+                                    };
+                                  }));
                                 }}
                                 style={{
                                   backgroundColor: 'var(--bg-surface-elevated)',
