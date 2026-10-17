@@ -2357,10 +2357,10 @@ export default function Home() {
                         </div>
                         <div>
                           <div className="text-xs sm:text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-                            دليل الدراسة الأكاديمي المنسق (PDF)
+                            ملخص المحاضرة للمذاكرة والطباعة (PDF)
                           </div>
                           <div className="text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
-                            مستند أكاديمي مصمم بمحرك Typst يشمل كافة القوانين والمعادلات والجداول
+                            نسخة منسقة تشمل كافة القوانين والشروحات والأمثلة المحلولة
                           </div>
                         </div>
                       </div>
@@ -2376,17 +2376,17 @@ export default function Home() {
                             borderColor: 'var(--border-prominent)',
                             color: 'var(--accent-primary)',
                           }}
-                          title="تحميل دليل الدراسة كاملاً بصيغة PDF"
+                          title="تحميل ملخص المحاضرة بصيغة PDF"
                         >
                           {isGeneratingPdf ? (
                             <>
                               <Loader2 className="w-4 h-4 animate-spin shrink-0 text-blue-600 dark:text-blue-400" />
-                              <span>جاري تجهيز الـ PDF...</span>
+                              <span>جاري تجهيز الملف...</span>
                             </>
                           ) : (
                             <>
                               <Download className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400" />
-                              <span>تحميل دليل الدراسة PDF</span>
+                              <span>تحميل الملخص PDF</span>
                             </>
                           )}
                         </button>
