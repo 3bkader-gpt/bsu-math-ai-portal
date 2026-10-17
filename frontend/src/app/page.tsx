@@ -30,7 +30,8 @@ import {
   Lightbulb,
   Award,
   BookMarked,
-  Clock
+  Clock,
+  Download
 } from 'lucide-react';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { 
@@ -300,9 +301,11 @@ interface LectureAsset {
   title: string;
   file_size_bytes?: number | null;
   has_telegram: boolean;
+  telegram_file_id?: string | null;
   telegram_message_id?: number | null;
   content_text?: string | null;
   stream_url: string;
+  is_available?: boolean;
 }
 
 interface Lecture {
@@ -345,6 +348,13 @@ interface Flashcard {
   question: string;
   answer: string;
 }
+
+export const isAssetStorageAvailable = (a: LectureAsset): boolean => {
+  if (typeof a.is_available === 'boolean') {
+    return a.is_available;
+  }
+  return Boolean(a.has_telegram || a.telegram_file_id || a.telegram_message_id);
+};
 
 export default function Home() {
   const [currentPersona, setCurrentPersona] = useState<'boys' | 'girls'>('boys');
@@ -807,6 +817,11 @@ export default function Home() {
   const videoAsset = activeBundle?.assets.find(a => a.asset_type === 'video');
   const isAudioReady = Boolean(audioAsset && (audioAsset.has_telegram || audioAsset.telegram_message_id));
   const isVideoReady = Boolean(videoAsset && (videoAsset.has_telegram || videoAsset.telegram_message_id));
+  const originalPdfAssets = (activeBundle?.assets || []).filter(
+    (a) =>
+      (a.asset_type === 'original_pdf' || a.asset_type === 'pdf') &&
+      isAssetStorageAvailable(a)
+  );
 
 
   const displayedLectures = subjectLectures
@@ -1516,6 +1531,62 @@ export default function Home() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Original PDF Download Bar (When original professor PDF is available) */}
+            {originalPdfAssets.length > 0 && (
+              <div
+                className="px-3.5 sm:px-6 py-2 sm:py-2.5 border-b flex flex-wrap items-center justify-between gap-2.5 text-xs sm:text-sm shrink-0 transition-colors"
+                style={{
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  borderColor: 'var(--border-subtle)',
+                }}
+              >
+                <div className="flex items-center gap-2 text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+                  <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>ملف المحاضرة المعتمد (PDF)</span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {originalPdfAssets.map((pdf) => {
+                    const sizeMb = pdf.file_size_bytes
+                      ? (pdf.file_size_bytes / (1024 * 1024)).toFixed(1)
+                      : null;
+                    const cleanTitle = pdf.title
+                      ? pdf.title.replace(/\.pdf$/i, '').trim()
+                      : 'ملف المحاضرة الأصلي';
+                    const downloadUrl = pdf.stream_url.includes('?')
+                      ? `${pdf.stream_url}&download=true`
+                      : `${pdf.stream_url}?download=true`;
+
+                    return (
+                      <a
+                        key={pdf.id}
+                        href={getApiUrl(downloadUrl)}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-sm cursor-pointer hover:border-emerald-500 hover:scale-[1.01] active:scale-[0.99]"
+                        style={{
+                          backgroundColor: 'var(--bg-surface)',
+                          borderColor: 'var(--border-prominent)',
+                          color: 'var(--accent-primary)',
+                        }}
+                        title={`تحميل ${pdf.title || 'الملف'} بصيغة PDF`}
+                      >
+                        <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="truncate max-w-[170px] sm:max-w-[280px]">
+                          تحميل {cleanTitle}
+                        </span>
+                        {sizeMb && (
+                          <span className="text-[10px] sm:text-xs font-normal opacity-75">
+                            ({sizeMb} ميجا)
+                          </span>
+                        )}
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Modal Navigation Tabs (Horizontal Touch Swipe) */}
             <div

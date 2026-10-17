@@ -68,6 +68,7 @@ export interface AcademicMediaAsset {
   telegram_file_id?: string | null;
   telegram_message_id?: number | null;
   content_text?: string | null;
+  is_available?: boolean;
 }
 
 /**

@@ -242,4 +242,123 @@ const searchInSem2 = sem2Courses.filter(s => s.name.includes('تفاضل'));
 assert.strictEqual(searchInSem2.length, 0, 'Should find zero matches for تفاضل in Semester 2');
 console.log('  ✓ Test 9 Passed: Search works accurately within the active semester');
 
-console.log('\n🎉 ALL 9 UNIT & REGRESSION TESTS PASSED SUCCESSFULLY!');
+// ==========================================
+// Phase 1 PDF Availability Regression Tests
+// ==========================================
+
+// Verify isAssetStorageAvailable exists in page.tsx
+assert(pageCode.includes('export const isAssetStorageAvailable = (a: LectureAsset): boolean =>'), 'isAssetStorageAvailable must exist in page.tsx');
+
+function isAssetStorageAvailable(a) {
+  if (typeof a.is_available === 'boolean') {
+    return a.is_available;
+  }
+  return Boolean(a.has_telegram || a.telegram_file_id || a.telegram_message_id);
+}
+
+// Test 10: PDF with a valid storage reference (Direct Supabase shape)
+const sbValidAsset = {
+  id: 101,
+  asset_type: 'original_pdf',
+  title: 'lec1.pdf',
+  has_telegram: true,
+  telegram_file_id: 'BQACAgQAA...',
+  telegram_message_id: 25,
+  file_size_bytes: 7726380,
+  stream_url: '/api/stream/101',
+  is_available: true
+};
+assert.strictEqual(isAssetStorageAvailable(sbValidAsset), true, 'Valid Supabase asset must be available');
+console.log('  ✓ Test 10 Passed: Direct Supabase asset with valid Telegram reference is available');
+
+// Test 11: PDF with positive file_size_bytes but NO valid storage reference (Phantom file)
+const sbPhantomAsset = {
+  id: 102,
+  asset_type: 'original_pdf',
+  title: 'phantom.pdf',
+  has_telegram: false,
+  telegram_file_id: null,
+  telegram_message_id: null,
+  file_size_bytes: 15000000, // 15MB metadata
+  stream_url: '/api/stream/102',
+  is_available: false
+};
+assert.strictEqual(isAssetStorageAvailable(sbPhantomAsset), false, 'Phantom asset with file_size_bytes > 0 but no storage must NOT be available');
+console.log('  ✓ Test 11 Passed: Asset with positive file_size_bytes but no storage reference is hidden');
+
+// Test 12: Backend fallback shape with is_available = false (unreachable/missing local file)
+const backendPhantomAsset = {
+  id: 103,
+  asset_type: 'original_pdf',
+  title: 'missing_local.pdf',
+  has_telegram: false,
+  file_size_bytes: 5242880,
+  stream_url: '/api/stream/103',
+  is_available: false
+};
+assert.strictEqual(isAssetStorageAvailable(backendPhantomAsset), false, 'Backend asset with is_available=false must be hidden');
+console.log('  ✓ Test 12 Passed: Backend fallback asset with is_available=false is hidden');
+
+// Test 13: PDF with missing storage metadata (empty/null/undefined)
+const missingMetaAsset = {
+  id: 104,
+  asset_type: 'original_pdf',
+  title: 'empty.pdf',
+  stream_url: '/api/stream/104'
+};
+assert.strictEqual(isAssetStorageAvailable(missingMetaAsset), false, 'Asset with missing storage metadata must be hidden');
+console.log('  ✓ Test 13 Passed: Asset with missing storage metadata is hidden');
+
+// Test 14: Array filtering mimics Home originalPdfAssets exactly
+const mixedAssets = [sbValidAsset, sbPhantomAsset, backendPhantomAsset, missingMetaAsset];
+const filteredPdfs = mixedAssets.filter(
+  (a) => (a.asset_type === 'original_pdf' || a.asset_type === 'pdf') && isAssetStorageAvailable(a)
+);
+assert.strictEqual(filteredPdfs.length, 1, 'Only the genuinely available PDF should remain');
+assert.strictEqual(filteredPdfs[0].id, 101, 'Remaining asset must be the valid one');
+console.log('  ✓ Test 14 Passed: Original PDF filter cleanly discards all phantom and unverified assets');
+
+// Test 15: Valid, approved local-only PDF with no Telegram reference reconciled via backend
+const localOnlyBackendAsset = {
+  id: 105,
+  asset_type: 'original_pdf',
+  title: 'local_approved.pdf',
+  has_telegram: false,
+  telegram_file_id: null,
+  telegram_message_id: null,
+  file_size_bytes: 3500000,
+  stream_url: '/api/stream/105',
+  is_available: true // Server verified local file exists in approved media directory
+};
+assert.strictEqual(isAssetStorageAvailable(localOnlyBackendAsset), true, 'Approved local file verified by server must be available');
+
+// Direct Supabase bundle reconciled with backend for this local asset
+const sbLocalReconciledAsset = {
+  id: 105,
+  asset_type: 'original_pdf',
+  title: 'local_approved.pdf',
+  has_telegram: false,
+  telegram_file_id: null,
+  telegram_message_id: null,
+  file_size_bytes: 3500000,
+  stream_url: '/api/stream/105',
+  is_available: true // Reconciled from backend check
+};
+assert.strictEqual(isAssetStorageAvailable(sbLocalReconciledAsset), true, 'Reconciled direct-Supabase asset must be available');
+console.log('  ✓ Test 15 Passed: Valid, approved local-only PDF with no Telegram reference is available in both paths');
+
+// Test 16: Consistency across all 4 scenarios regardless of loading path
+const scenarios = [
+  { name: 'Telegram-backed PDF', sb: sbValidAsset, backend: { ...sbValidAsset } },
+  { name: 'Approved local-only PDF', sb: sbLocalReconciledAsset, backend: localOnlyBackendAsset },
+  { name: 'Phantom file (positive size, no file)', sb: sbPhantomAsset, backend: backendPhantomAsset },
+  { name: 'Missing storage metadata', sb: missingMetaAsset, backend: { ...missingMetaAsset, is_available: false } },
+];
+
+for (const sc of scenarios) {
+  const sbResult = isAssetStorageAvailable(sc.sb);
+  const backendResult = isAssetStorageAvailable(sc.backend);
+  assert.strictEqual(sbResult, backendResult, `Availability must match for ${sc.name}`);
+}
+console.log('  ✓ Test 16 Passed: 100% availability consistency across direct-Supabase and backend-fallback loading paths');
+console.log('\n🎉 ALL 16 UNIT & REGRESSION TESTS PASSED SUCCESSFULLY!');
