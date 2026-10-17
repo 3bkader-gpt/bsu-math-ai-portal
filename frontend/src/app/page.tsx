@@ -31,7 +31,8 @@ import {
   Award,
   BookMarked,
   Clock,
-  Download
+  Download,
+  Loader2
 } from 'lucide-react';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { 
@@ -403,6 +404,8 @@ export default function Home() {
   // Study Guide & Flashcards Content
   const [guideText, setGuideText] = useState<string>('');
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   // Audio Player State
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -718,6 +721,8 @@ export default function Home() {
     setQuizQuestions([]);
     setGuideText('');
     setFlashcards([]);
+    setIsGeneratingPdf(false);
+    setPdfError(null);
 
     try {
       let bundle: any = null;
@@ -797,6 +802,54 @@ export default function Home() {
     setPlaybackSpeed(speed);
   };
 
+  const handleDownloadStudyGuidePdf = async () => {
+    if (!studyGuideAsset || isGeneratingPdf) return;
+    setIsGeneratingPdf(true);
+    setPdfError(null);
+    try {
+      const pdfEndpoint = `/api/study-guides/${studyGuideAsset.id}/pdf`;
+      const fullUrl = getApiUrl(pdfEndpoint);
+      const res = await fetch(fullUrl);
+      if (!res.ok) {
+        let errorMsg = 'تعذر إنشاء ملف PDF حالياً. يرجى المحاولة لاحقاً.';
+        try {
+          const errData = await res.json();
+          if (errData?.detail) errorMsg = errData.detail;
+        } catch (_) {}
+        throw new Error(errorMsg);
+      }
+      const blob = await res.blob();
+      let filename = `study_guide_${studyGuideAsset.id}.pdf`;
+      const disposition = res.headers.get('Content-Disposition');
+      if (disposition) {
+        const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+        if (utf8Match && utf8Match[1]) {
+          try {
+            filename = decodeURIComponent(utf8Match[1]);
+          } catch (_) {}
+        } else {
+          const basicMatch = disposition.match(/filename="([^"]+)"/i);
+          if (basicMatch && basicMatch[1]) {
+            filename = basicMatch[1];
+          }
+        }
+      }
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err: any) {
+      console.error('Study guide PDF download error:', err);
+      setPdfError(err.message || 'حدث خطأ أثناء تحميل دليل الدراسة PDF');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   const formatTime = (timeInSeconds: number) => {
     if (isNaN(timeInSeconds)) return '00:00';
     const m = Math.floor(timeInSeconds / 60);
@@ -821,6 +874,12 @@ export default function Home() {
     (a) =>
       (a.asset_type === 'original_pdf' || a.asset_type === 'pdf') &&
       isAssetStorageAvailable(a)
+  );
+  const studyGuideAsset = (activeBundle?.assets || []).find(
+    (a) => a.asset_type === 'study_guide_md'
+  );
+  const isGuideReady = Boolean(
+    studyGuideAsset && (studyGuideAsset.content_text?.trim() || guideText.trim())
   );
 
 
@@ -2277,7 +2336,77 @@ export default function Home() {
 
               {/* TAB 4: FORMATTED STUDY GUIDE WITH KATEX */}
               {activeTab === 'guide' && (
-                <div className="max-w-3xl mx-auto py-2">
+                <div className="max-w-3xl mx-auto py-2 space-y-4">
+                  {isGuideReady && (
+                    <div
+                      className="p-3.5 sm:p-4 rounded-2xl border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 transition-colors shadow-sm"
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-subtle)',
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                          style={{
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            color: 'var(--accent-primary)',
+                          }}
+                        >
+                          <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <div className="text-xs sm:text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                            دليل الدراسة الأكاديمي المنسق (PDF)
+                          </div>
+                          <div className="text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
+                            مستند أكاديمي مصمم بمحرك Typst يشمل كافة القوانين والمعادلات والجداول
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end">
+                        <button
+                          type="button"
+                          onClick={handleDownloadStudyGuidePdf}
+                          disabled={isGeneratingPdf}
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-all shadow-sm cursor-pointer hover:border-blue-500 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                          style={{
+                            backgroundColor: 'var(--bg-surface)',
+                            borderColor: 'var(--border-prominent)',
+                            color: 'var(--accent-primary)',
+                          }}
+                          title="تحميل دليل الدراسة كاملاً بصيغة PDF"
+                        >
+                          {isGeneratingPdf ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin shrink-0 text-blue-600 dark:text-blue-400" />
+                              <span>جاري تجهيز الـ PDF...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                              <span>تحميل دليل الدراسة PDF</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {pdfError && (
+                    <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs sm:text-sm flex items-center justify-between gap-2">
+                      <span>{pdfError}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPdfError(null)}
+                        className="text-xs underline hover:no-underline font-bold"
+                      >
+                        إغلاق
+                      </button>
+                    </div>
+                  )}
+
                   <StudyGuideViewer content={guideText} />
                 </div>
               )}
