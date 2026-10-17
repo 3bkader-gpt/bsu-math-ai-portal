@@ -423,6 +423,106 @@ const getOriginalPdfDetails = (pdf: any, lectureNum?: number): OriginalPdfInfo =
   }
 };
 
+const GIRLS_CORRECT_MESSAGES = [
+  "أشطر كتكوتة في الدنيا! إجابة في الجون 💖🐣",
+  "إيه الحلاوة دي يا بطة! جبتيها صح من أول مرة 🦆✨",
+  "عاش يا أحلى قطة! تركيزك عالي أوي النهارده 🐱💖",
+  "برافو يا بطوطة! دماغك دي ألماظ والله 💎🦆",
+  "صح الصح يا قطقوطة! أيوه كده فرحيني بشطارتك 🐾🌸",
+  "يا سيدي على الشطارة! أشطر أرنوبة بتحل ماث 🐰💖",
+  "الله ينور يا فرفوشة، إجابة تفتح النفس زيّك 🦋✨",
+  "إجابة صح يا سكرة، مفيش حلاوة ولا شطارة بعد كده! 🍬💖",
+  "برافو يا عسولة! خطواتك وتفكيرك مظبوطين بالمللي 🍯✨",
+  "صح يا فراولة! إيه الدماغ الرايقة والجميلة دي؟ 🍓🌸",
+  "شطورة أوي يا بنبوناية! كملي على نفس المستوى ده 🍬🥰",
+  "يا جمالوا! إجابة مية فل وعشرة يا عسلية 🍯👏",
+  "صح يا قمراية! منورة الكويز بإجاباتك الصح 🌙💖",
+  "عظمة على عظمة يا برنسيسة! ملكة الرياضيات بجد 👑✨",
+  "برافو يا نجمة! إجابة تلمع من كتر ما هي صح 🌟🌸",
+  "الله أكبر عليكي يا غزالة، سريعة وشاطرة! 🦌💖",
+  "إجابة نموذجية يا أحلى وردة! تسلم دماغك 🌷🥰",
+  "عبقرية يا أميرة! ولا أجدعها دكتور في الكلية 👑👏",
+];
+
+const GIRLS_WRONG_MESSAGES = [
+  "للأسف غلط يا كتكوتة.. إيه رأيك نجرب تاني؟ 🥹🐣",
+  "تؤ تؤ، فلتت منك المرة دي يا بطة! ها، نحاول كمان مرة؟ 🥺🦆",
+  "ممم، قريبة أوي بس مش هي يا قطة! ركزي شوية وهتجيبيها 🐱✨",
+  "ولا يهمك يا بطوطة، غلطة صغننة ونتعلم منها! جربي تاني 🥹💖",
+  "أوبس! مش دي الإجابة يا قطقوطة، فكري فيها تاني بهدوء 🐾🥺",
+  "معلش يا أرنوبة، استعجلتي شوية! خدي نفس وجربي تاني 🐰🌸",
+  "لا مش دي يا فراشة.. بس متزعليش، اقري الشرح وهتفهميها فوراً 🦋🥹",
+  "عادي جداً يا سكرة، الغلط بيعلم الشطار! يلا نجرب تاني 🍬💪",
+  "مش صح المرة دي يا عسولة، بس واثق إنك هتعرفيها.. بصي على التلميح كده! 💡🍯",
+  "غلطة بسيطة خالص يا فراولة، متخليهاش تعطلك وكملي 🍓🥹",
+  "يا خبر! خدعك السؤال ده يا بنبوناية، ركزي في التريكاية اللي فيه 🍬🥺",
+  "كانت قريبة أوي يا قمراية! معلش، ركزي في اللي جاي وهتعوضيها 🌙💖",
+  "فداكي مليون سؤال يا برنسيسة! شوفي طريقة الحل وجربي غيره 👑🥹",
+  "تؤ، مش دي يا نجمة! بس ولا يهمك، السؤال الجاي بتاعك 🌟💪",
+  "جلّ من لا يسهو يا أميرة! راجعي القانون بسرعة وجربي تاني 👑🌸",
+  "وقعتي في الفخ يا شطورة! شوفي التوضيح تحت عشان متقعيش فيه تاني 🥹💡",
+  "معلش يا وردة، المسألة دي لئيمة شوية.. اقري الشرح وهتبقي لعبة في إيدك 🌷✨",
+];
+
+const GIRLS_HINT_PREFIXES = [
+  "غششة صغننة لأشطر بطة 🦆💡: ",
+  "سر بيني وبينك يا قطة عشان تحليها 🐱🤫: ",
+  "بصي يا سكرة، مفتاح الحل هنا 🍬🔑: ",
+  "عشان خاطرك بس يا كتكوتة، ركزي في دي 🐣✨: ",
+  "تلميح ع الماشي يا قمراية 🌙💡: ",
+  "بصي يا فراولة، الفكرة هنا 🍓✨: ",
+  "سر المسألة دي يا برنسيسة 👑🔑: ",
+  "غششة سريعة يا بطوطة 💎💡: ",
+  "فكري فيها كده يا أرنوبة 🐰🌸: ",
+  "ركزي في التريكاية دي يا عسولة 🍯✨: ",
+];
+
+const BOYS_CORRECT_MESSAGES = [
+  "عاش يا بطل! إجابة في الجون 🎯🔥",
+  "وحش يا صاحبي! إجابة صحيحة بالمللي ⚡💪",
+  "الله ينور يا هندسة! دماغك ألماظ 🧠✨",
+  "عاش يا كابتن! تركيز عالي ومظبوط 🚀👏",
+  "إجابة مية مية يا نجم! كمل يا بطل 🌟⚡",
+  "سفاح ماث يا غالي! الإجابة نموذجية 🏆🔥",
+  "صح الصح يا صديقي! تسلم دماغك 🎯👌",
+  "عظمة يا برنس! ولا غلطة 👑💪",
+];
+
+const BOYS_WRONG_MESSAGES = [
+  "ركز يا بطل، فلتت منك.. جرب تاني! 💪",
+  "معلش يا هندسة، بسيطة.. شوف التلميح وجرب 💡",
+  "قريبة يا كابتن، راجع الخطوات وهتجيبها 🎯",
+  "ولا يهمك يا وحش، غلطة ونتعلم منها.. فكر تاني ⚡",
+  "استعجلت يا غالي.. ركز في التريكاية دي وراجع 🔍",
+  "معلش يا نجم، السؤال الجاي بتاعك ومضمون 🚀",
+];
+
+const BOYS_HINT_PREFIXES = [
+  "تلميح ع الماشي يا بطل 💡: ",
+  "سر الحل يا هندسة 🔑: ",
+  "فكرة المسألة يا كابتن ⚡: ",
+  "بص يا صاحبي على دي 🎯: ",
+  "ركز في الخطوة دي يا غالي 🧠: ",
+];
+
+const getQuizFeedback = (qIdx: number, isCorrect: boolean, isGirls: boolean): string => {
+  if (isGirls) {
+    const list = isCorrect ? GIRLS_CORRECT_MESSAGES : GIRLS_WRONG_MESSAGES;
+    return list[qIdx % list.length];
+  } else {
+    const list = isCorrect ? BOYS_CORRECT_MESSAGES : BOYS_WRONG_MESSAGES;
+    return list[qIdx % list.length];
+  }
+};
+
+const getQuizHintPrefix = (qIdx: number, isGirls: boolean): string => {
+  if (isGirls) {
+    return GIRLS_HINT_PREFIXES[qIdx % GIRLS_HINT_PREFIXES.length];
+  } else {
+    return BOYS_HINT_PREFIXES[qIdx % BOYS_HINT_PREFIXES.length];
+  }
+};
+
 export default function Home() {
   const [currentPersona, setCurrentPersona] = useState<'boys' | 'girls'>('boys');
   const [currentMode, setCurrentMode] = useState<'light' | 'dark'>('light');
@@ -2317,11 +2417,9 @@ export default function Home() {
                                         backgroundColor: selectedOpt === q.correctIndex ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
                                         color: selectedOpt === q.correctIndex ? 'var(--accent-emerald)' : 'var(--accent-rose)',
                                       }}
-                                      className="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold"
+                                      className="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold animate-in fade-in zoom-in-95 duration-200"
                                     >
-                                      {selectedOpt === q.correctIndex 
-                                        ? (isGirls ? 'شطورة يا بطلة! إجابة صحيحة 🎀✨' : 'إجابة صحيحة، أحسنت!') 
-                                        : (isGirls ? 'حاولي تاني يا شطورة، كل غلطة بتعلمنا 🌸' : 'إجابة غير صحيحة.. راجع التلميح وحاول تاني')}
+                                      {getQuizFeedback(qIdx, selectedOpt === q.correctIndex, isGirls)}
                                     </span>
                                   )}
                               </div>
@@ -2334,7 +2432,7 @@ export default function Home() {
                                   style={{ color: 'var(--accent-amber)' }}
                                 >
                                   <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                  <span>{showHints[qIdx] ? content.quizTab.hideHint : content.quizTab.showHint}</span>
+                                  <span>{showHints[qIdx] ? content.quizTab.hideHint : (isGirls ? 'غششة صغننة 💡' : content.quizTab.showHint)}</span>
                                 </button>
                               )}
                             </div>
@@ -2358,7 +2456,9 @@ export default function Home() {
                               >
                                 <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                 <div className="flex-1 font-bold" style={{ color: 'var(--text-primary)' }}>
-                                  <span className="font-extrabold text-amber-600 dark:text-amber-400">{content.quizTab.hintPrefix}</span>
+                                  <span className="font-extrabold text-amber-600 dark:text-amber-400">
+                                    {getQuizHintPrefix(qIdx, isGirls)}
+                                  </span>
                                   <MathRenderer text={q.hint} />
                                 </div>
                               </div>
