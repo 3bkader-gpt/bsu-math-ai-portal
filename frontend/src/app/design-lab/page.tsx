@@ -5,10 +5,10 @@ import Link from 'next/link';
 import katex from 'katex';
 import MathRenderer from '@/components/MathRenderer';
 
-export type PersonaId = 'boys' | 'girls';
-export type ModeId = 'light' | 'dark';
+type PersonaId = 'boys' | 'girls';
+type ModeId = 'light' | 'dark';
 
-export interface ThemeDefinition {
+interface ThemeDefinition {
   id: string;
   persona: PersonaId;
   mode: ModeId;
@@ -34,7 +34,7 @@ export interface ThemeDefinition {
   };
 }
 
-export const DUAL_THEMES: Record<string, ThemeDefinition> = {
+const DUAL_THEMES: Record<string, ThemeDefinition> = {
   'girls-light': {
     id: 'girls-light',
     persona: 'girls',
