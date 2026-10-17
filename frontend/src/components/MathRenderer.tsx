@@ -3,6 +3,13 @@
 import React, { useMemo } from 'react';
 import katex from 'katex';
 
+const KATEX_MACROS: Record<string, string> = {
+  "\\underliner": "\\underline{r}",
+  "\\underlinet": "\\underline{t}",
+  "\\underlinen": "\\underline{n}",
+  "\\underlineb": "\\underline{b}",
+};
+
 interface MathRendererProps {
   text: string;
   className?: string;
@@ -20,6 +27,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
           displayMode: true,
           throwOnError: false,
           output: 'html',
+          macros: KATEX_MACROS,
         });
         return (
           <div
@@ -97,6 +105,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
             displayMode: isBlock,
             throwOnError: false,
             output: 'html',
+            macros: KATEX_MACROS,
           });
 
           if (isBlock) {
@@ -150,7 +159,12 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
     };
 
     // Pre-process makeshift LaTeX codes and clean stray dollar signs around ancient Egyptian numerals
-    let processedText = text;
+    let processedText = text
+      .replace(/\\underliner\b/g, '\\underline{r}')
+      .replace(/\\underlinet\b/g, '\\underline{t}')
+      .replace(/\\underlinen\b/g, '\\underline{n}')
+      .replace(/\\underlineb\b/g, '\\underline{b}');
+
     if (
       processedText.includes('حبل') ||
       processedText.includes('شت') ||
@@ -203,6 +217,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
               displayMode: true,
               throwOnError: false,
               output: 'html',
+              macros: KATEX_MACROS,
             });
             elements.push(
               <div
@@ -235,6 +250,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
               displayMode: false,
               throwOnError: false,
               output: 'html',
+              macros: KATEX_MACROS,
             });
             elements.push(
               <span

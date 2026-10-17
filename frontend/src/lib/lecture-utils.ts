@@ -242,14 +242,17 @@ export const parseQuizMarkdown = (md: string): QuizQuestion[] => {
 export const parseFlashcardsMarkdown = (md: string): Flashcard[] => {
   const cards: Flashcard[] = [];
   const cleanContent = (str: string) => {
+    if (!str) return '';
+    let cleaned = str.trim();
     try {
-      const match = str.match(/'content':\s*'([^']+)'/);
-      if (match) return match[1];
-      const matchDbl = str.match(/"content":\s*"([^"]+)"/);
-      if (matchDbl) return matchDbl[1];
-      return str.replace(/['"{}\[\]]/g, '').trim();
+      const match = cleaned.match(/^['"]?content['"]?:\s*['"]([\s\S]*)['"]$/);
+      if (match) return match[1].trim();
+      if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+        cleaned = cleaned.slice(1, -1).trim();
+      }
+      return cleaned;
     } catch {
-      return str;
+      return cleaned;
     }
   };
 
@@ -262,9 +265,9 @@ export const parseFlashcardsMarkdown = (md: string): Flashcard[] => {
 
     for (const line of lines) {
       if (line.startsWith('**Q:**')) {
-        question = cleanContent(line.replace('**Q:**', ''));
+        question = cleanContent(line.replace(/^\*\*Q:\*\*\s*/i, ''));
       } else if (line.startsWith('**A:**')) {
-        answer = cleanContent(line.replace('**A:**', ''));
+        answer = cleanContent(line.replace(/^\*\*A:\*\*\s*/i, ''));
       }
     }
 
