@@ -39,9 +39,10 @@ def build_pdf_content_disposition(title: str | None, lecture_id: int | None = No
     final_unicode_name = f"{cleaned}.pdf"
 
     # ASCII-safe fallback for older clients
-    ascii_clean = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', cleaned).strip('._')
-    ascii_clean = re.sub(r'_+', '_', ascii_clean).strip('._')
-    if not ascii_clean:
+    ascii_clean = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', cleaned).strip('._-')
+    ascii_clean = re.sub(r'_+', '_', ascii_clean).strip('._-')
+    ascii_alnum = re.sub(r'[^a-zA-Z0-9]', '', ascii_clean)
+    if not ascii_clean or len(ascii_alnum) < 2:
         ascii_clean = f"lecture_{lecture_id or 'file'}_material"
     ascii_filename = f"{ascii_clean}.pdf"
 

@@ -59,6 +59,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition", "Content-Length", "Content-Range", "Accept-Ranges"],
 )
 
 import time
