@@ -5,7 +5,7 @@ from app.config import settings
 from app.db.database import engine, Base, SessionLocal
 from app.services.prompt_service import sync_subjects_from_filesystem
 from app.services.auth_service import init_admin_user
-from app.routes import lectures, upload, stream, auth, diagnostics
+from app.routes import lectures, upload, stream, auth, diagnostics, study_guides
 
 from contextlib import asynccontextmanager
 
@@ -86,6 +86,7 @@ app.include_router(lectures.router)
 app.include_router(upload.router)
 app.include_router(stream.router)
 app.include_router(diagnostics.router)
+app.include_router(study_guides.router)
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def health_check():
