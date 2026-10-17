@@ -69,24 +69,32 @@ export const OFFICIAL_SUBJECT_DOCTORS: Record<string, string[]> = {
  * Fetches all academic subjects directly from Supabase edge CDN.
  */
 export async function getDirectSupabaseSubjects(): Promise<SupabaseSubject[]> {
-  // Query subjects: Try with semester column first; if remote schema hasn't applied migration yet, fallback to legacy select
-  let subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path,semester`, { headers: HEADERS });
-  if (!subRes.ok && subRes.status === 400) {
-    subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path`, { headers: HEADERS });
-  }
+  const fetchSub = async () => {
+    let subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path,semester`, { headers: HEADERS });
+    if (!subRes.ok && subRes.status === 400) {
+      subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path`, { headers: HEADERS });
+    }
+    if (!subRes.ok) throw new Error(`Supabase subjects error: ${subRes.statusText}`);
+    return subRes.json();
+  };
 
-  const lecRes = await fetch(`${SUPABASE_URL}/rest/v1/lectures?select=id,subject_id,doctor,status`, { headers: HEADERS });
+  const fetchLec = async () => {
+    try {
+      const lecRes = await fetch(`${SUPABASE_URL}/rest/v1/lectures?select=id,subject_id,doctor,status`, { headers: HEADERS });
+      return lecRes.ok ? await lecRes.json() : [];
+    } catch {
+      return [];
+    }
+  };
 
-  if (!subRes.ok) throw new Error(`Supabase subjects error: ${subRes.statusText}`);
-  const subjects = await subRes.json();
-  const lectures = lecRes.ok ? await lecRes.json() : [];
+  const [subjects, lectures] = await Promise.all([fetchSub(), fetchLec()]);
 
   const validSubjects = (subjects as any[]).filter(
     (s) => s.name && s.name.trim() !== 'كتب كامله' && !['BOT', 'subjects'].includes(s.name.trim())
   );
 
   return validSubjects.map((s: any) => {
-    const subLecs = lectures.filter((l: any) => l.subject_id === s.id);
+    const subLecs = (lectures as any[]).filter((l: any) => l.subject_id === s.id);
     const officialDocs = OFFICIAL_SUBJECT_DOCTORS[s.name] || [];
     const docs = officialDocs.length > 0 
       ? officialDocs 

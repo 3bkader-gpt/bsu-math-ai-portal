@@ -301,6 +301,114 @@ interface Lecture {
 
 
 
+// Build Unified Courses from Backend + Canonical Registry (Dynamic Semester 1 & 2 Extensibility)
+const mergeSubjects = (backendSubjects: any[]): Subject[] => {
+  const rawBackendList = Array.isArray(backendSubjects) ? backendSubjects : [];
+  const matchedBackendIds = new Set<number>();
+  const matchedBackendNames = new Set<string>();
+  const assignedSubjectIds = new Set<number>();
+  const assignedSubjectNames = new Set<string>();
+
+  // 1. Process Canonical Courses (Preserve rich canonical metadata & order)
+  const canonicalList: Subject[] = CANONICAL_COURSES.map((course) => {
+    // Match by stable fallbackId or canonical aliases / name
+    const found = rawBackendList.find((b) => {
+      if (!b) return false;
+      if (typeof b.id === 'number' && b.id === course.fallbackId) return true;
+      const bName = (b.name || '').trim().toLowerCase();
+      if (!bName) return false;
+      return (
+        course.canonicalName.trim().toLowerCase() === bName ||
+        course.aliases.some((a) => a.trim().toLowerCase() === bName)
+      );
+    });
+
+    if (found) {
+      if (typeof found.id === 'number') matchedBackendIds.add(found.id);
+      if (found.name) matchedBackendNames.add(found.name.trim().toLowerCase());
+    }
+
+    const resolvedId = typeof found?.id === 'number' ? found.id : course.fallbackId;
+    assignedSubjectIds.add(resolvedId);
+    assignedSubjectNames.add(course.canonicalName.trim().toLowerCase());
+
+    const doctorsList = found?.doctors && Array.isArray(found.doctors) && found.doctors.length > 0 
+      ? found.doctors 
+      : (course.doctor.includes('+') ? course.doctor.split('+').map((d: string) => d.trim()) : [course.doctor]);
+
+    const sem = (typeof found?.semester === 'number' && (found.semester === 1 || found.semester === 2))
+      ? found.semester
+      : (course.semester ?? 1);
+
+    return {
+      id: resolvedId,
+      name: course.canonicalName,
+      semester: sem,
+      has_prompt: found?.has_prompt ?? true,
+      lecture_count: typeof found?.lecture_count === 'number' ? found.lecture_count : 0,
+      doctors: doctorsList,
+      canonicalDoctor: course.doctor,
+      icon: course.icon,
+    };
+  });
+
+  // 2. Dynamically Append Genuinely New Subjects (e.g., Semester 2 or custom courses)
+  const dynamicSubjects: Subject[] = [];
+  for (const b of rawBackendList) {
+    if (!b || typeof b !== 'object') continue;
+    const rawName = typeof b.name === 'string' ? b.name.trim() : '';
+    if (!rawName) continue;
+
+    // Filter out internal system or utility folders
+    if (['كتب كامله', 'BOT', 'subjects'].includes(rawName) || rawName.startsWith('.')) {
+      continue;
+    }
+
+    const normalizedName = rawName.toLowerCase();
+    const isAlreadyMatchedById = typeof b.id === 'number' && (matchedBackendIds.has(b.id) || assignedSubjectIds.has(b.id));
+    const isAlreadyMatchedByName = matchedBackendNames.has(normalizedName) || assignedSubjectNames.has(normalizedName);
+    const matchesAnyCanonical = CANONICAL_COURSES.some((c) =>
+      c.canonicalName.trim().toLowerCase() === normalizedName ||
+      c.aliases.some((a) => a.trim().toLowerCase() === normalizedName) ||
+      (typeof b.id === 'number' && c.fallbackId === b.id)
+    );
+
+    if (isAlreadyMatchedById || isAlreadyMatchedByName || matchesAnyCanonical) {
+      continue;
+    }
+
+    // Ensure stable unique ID
+    const newSubjectId = typeof b.id === 'number' ? b.id : 1000 + dynamicSubjects.length;
+    if (assignedSubjectIds.has(newSubjectId)) {
+      continue;
+    }
+    assignedSubjectIds.add(newSubjectId);
+    assignedSubjectNames.add(normalizedName);
+
+    // Extract doctors safely without inventing placeholder instructor data
+    const cleanDoctors = Array.isArray(b.doctors)
+      ? b.doctors.map((d: any) => (typeof d === 'string' ? d.trim() : '')).filter(Boolean)
+      : [];
+    const canonicalDoc = cleanDoctors.length > 0 ? cleanDoctors.join(' + ') : undefined;
+
+    const rawSem = typeof b.semester === 'number' ? b.semester : 1;
+    const validSem = (rawSem === 2) ? 2 : 1;
+
+    dynamicSubjects.push({
+      id: newSubjectId,
+      name: rawName,
+      semester: validSem,
+      has_prompt: Boolean(b.has_prompt),
+      lecture_count: typeof b.lecture_count === 'number' ? b.lecture_count : 0,
+      doctors: cleanDoctors,
+      canonicalDoctor: canonicalDoc,
+      icon: '📚',
+    });
+  }
+
+  return [...canonicalList, ...dynamicSubjects];
+};
+
 export default function Home() {
   const [currentPersona, setCurrentPersona] = useState<'boys' | 'girls'>('boys');
   const [currentMode, setCurrentMode] = useState<'light' | 'dark'>('light');
@@ -327,12 +435,70 @@ export default function Home() {
   const isDark = currentMode === 'dark';
 
   const router = useRouter();
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+
+  // Instant 0ms hydration: load from cache or canonical courses immediately
+  const [subjects, setSubjects] = useState<Subject[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('bsu_cached_subjects');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return mergeSubjects([]);
+  });
+
   const [selectedSemester, setSelectedSemester] = useState<1 | 2>(1);
-  const [activeSubjectId, setActiveSubjectId] = useState<number | null>(null);
+
+  // Default active subject: Differential Geometry (id 11) with instant active state
+  const [activeSubjectId, setActiveSubjectId] = useState<number | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('bsu_active_subject_id');
+        if (saved && !isNaN(parseInt(saved))) return parseInt(saved);
+      } catch {}
+    }
+    return 11;
+  });
+
   const [selectedDoctor, setSelectedDoctor] = useState<string>('الكل');
-  const [subjectLectures, setSubjectLectures] = useState<Lecture[]>([]);
+
+  // Instant 0ms hydration for lectures: pre-populate Differential Geometry Lecture 1 so it appears with zero lag
+  const [subjectLectures, setSubjectLectures] = useState<Lecture[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('bsu_cached_lectures_11');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [
+      {
+        id: 1,
+        lecture_num: 1,
+        title: 'المحاضرة 1: مفهوم المنحنى وطول القوس ومماس الوحدة',
+        doctor: 'د/ سيد',
+        status: 'completed',
+        stage_info: null,
+        created_at: '2026-10-15T00:00:00Z',
+        assets_count: 5,
+        study_resources_count: 5,
+        has_audio: true,
+        has_video: false,
+        has_quiz: true,
+        has_guide: true,
+        has_flashcards: true,
+        is_ready: true,
+      }
+    ];
+  });
+
   const [isLoadingLectures, setIsLoadingLectures] = useState(false);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Switch Semester and auto-select appropriate active subject
@@ -349,183 +515,93 @@ export default function Home() {
     }
   };
 
-  // Build Unified Courses from Backend + Canonical Registry (Dynamic Semester 1 & 2 Extensibility)
-  const mergeSubjects = (backendSubjects: any[]): Subject[] => {
-    const rawBackendList = Array.isArray(backendSubjects) ? backendSubjects : [];
-    const matchedBackendIds = new Set<number>();
-    const matchedBackendNames = new Set<string>();
-    const assignedSubjectIds = new Set<number>();
-    const assignedSubjectNames = new Set<string>();
-
-    // 1. Process Canonical Courses (Preserve rich canonical metadata & order)
-    const canonicalList: Subject[] = CANONICAL_COURSES.map((course) => {
-      // Match by stable fallbackId or canonical aliases / name
-      const found = rawBackendList.find((b) => {
-        if (!b) return false;
-        if (typeof b.id === 'number' && b.id === course.fallbackId) return true;
-        const bName = (b.name || '').trim().toLowerCase();
-        if (!bName) return false;
-        return (
-          course.canonicalName.trim().toLowerCase() === bName ||
-          course.aliases.some((a) => a.trim().toLowerCase() === bName)
-        );
-      });
-
-      if (found) {
-        if (typeof found.id === 'number') matchedBackendIds.add(found.id);
-        if (found.name) matchedBackendNames.add(found.name.trim().toLowerCase());
-      }
-
-      const resolvedId = typeof found?.id === 'number' ? found.id : course.fallbackId;
-      assignedSubjectIds.add(resolvedId);
-      assignedSubjectNames.add(course.canonicalName.trim().toLowerCase());
-
-      const doctorsList = found?.doctors && Array.isArray(found.doctors) && found.doctors.length > 0 
-        ? found.doctors 
-        : (course.doctor.includes('+') ? course.doctor.split('+').map((d: string) => d.trim()) : [course.doctor]);
-
-      const sem = (typeof found?.semester === 'number' && (found.semester === 1 || found.semester === 2))
-        ? found.semester
-        : (course.semester ?? 1);
-
-      return {
-        id: resolvedId,
-        name: course.canonicalName,
-        semester: sem,
-        has_prompt: found?.has_prompt ?? true,
-        lecture_count: typeof found?.lecture_count === 'number' ? found.lecture_count : 0,
-        doctors: doctorsList,
-        canonicalDoctor: course.doctor,
-        icon: course.icon,
-      };
-    });
-
-    // 2. Dynamically Append Genuinely New Subjects (e.g., Semester 2 or custom courses)
-    const dynamicSubjects: Subject[] = [];
-    for (const b of rawBackendList) {
-      if (!b || typeof b !== 'object') continue;
-      const rawName = typeof b.name === 'string' ? b.name.trim() : '';
-      if (!rawName) continue;
-
-      // Filter out internal system or utility folders
-      if (['كتب كامله', 'BOT', 'subjects'].includes(rawName) || rawName.startsWith('.')) {
-        continue;
-      }
-
-      const normalizedName = rawName.toLowerCase();
-      const isAlreadyMatchedById = typeof b.id === 'number' && (matchedBackendIds.has(b.id) || assignedSubjectIds.has(b.id));
-      const isAlreadyMatchedByName = matchedBackendNames.has(normalizedName) || assignedSubjectNames.has(normalizedName);
-      const matchesAnyCanonical = CANONICAL_COURSES.some((c) =>
-        c.canonicalName.trim().toLowerCase() === normalizedName ||
-        c.aliases.some((a) => a.trim().toLowerCase() === normalizedName) ||
-        (typeof b.id === 'number' && c.fallbackId === b.id)
-      );
-
-      if (isAlreadyMatchedById || isAlreadyMatchedByName || matchesAnyCanonical) {
-        continue;
-      }
-
-      // Ensure stable unique ID
-      const newSubjectId = typeof b.id === 'number' ? b.id : 1000 + dynamicSubjects.length;
-      if (assignedSubjectIds.has(newSubjectId)) {
-        continue;
-      }
-      assignedSubjectIds.add(newSubjectId);
-      assignedSubjectNames.add(normalizedName);
-
-      // Extract doctors safely without inventing placeholder instructor data
-      const cleanDoctors = Array.isArray(b.doctors)
-        ? b.doctors.map((d: any) => (typeof d === 'string' ? d.trim() : '')).filter(Boolean)
-        : [];
-      const canonicalDoc = cleanDoctors.length > 0 ? cleanDoctors.join(' + ') : undefined;
-
-      const rawSem = typeof b.semester === 'number' ? b.semester : 1;
-      const validSem = (rawSem === 2) ? 2 : 1;
-
-      dynamicSubjects.push({
-        id: newSubjectId,
-        name: rawName,
-        semester: validSem,
-        has_prompt: Boolean(b.has_prompt),
-        lecture_count: typeof b.lecture_count === 'number' ? b.lecture_count : 0,
-        doctors: cleanDoctors,
-        canonicalDoctor: canonicalDoc,
-        icon: '📚',
-      });
-    }
-
-    return [...canonicalList, ...dynamicSubjects];
-  };
-
-  // 1. Fetch Subjects on Mount (Supabase Edge First <100ms)
+  // 1. Fetch Subjects on Mount (Supabase Edge Revalidation)
   useEffect(() => {
+    setIsLoadingSubjects(true);
     getDirectSupabaseSubjects()
       .then(data => {
         const unified = mergeSubjects(data);
         setSubjects(unified);
+        try { localStorage.setItem('bsu_cached_subjects', JSON.stringify(unified)); } catch {}
+
+        // Ensure valid active subject is selected
         const term1 = unified.filter(s => (s.semester ?? 1) === 1);
         const diff = term1.find((s) => s.name === 'هندسة تفاضلية');
-        if (diff) {
-          setActiveSubjectId(diff.id);
-        } else if (term1.length > 0) {
-          setActiveSubjectId(term1[0].id);
-        } else if (unified.length > 0) {
-          setActiveSubjectId(unified[0].id);
-        }
+        setActiveSubjectId(prev => {
+          if (prev && unified.some(s => s.id === prev)) return prev;
+          return diff ? diff.id : (term1[0]?.id ?? unified[0]?.id ?? null);
+        });
       })
       .catch(err => {
-        console.warn('Supabase edge subjects fetch failed, falling back to tunnel:', err);
-        fetch(getApiUrl('/api/subjects'))
+        console.warn('Supabase edge subjects fetch failed, trying fast fallback:', err);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+        fetch(getApiUrl('/api/subjects'), { signal: controller.signal })
           .then(res => res.json())
           .then(data => {
+            clearTimeout(timeoutId);
             const unified = mergeSubjects(data);
             setSubjects(unified);
-            const term1 = unified.filter(s => (s.semester ?? 1) === 1);
-            const diff = term1.find((s) => s.name === 'هندسة تفاضلية');
-            if (diff) {
-              setActiveSubjectId(diff.id);
-            } else if (term1.length > 0) {
-              setActiveSubjectId(term1[0].id);
-            } else if (unified.length > 0) {
-              setActiveSubjectId(unified[0].id);
-            }
+            try { localStorage.setItem('bsu_cached_subjects', JSON.stringify(unified)); } catch {}
           })
-          .catch(apiErr => {
-            console.error('All subjects fetch failed, using offline canonical:', apiErr);
-            const fallbackUnified = mergeSubjects([]);
-            setSubjects(fallbackUnified);
-            const term1 = fallbackUnified.filter(s => (s.semester ?? 1) === 1);
-            if (term1.length > 0) {
-              setActiveSubjectId(term1[0].id);
-            } else if (fallbackUnified.length > 0) {
-              setActiveSubjectId(fallbackUnified[0].id);
-            }
+          .catch(() => {
+            // Already initialized with canonical courses instantly!
           });
-      });
+      })
+      .finally(() => setIsLoadingSubjects(false));
   }, []);
 
   // 2. Fetch Subject Lectures when activeSubjectId changes (Supabase Edge First)
   useEffect(() => {
     if (!activeSubjectId) return;
+    try { localStorage.setItem('bsu_active_subject_id', String(activeSubjectId)); } catch {}
+
     const currentSubj = subjects.find(s => s.id === activeSubjectId);
     if (currentSubj?.doctors && currentSubj.doctors.length > 1) {
       setSelectedDoctor(currentSubj.doctors[0]);
     } else {
       setSelectedDoctor('الكل');
     }
+
+    // Try reading cached lectures for this subject immediately for zero-lag switching
+    try {
+      const cached = localStorage.getItem(`bsu_cached_lectures_${activeSubjectId}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSubjectLectures(parsed);
+        }
+      }
+    } catch {}
+
     setIsLoadingLectures(true);
 
     getDirectSupabaseLectures(activeSubjectId)
-      .then(data => setSubjectLectures(Array.isArray(data) ? data : []))
+      .then(data => {
+        const lecs = Array.isArray(data) ? data : [];
+        setSubjectLectures(lecs);
+        try { localStorage.setItem(`bsu_cached_lectures_${activeSubjectId}`, JSON.stringify(lecs)); } catch {}
+      })
       .catch(err => {
-        console.warn('Direct Supabase lectures failed, falling back to tunnel:', err);
-        fetch(getApiUrl(`/api/subjects/${activeSubjectId}/lectures`))
+        console.warn('Direct Supabase lectures failed, trying fast fallback:', err);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+        fetch(getApiUrl(`/api/subjects/${activeSubjectId}/lectures`), { signal: controller.signal })
           .then(res => (res.ok ? res.json() : []))
-          .then(data => setSubjectLectures(Array.isArray(data) ? data : []))
-          .catch(() => setSubjectLectures([]));
+          .then(data => {
+            clearTimeout(timeoutId);
+            const lecs = Array.isArray(data) ? data : [];
+            setSubjectLectures(lecs);
+            try { localStorage.setItem(`bsu_cached_lectures_${activeSubjectId}`, JSON.stringify(lecs)); } catch {}
+          })
+          .catch(() => {
+            // Keep current / cached
+          });
       })
       .finally(() => setIsLoadingLectures(false));
-  }, [activeSubjectId, subjects]);
+  }, [activeSubjectId]);
 
 
   // Filter subjects by selected semester and search query (name, canonical doctor, or doctor track)
@@ -741,7 +817,23 @@ export default function Home() {
             </div>
           </div>
 
-          {filteredSubjects.length === 0 ? (
+          {isLoadingSubjects && filteredSubjects.length === 0 ? (
+            <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] gap-2.5 pb-2.5 pt-1 md:py-0 px-1 overflow-hidden">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    borderColor: 'var(--border-subtle)',
+                  }}
+                  className="h-28 rounded-2xl border animate-pulse p-4 flex flex-col justify-between"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gray-500/10" />
+                  <div className="h-4 w-3/4 bg-gray-500/15 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : filteredSubjects.length === 0 ? (
             <div 
               style={{
                 backgroundColor: 'var(--bg-surface)',
