@@ -175,17 +175,23 @@ export async function getDirectSupabaseBundle(
   if (!list || list.length === 0) throw new Error('Lecture not found in Supabase');
 
   const l = list[0];
-  const assets: SupabaseMediaAsset[] = (l.media_assets || []).map((a: any) => ({
-    id: a.id,
-    asset_type: a.asset_type,
-    title: a.title,
-    file_size_bytes: a.file_size_bytes,
-    has_telegram: Boolean(a.telegram_file_id || a.telegram_message_id),
-    telegram_file_id: a.telegram_file_id,
-    telegram_message_id: a.telegram_message_id || null,
-    content_text: a.content_text || null,
-    stream_url: `${fallbackBaseUrl}/api/stream/${a.id}`,
-  }));
+  const assets: SupabaseMediaAsset[] = (l.media_assets || []).map((a: any) => {
+    const hasTg = Boolean(a.telegram_file_id || a.telegram_message_id);
+    return {
+      id: a.id,
+      asset_type: a.asset_type,
+      title: a.title,
+      file_size_bytes: a.file_size_bytes,
+      has_telegram: hasTg,
+      telegram_file_id: a.telegram_file_id,
+      telegram_message_id: a.telegram_message_id || null,
+      content_text: a.content_text || null,
+      stream_url: `${fallbackBaseUrl}/api/stream/${a.id}`,
+      is_available: hasTg,
+    };
+  });
+
+  await reconcileAssetAvailability(assets, lectureId, fallbackBaseUrl);
 
   return {
     id: l.id,
@@ -199,4 +205,39 @@ export async function getDirectSupabaseBundle(
     assets,
     created_at: l.created_at,
   };
+}
+
+/**
+ * Reconciles local non-Telegram assets with backend server-side verification.
+ */
+export async function reconcileAssetAvailability(
+  assets: SupabaseMediaAsset[],
+  lectureId: number,
+  backendBaseUrl: string
+): Promise<void> {
+  const hasUnverifiedPdf = assets.some(
+    (a) => !a.has_telegram && (a.asset_type === 'original_pdf' || a.asset_type === 'pdf')
+  );
+  if (!hasUnverifiedPdf || !backendBaseUrl) return;
+
+  try {
+    const cleanBase = backendBaseUrl.replace(/\/+$/, '');
+    const backendRes = await fetch(`${cleanBase}/api/lectures/${lectureId}`);
+    if (backendRes.ok) {
+      const backendData = await backendRes.json();
+      const backendMap = new Map<number, boolean>();
+      for (const ba of backendData.assets || []) {
+        if (typeof ba.is_available === 'boolean') {
+          backendMap.set(ba.id, ba.is_available);
+        }
+      }
+      for (const a of assets) {
+        if (backendMap.has(a.id)) {
+          a.is_available = backendMap.get(a.id)!;
+        }
+      }
+    }
+  } catch {
+    // Backend unreachable: non-Telegram local files remain unavailable
+  }
 }

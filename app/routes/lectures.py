@@ -81,6 +81,8 @@ def list_subject_lectures(
         for l in lectures
     ]
 
+from app.routes.stream import is_safe_path
+
 @router.get("/lectures/{lecture_id}")
 def get_lecture_bundle(lecture_id: int, db: Session = Depends(get_db)):
     """Returns full lecture details and its media assets for student view."""
@@ -90,12 +92,24 @@ def get_lecture_bundle(lecture_id: int, db: Session = Depends(get_db)):
 
     assets = []
     for a in lecture.assets:
+        has_tg = bool(a.telegram_file_id or a.telegram_message_id)
+        has_local = False
+        if a.local_file_path:
+            try:
+                p = Path(a.local_file_path)
+                has_local = p.exists() and is_safe_path(p)
+            except Exception:
+                has_local = False
+
+        is_available = has_tg or has_local
+
         assets.append({
             "id": a.id,
             "asset_type": a.asset_type,
             "title": a.title,
             "file_size_bytes": a.file_size_bytes,
-            "has_telegram": bool(a.telegram_file_id),
+            "has_telegram": has_tg,
+            "is_available": is_available,
             "content_text": a.content_text,
             "stream_url": f"/api/stream/{a.id}"
         })

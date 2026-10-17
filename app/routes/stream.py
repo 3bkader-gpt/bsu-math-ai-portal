@@ -1,5 +1,7 @@
 import os
 import logging
+import re
+import urllib.parse
 from pathlib import Path
 
 logger = logging.getLogger("stream_router")
@@ -16,6 +18,37 @@ from app.services.telethon_service import telethon_streamer
 router = APIRouter(prefix="/api", tags=["Media Streaming"])
 
 CHUNK_SIZE = 1024 * 1024  # 1MB chunk
+
+def build_pdf_content_disposition(title: str | None, lecture_id: int | None = None) -> str:
+    """
+    Constructs an RFC 6266 / RFC 5987 compliant Content-Disposition header value
+    for PDF downloads, protecting against header injection, path traversal, and duplicate extensions.
+    """
+    raw_title = (title or "").strip()
+    # Strip CR, LF, nulls, control characters, double quotes, slashes, and backslashes
+    cleaned = re.sub(r'[\r\n\x00"\\/]', '', raw_title).strip()
+    # Remove existing trailing .pdf extension if present (case-insensitive)
+    cleaned = re.sub(r'\.pdf$', '', cleaned, flags=re.IGNORECASE).strip()
+    # Eliminate any directory traversal dots (e.g. ..)
+    cleaned = re.sub(r'\.{2,}', '', cleaned).strip()
+
+    if not cleaned:
+        cleaned = f"lecture_{lecture_id or 'file'}_material"
+
+    # Always ensure a single .pdf extension
+    final_unicode_name = f"{cleaned}.pdf"
+
+    # ASCII-safe fallback for older clients
+    ascii_clean = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', cleaned).strip('._')
+    ascii_clean = re.sub(r'_+', '_', ascii_clean).strip('._')
+    if not ascii_clean:
+        ascii_clean = f"lecture_{lecture_id or 'file'}_material"
+    ascii_filename = f"{ascii_clean}.pdf"
+
+    # RFC 5987 percent-encoding for UTF-8
+    encoded_filename = urllib.parse.quote(final_unicode_name, encoding='utf-8')
+
+    return f'attachment; filename="{ascii_filename}"; filename*=UTF-8\'\'{encoded_filename}'
 
 def is_safe_path(p: Path) -> bool:
     """Verifies that the requested file path resides strictly within approved storage boundaries."""
@@ -44,6 +77,7 @@ async def stream_media_asset(
     asset_id: int,
     request: Request,
     by_message_id: bool = False,
+    download: bool = False,
     db: Session = Depends(get_db)
 ):
     """
@@ -90,9 +124,13 @@ async def stream_media_asset(
     media_types = {
         "audio": "audio/mp4",
         "video": "video/mp4",
-        "pdf": "application/pdf"
+        "pdf": "application/pdf",
+        "original_pdf": "application/pdf"
     }
     content_type = media_types.get(asset.asset_type, "application/octet-stream")
+    is_pdf = asset.asset_type in {"pdf", "original_pdf"}
+    should_download = download and is_pdf
+    disposition_val = build_pdf_content_disposition(asset.title, asset.lecture_id) if should_download else None
 
     # 2. Primary Cloud Streaming: If telegram_message_id is available, stream via Telethon MTProto
     if asset.telegram_message_id:
@@ -117,6 +155,8 @@ async def stream_media_asset(
                         "Content-Length": str(end - start + 1),
                         "Content-Type": content_type
                     }
+                    if disposition_val:
+                        headers["Content-Disposition"] = disposition_val
                     if is_head:
                         return Response(status_code=206, headers=headers, media_type=content_type)
 
@@ -131,6 +171,8 @@ async def stream_media_asset(
                         "Accept-Ranges": "bytes",
                         "Content-Type": content_type
                     }
+                    if disposition_val:
+                        headers["Content-Disposition"] = disposition_val
                     if is_head:
                         return Response(status_code=200, headers=headers, media_type=content_type)
 
@@ -165,6 +207,8 @@ async def stream_media_asset(
                 "Content-Length": str(end - start + 1),
                 "Content-Type": content_type
             }
+            if disposition_val:
+                headers["Content-Disposition"] = disposition_val
             if is_head:
                 return Response(status_code=206, headers=headers, media_type=content_type)
 
@@ -179,13 +223,19 @@ async def stream_media_asset(
                 "Accept-Ranges": "bytes",
                 "Content-Type": content_type
             }
+            if disposition_val:
+                headers["Content-Disposition"] = disposition_val
             if is_head:
                 return Response(status_code=200, headers=headers, media_type=content_type)
+
+            file_resp_headers = {"Accept-Ranges": "bytes"}
+            if disposition_val:
+                file_resp_headers["Content-Disposition"] = disposition_val
 
             return FileResponse(
                 path=str(local_path),
                 media_type=content_type,
-                headers={"Accept-Ranges": "bytes"}
+                headers=file_resp_headers
             )
 
 
@@ -201,6 +251,8 @@ async def stream_media_asset(
                     "Accept-Ranges": "bytes",
                     "Content-Type": content_type
                 }
+                if disposition_val:
+                    resp_headers["Content-Disposition"] = disposition_val
                 if "content-length" in proxy_resp.headers:
                     resp_headers["Content-Length"] = proxy_resp.headers["content-length"]
                 if "content-range" in proxy_resp.headers:
