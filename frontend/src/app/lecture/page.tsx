@@ -45,6 +45,7 @@ import {
   parseFlashcardsMarkdown,
   getQuizFeedback,
   getQuizHintPrefix,
+  getMascotEmoji,
   formatTime,
   downloadPdfFile,
   isAssetStorageAvailable,
@@ -1115,14 +1116,28 @@ function LectureContent() {
                                     selectedOpt === q.correctIndex
                                       ? 'rgba(16, 185, 129, 0.15)'
                                       : 'rgba(244, 63, 94, 0.15)',
+                                  borderColor:
+                                    selectedOpt === q.correctIndex
+                                      ? 'var(--accent-emerald)'
+                                      : 'var(--accent-rose)',
                                   color:
                                     selectedOpt === q.correctIndex
                                       ? 'var(--accent-emerald)'
                                       : 'var(--accent-rose)',
                                 }}
-                                className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold animate-in fade-in zoom-in-95 duration-200"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold shadow-xs animate-in fade-in"
                               >
-                                {getQuizFeedback(qIdx, selectedOpt === q.correctIndex, isGirls)}
+                                {selectedOpt === q.correctIndex ? (
+                                  <>
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>إجابة صحيحة</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="w-3.5 h-3.5" />
+                                    <span>إجابة غير صحيحة</span>
+                                  </>
+                                )}
                               </span>
                             )}
                           </div>
@@ -1153,6 +1168,102 @@ function LectureContent() {
                         >
                           <MathRenderer text={q.question} />
                         </div>
+
+                        {/* Interactive Hero Reaction Card when answered */}
+                        {isAnswered && (() => {
+                          const isCorrect = selectedOpt === q.correctIndex;
+                          const feedbackMsg = getQuizFeedback(qIdx, isCorrect, isGirls);
+                          const mascot = getMascotEmoji(feedbackMsg, isCorrect, isGirls);
+
+                          return (
+                            <div
+                              style={{
+                                background: isCorrect
+                                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(20, 184, 166, 0.05) 100%)'
+                                  : 'linear-gradient(135deg, rgba(244, 63, 94, 0.14) 0%, rgba(236, 72, 153, 0.07) 100%)',
+                                borderColor: isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+                              }}
+                              className={`relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 p-4 sm:p-6 transition-all duration-300 animate-in fade-in slide-in-from-top-3 shadow-md ${
+                                isCorrect ? 'quiz-reaction-correct' : 'quiz-reaction-wrong'
+                              }`}
+                            >
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                {/* Mascot + Speech Bubble Content */}
+                                <div className="flex items-center gap-3.5 sm:gap-4 flex-1">
+                                  {/* Animated Mascot Avatar */}
+                                  <div
+                                    style={{
+                                      backgroundColor: isCorrect ? 'rgba(16, 185, 129, 0.22)' : 'rgba(244, 63, 94, 0.22)',
+                                      borderColor: isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+                                    }}
+                                    className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl border-2 flex items-center justify-center shrink-0 shadow-md text-3xl sm:text-4xl"
+                                  >
+                                    <span className="quiz-mascot-icon select-none">{mascot}</span>
+                                  </div>
+
+                                  <div className="space-y-1 flex-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span
+                                        style={{
+                                          backgroundColor: isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+                                          color: '#ffffff',
+                                        }}
+                                        className="px-2.5 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase shadow-xs"
+                                      >
+                                        {isCorrect ? 'إجابة عبقرية ✨' : 'محاولة محتاجة تركيز 💡'}
+                                      </span>
+                                    </div>
+                                    <div
+                                      className="text-base sm:text-xl font-black leading-snug tracking-tight"
+                                      style={{
+                                        color: isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+                                      }}
+                                    >
+                                      {feedbackMsg}
+                                    </div>
+                                    <p className="text-xs sm:text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                                      {isCorrect
+                                        ? (isGirls
+                                            ? 'شطارة وتركيز عالي جداً.. الله ينور عليكي يا بطلة! 🌸✨'
+                                            : 'تسلم إيدك وعاش تركيزك يا بطل! 🎯')
+                                        : (isGirls
+                                            ? 'ولا تشيلي هم خالص! الغلط بيعلمنا أكتر.. بصي على الشرح أو جربي تاني 💪'
+                                            : 'فداك يا هندسة! راجع الفكرة وجرب تختار إجابة تانية 💡')}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Instant Retry Action Button if wrong */}
+                                {!isCorrect && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const next = { ...userAnswers };
+                                      delete next[qIdx];
+                                      setUserAnswers(next);
+                                      let correctCount = 0;
+                                      Object.entries(next).forEach(([idx, chosen]) => {
+                                        if (quizQuestions[parseInt(idx)]?.correctIndex === chosen) {
+                                          correctCount++;
+                                        }
+                                      });
+                                      setScore(correctCount);
+                                    }}
+                                    style={{
+                                      backgroundColor: 'var(--accent-rose)',
+                                      color: '#ffffff',
+                                      boxShadow: '0 4px 16px rgba(244, 63, 94, 0.35)',
+                                    }}
+                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-black hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0 border border-rose-300 shadow-sm"
+                                  >
+                                    <RotateCcw className="w-4 h-4" />
+                                    <span>{isGirls ? 'يلا نجرب تاني؟ 🌸' : 'حاول مرة أخرى 🔄'}</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Hint Box */}
                         {showHints[qIdx] && q.hint && (
