@@ -106,6 +106,28 @@ class TelegramStorageService:
             "warning": last_error
         }
 
+    async def get_direct_download_url(self, file_id: str) -> str | None:
+        """
+        Retrieves the direct download URL for a file from the Telegram Bot API getFile endpoint.
+        Returns https://api.telegram.org/file/bot<token>/<file_path> or None if not available.
+        """
+        if not self.is_configured or not file_id:
+            return None
+
+        url = f"{self.api_base}/getFile?file_id={file_id}"
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                res = await client.get(url)
+                if res.status_code == 200:
+                    data = res.json()
+                    if data.get("ok"):
+                        file_path = data.get("result", {}).get("file_path")
+                        if file_path:
+                            return f"https://api.telegram.org/file/bot{self.bot_token}/{file_path}"
+        except Exception:
+            return None
+        return None
+
     async def stream_file_bytes(self, file_id: str, range_header: str | None = None):
         """
         Streams file bytes from Telegram Bot API internally without exposing the bot token to the client.

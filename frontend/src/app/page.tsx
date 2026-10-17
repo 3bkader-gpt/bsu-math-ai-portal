@@ -47,9 +47,8 @@ import {
 import { lockBodyScroll, unlockBodyScroll } from '@/lib/scrollLock';
 
 type Subject = AcademicSubject;
-export type { CanonicalCourse };
 
-export const CANONICAL_COURSES: CanonicalCourse[] = [
+const CANONICAL_COURSES: CanonicalCourse[] = [
   {
     canonicalName: 'هندسة تفاضلية',
     doctor: 'د/ سيد',
@@ -350,11 +349,78 @@ interface Flashcard {
   answer: string;
 }
 
-export const isAssetStorageAvailable = (a: LectureAsset): boolean => {
+const isAssetStorageAvailable = (a: LectureAsset): boolean => {
   if (typeof a.is_available === 'boolean') {
     return a.is_available;
   }
   return Boolean(a.has_telegram || a.telegram_file_id || a.telegram_message_id);
+};
+
+interface OriginalPdfInfo {
+  id: number;
+  isBook: boolean;
+  badgeText: string;
+  badgeEmoji: string;
+  title: string;
+  subtitle: string;
+  formattedSize: string;
+  downloadUrl: string;
+  suggestedFilename: string;
+}
+
+const getOriginalPdfDetails = (pdf: any, lectureNum?: number): OriginalPdfInfo => {
+  const rawTitle = (pdf.title || '').trim();
+  const isBook = /كتاب/i.test(rawTitle);
+
+  const sizeMb = pdf.file_size_bytes
+    ? (pdf.file_size_bytes / (1024 * 1024)).toFixed(1)
+    : null;
+  const sizeKb = pdf.file_size_bytes && (!sizeMb || parseFloat(sizeMb) < 0.5)
+    ? Math.round(pdf.file_size_bytes / 1024)
+    : null;
+  const formattedSize = sizeMb && parseFloat(sizeMb) >= 0.5 ? `${sizeMb} ميجا` : (sizeKb ? `${sizeKb} ك.ب` : '');
+
+  const downloadUrl = (pdf.stream_url || `/api/stream/${pdf.id}`).includes('?')
+    ? `${pdf.stream_url || `/api/stream/${pdf.id}`}&download=true`
+    : `${pdf.stream_url || `/api/stream/${pdf.id}`}?download=true`;
+
+  if (isBook) {
+    const bookTopic = rawTitle
+      .replace(/\.pdf$/i, '')
+      .replace(/^كتاب\s*[-–—:]\s*/i, '')
+      .trim();
+    const suggestedFilename = lectureNum
+      ? `المحاضرة ${lectureNum} - جزء الكتاب (${bookTopic || 'المقرر'}).pdf`
+      : `جزء الكتاب - ${bookTopic || 'المقرر'}.pdf`;
+
+    return {
+      id: pdf.id,
+      isBook: true,
+      badgeText: 'من الكتاب المقرر',
+      badgeEmoji: '📚',
+      title: 'جزء المحاضرة من الكتاب',
+      subtitle: bookTopic || 'المحتوى المعتمد من الكتاب الدراسي',
+      formattedSize,
+      downloadUrl,
+      suggestedFilename,
+    };
+  } else {
+    const suggestedFilename = lectureNum
+      ? `المحاضرة ${lectureNum} - كشكول المحاضرة (بخط اليد).pdf`
+      : `كشكول المحاضرة (بخط اليد).pdf`;
+
+    return {
+      id: pdf.id,
+      isBook: false,
+      badgeText: 'بخط اليد',
+      badgeEmoji: '✍️',
+      title: 'كشكول المحاضرة (بخط اليد)',
+      subtitle: 'الشرح والتدوين الأصلي أثناء المحاضرة',
+      formattedSize,
+      downloadUrl,
+      suggestedFilename,
+    };
+  }
 };
 
 export default function Home() {
@@ -875,6 +941,13 @@ export default function Home() {
       (a.asset_type === 'original_pdf' || a.asset_type === 'pdf') &&
       isAssetStorageAvailable(a)
   );
+  const sortedOriginalPdfs = [...originalPdfAssets].sort((a, b) => {
+    const isBookA = /كتاب/i.test(a.title || '');
+    const isBookB = /كتاب/i.test(b.title || '');
+    if (!isBookA && isBookB) return -1;
+    if (isBookA && !isBookB) return 1;
+    return 0;
+  });
   const studyGuideAsset = (activeBundle?.assets || []).find(
     (a) => a.asset_type === 'study_guide_md'
   );
@@ -1591,55 +1664,86 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Original PDF Download Bar (When original professor PDF is available) */}
-            {originalPdfAssets.length > 0 && (
+            {/* Original PDF Download Section (Handwritten Notes & Textbook Excerpt) */}
+            {sortedOriginalPdfs.length > 0 && (
               <div
-                className="px-3.5 sm:px-6 py-2 sm:py-2.5 border-b flex flex-wrap items-center justify-between gap-2.5 text-xs sm:text-sm shrink-0 transition-colors"
+                className="px-3.5 sm:px-6 py-2.5 sm:py-3 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs sm:text-sm shrink-0 transition-colors shadow-xs"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)',
                 }}
               >
-                <div className="flex items-center gap-2 text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-                  <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span>ملف المحاضرة المعتمد (PDF)</span>
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-xs"
+                    style={{
+                      backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                      color: '#10b981',
+                    }}
+                  >
+                    <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-xs sm:text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                      <span>ملفات المحاضرة الأصلية المعتمدة</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        {sortedOriginalPdfs.length} {sortedOriginalPdfs.length === 1 ? 'ملف' : 'ملفات'}
+                      </span>
+                    </div>
+                    <div className="text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      المصادر الرسمية المرفوعة للمحاضرة (الكشكول بخط اليد ومن الكتاب)
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {originalPdfAssets.map((pdf) => {
-                    const sizeMb = pdf.file_size_bytes
-                      ? (pdf.file_size_bytes / (1024 * 1024)).toFixed(1)
-                      : null;
-                    const cleanTitle = pdf.title
-                      ? pdf.title.replace(/\.pdf$/i, '').trim()
-                      : 'ملف المحاضرة الأصلي';
-                    const downloadUrl = pdf.stream_url.includes('?')
-                      ? `${pdf.stream_url}&download=true`
-                      : `${pdf.stream_url}?download=true`;
 
+                <div className="flex items-stretch sm:items-center gap-2 flex-wrap">
+                  {sortedOriginalPdfs.map((pdf) => {
+                    const info = getOriginalPdfDetails(pdf, activeBundle.lecture_num);
                     return (
                       <a
                         key={pdf.id}
-                        href={getApiUrl(downloadUrl)}
-                        download
+                        href={getApiUrl(info.downloadUrl)}
+                        download={info.suggestedFilename}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-sm cursor-pointer hover:border-emerald-500 hover:scale-[1.01] active:scale-[0.99]"
-                        style={{
-                          backgroundColor: 'var(--bg-surface)',
-                          borderColor: 'var(--border-prominent)',
-                          color: 'var(--accent-primary)',
-                        }}
-                        title={`تحميل ${pdf.title || 'الملف'} بصيغة PDF`}
+                        className={`flex-1 sm:flex-initial inline-flex items-center justify-between sm:justify-start gap-2.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-[1.01] active:scale-[0.99] ${
+                          info.isBook
+                            ? 'hover:border-blue-500 bg-blue-500/5 hover:bg-blue-500/10 border-blue-500/20 text-blue-900 dark:text-blue-100'
+                            : 'hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-100'
+                        }`}
+                        title={`تحميل ${info.title} (${info.subtitle})`}
                       >
-                        <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <span className="truncate max-w-[170px] sm:max-w-[280px]">
-                          تحميل {cleanTitle}
-                        </span>
-                        {sizeMb && (
-                          <span className="text-[10px] sm:text-xs font-normal opacity-75">
-                            ({sizeMb} ميجا)
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-base shrink-0">{info.badgeEmoji}</span>
+                          <div className="flex flex-col text-right">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${
+                                info.isBook
+                                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200'
+                                  : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200'
+                              }`}>
+                                {info.badgeText}
+                              </span>
+                              <span className="font-bold text-xs truncate max-w-[140px] sm:max-w-[200px]">
+                                {info.title}
+                              </span>
+                            </div>
+                            {info.subtitle && info.isBook && (
+                              <span className="text-[10px] opacity-75 truncate max-w-[180px] sm:max-w-[220px]">
+                                {info.subtitle}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 pl-0.5 shrink-0">
+                          {info.formattedSize && (
+                            <span className="text-[10px] font-mono opacity-65">
+                              ({info.formattedSize})
+                            </span>
+                          )}
+                          <Download className="w-3.5 h-3.5 opacity-80 shrink-0" />
+                        </div>
                       </a>
                     );
                   })}
@@ -2390,6 +2494,66 @@ export default function Home() {
                             </>
                           )}
                         </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {sortedOriginalPdfs.length > 0 && (
+                    <div
+                      className="p-3.5 sm:p-4 rounded-2xl border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 transition-colors shadow-sm"
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-subtle)',
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                          style={{
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            color: '#10b981',
+                          }}
+                        >
+                          <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                          <div className="text-xs sm:text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                            ملفات المحاضرة الأصلية المعتمدة
+                          </div>
+                          <div className="text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
+                            تحميل كشكول المحاضرة بخط اليد وجزء المحاضرة من الكتاب المقرر
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap justify-end">
+                        {sortedOriginalPdfs.map((pdf) => {
+                          const info = getOriginalPdfDetails(pdf, activeBundle.lecture_num);
+                          return (
+                            <a
+                              key={pdf.id}
+                              href={getApiUrl(info.downloadUrl)}
+                              download={info.suggestedFilename}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-[1.01] active:scale-[0.99] ${
+                                info.isBook
+                                  ? 'hover:border-blue-500 bg-blue-500/5 hover:bg-blue-500/10 border-blue-500/20 text-blue-900 dark:text-blue-100'
+                                  : 'hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-100'
+                              }`}
+                              title={`تحميل ${info.title}`}
+                            >
+                              <span>{info.badgeEmoji}</span>
+                              <span>{info.title}</span>
+                              {info.formattedSize && (
+                                <span className="text-[10px] opacity-75 font-mono">
+                                  ({info.formattedSize})
+                                </span>
+                              )}
+                              <Download className="w-3.5 h-3.5 opacity-80 shrink-0" />
+                            </a>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
