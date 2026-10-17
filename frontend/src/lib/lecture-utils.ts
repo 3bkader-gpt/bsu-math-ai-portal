@@ -186,6 +186,26 @@ export const getQuizHintPrefix = (qIdx: number, isGirls: boolean): string => {
   }
 };
 
+export const getMascotEmoji = (feedbackText: string, isCorrect: boolean, isGirls: boolean): string => {
+  if (isGirls) {
+    if (feedbackText.includes('كتكوتة')) return '🐣';
+    if (feedbackText.includes('بطة') || feedbackText.includes('بطوطة')) return '🦆';
+    if (feedbackText.includes('قطة') || feedbackText.includes('قطقوطة')) return '🐱';
+    if (feedbackText.includes('فراشة') || feedbackText.includes('فرفوشة')) return '🦋';
+    if (feedbackText.includes('فراولة')) return '🍓';
+    if (feedbackText.includes('سكرة') || feedbackText.includes('بنبوناية')) return '🍬';
+    if (feedbackText.includes('عسولة') || feedbackText.includes('عسلية')) return '🍯';
+    if (feedbackText.includes('قمر')) return '🌙';
+    if (feedbackText.includes('نجمة')) return '🌟';
+    if (feedbackText.includes('وردة')) return '🌷';
+    if (feedbackText.includes('أميرة')) return '👑';
+    if (feedbackText.includes('غزالة')) return '🦌';
+    return isCorrect ? '💖' : '🐣';
+  } else {
+    return isCorrect ? '🏆' : '💡';
+  }
+};
+
 export const parseQuizMarkdown = (md: string): QuizQuestion[] => {
   const questions: QuizQuestion[] = [];
   const sections = md.split(/(?=^###?\s+(?:Question|السؤال)\s+\d+)/m);

@@ -300,3 +300,55 @@ html.modal-open {
   box-shadow: 0 4px 14px -2px rgba(245, 158, 11, 0.25);
 }
 
+/* Creative Quiz Mascot Feedback & Reaction Animations */
+@keyframes quizMascotWiggle {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(-12deg) scale(1.12);
+  }
+  40% {
+    transform: rotate(10deg) scale(1.12);
+  }
+  60% {
+    transform: rotate(-6deg) scale(1.05);
+  }
+  80% {
+    transform: rotate(4deg) scale(1.02);
+  }
+}
+
+@keyframes quizGlowPulse {
+  0%, 100% {
+    box-shadow: 0 6px 24px -2px rgba(244, 63, 94, 0.16), 0 0 0 1px rgba(244, 63, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 10px 32px 2px rgba(244, 63, 94, 0.32), 0 0 0 2px rgba(244, 63, 94, 0.55);
+  }
+}
+
+@keyframes quizCorrectGlow {
+  0%, 100% {
+    box-shadow: 0 6px 24px -2px rgba(16, 185, 129, 0.16), 0 0 0 1px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 10px 32px 2px rgba(16, 185, 129, 0.32), 0 0 0 2px rgba(16, 185, 129, 0.55);
+  }
+}
+
+.quiz-reaction-wrong {
+  animation: quizGlowPulse 2.5s infinite ease-in-out;
+}
+
+.quiz-reaction-correct {
+  animation: quizCorrectGlow 2.5s infinite ease-in-out;
+}
+
+.quiz-mascot-icon {
+  animation: quizMascotWiggle 2.2s infinite ease-in-out;
+  display: inline-block;
+  transform-origin: center bottom;
+}
+
+
