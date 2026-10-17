@@ -471,6 +471,7 @@ export default function Home() {
   const [guideText, setGuideText] = useState<string>('');
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [downloadingAssetId, setDownloadingAssetId] = useState<number | string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
 
   // Audio Player State
@@ -868,24 +869,23 @@ export default function Home() {
     setPlaybackSpeed(speed);
   };
 
-  const handleDownloadStudyGuidePdf = async () => {
-    if (!studyGuideAsset || isGeneratingPdf) return;
-    setIsGeneratingPdf(true);
+  const handleDownloadFile = async (url: string, fallbackFilename: string, assetIdentifier: number | string) => {
+    if (downloadingAssetId !== null) return;
+    setDownloadingAssetId(assetIdentifier);
     setPdfError(null);
     try {
-      const pdfEndpoint = `/api/study-guides/${studyGuideAsset.id}/pdf`;
-      const fullUrl = getApiUrl(pdfEndpoint);
+      const fullUrl = getApiUrl(url);
       const res = await fetch(fullUrl);
       if (!res.ok) {
-        let errorMsg = 'تعذر إنشاء ملف PDF حالياً. يرجى المحاولة لاحقاً.';
+        let errorMsg = 'تعذر تحميل الملف حالياً. يرجى المحاولة لاحقاً.';
         try {
           const errData = await res.json();
           if (errData?.detail) errorMsg = errData.detail;
         } catch (_) {}
         throw new Error(errorMsg);
       }
-      const blob = await res.blob();
-      let filename = `study_guide_${studyGuideAsset.id}.pdf`;
+
+      let filename = fallbackFilename;
       const disposition = res.headers.get('Content-Disposition');
       if (disposition) {
         const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
@@ -900,20 +900,51 @@ export default function Home() {
           }
         }
       }
-      const blobUrl = window.URL.createObjectURL(blob);
+
+      if (!filename.toLowerCase().endsWith('.pdf')) {
+        filename = `${filename}.pdf`;
+      }
+
+      const blob = await res.blob();
+      const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+      const blobUrl = window.URL.createObjectURL(pdfBlob);
+
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = filename;
+      link.setAttribute('download', filename);
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
+
+      // Keep blob URL alive for 60 seconds so browser download manager finishes saving without revoking early
+      setTimeout(() => {
+        try {
+          if (document.body.contains(link)) {
+            document.body.removeChild(link);
+          }
+          window.URL.revokeObjectURL(blobUrl);
+        } catch (_) {}
+      }, 60000);
     } catch (err: any) {
-      console.error('Study guide PDF download error:', err);
-      setPdfError(err.message || 'حدث خطأ أثناء تحميل دليل الدراسة PDF');
+      console.error('File download error:', err);
+      // Fallback: trigger direct window open
+      try {
+        const directUrl = getApiUrl(url);
+        window.open(directUrl, '_blank', 'noopener,noreferrer');
+      } catch (_) {
+        setPdfError(err.message || 'حدث خطأ أثناء تحميل الملف');
+      }
     } finally {
-      setIsGeneratingPdf(false);
+      setDownloadingAssetId(null);
     }
+  };
+
+  const handleDownloadStudyGuidePdf = () => {
+    if (!studyGuideAsset || downloadingAssetId !== null) return;
+    const defaultName = activeBundle
+      ? `المحاضرة ${activeBundle.lecture_num} - ملخص المذاكرة والزتونة.pdf`
+      : `study_guide_${studyGuideAsset.id}.pdf`;
+    handleDownloadFile(`/api/study-guides/${studyGuideAsset.id}/pdf`, defaultName, 'study-guide');
   };
 
   const formatTime = (timeInSeconds: number) => {
@@ -1699,14 +1730,14 @@ export default function Home() {
                 <div className="flex items-stretch sm:items-center gap-2 flex-wrap">
                   {sortedOriginalPdfs.map((pdf) => {
                     const info = getOriginalPdfDetails(pdf, activeBundle.lecture_num);
+                    const isDownloading = downloadingAssetId === pdf.id;
                     return (
-                      <a
+                      <button
                         key={pdf.id}
-                        href={getApiUrl(info.downloadUrl)}
-                        download={info.suggestedFilename}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex-1 sm:flex-initial inline-flex items-center justify-between sm:justify-start gap-2.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-[1.01] active:scale-[0.99] ${
+                        type="button"
+                        onClick={() => handleDownloadFile(info.downloadUrl, info.suggestedFilename, pdf.id)}
+                        disabled={downloadingAssetId !== null}
+                        className={`flex-1 sm:flex-initial inline-flex items-center justify-between sm:justify-start gap-2.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed ${
                           info.isBook
                             ? 'hover:border-blue-500 bg-blue-500/5 hover:bg-blue-500/10 border-blue-500/20 text-blue-900 dark:text-blue-100'
                             : 'hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-100'
@@ -1737,14 +1768,20 @@ export default function Home() {
                         </div>
 
                         <div className="flex items-center gap-1.5 pl-0.5 shrink-0">
-                          {info.formattedSize && (
-                            <span className="text-[10px] font-mono opacity-65">
-                              ({info.formattedSize})
-                            </span>
+                          {isDownloading ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-amber-600 dark:text-amber-400" />
+                          ) : (
+                            <>
+                              {info.formattedSize && (
+                                <span className="text-[10px] font-mono opacity-65">
+                                  ({info.formattedSize})
+                                </span>
+                              )}
+                              <Download className="w-3.5 h-3.5 opacity-80 shrink-0" />
+                            </>
                           )}
-                          <Download className="w-3.5 h-3.5 opacity-80 shrink-0" />
                         </div>
-                      </a>
+                      </button>
                     );
                   })}
                 </div>
@@ -2482,10 +2519,10 @@ export default function Home() {
                           }}
                           title="تحميل ملخص المحاضرة بصيغة PDF"
                         >
-                          {isGeneratingPdf ? (
+                          {downloadingAssetId === 'study-guide' ? (
                             <>
                               <Loader2 className="w-4 h-4 animate-spin shrink-0 text-blue-600 dark:text-blue-400" />
-                              <span>جاري تجهيز الملف...</span>
+                              <span>جاري تجهيز وتحميل الملخص...</span>
                             </>
                           ) : (
                             <>
@@ -2529,14 +2566,14 @@ export default function Home() {
                       <div className="flex items-center gap-2 flex-wrap justify-end">
                         {sortedOriginalPdfs.map((pdf) => {
                           const info = getOriginalPdfDetails(pdf, activeBundle.lecture_num);
+                          const isDownloading = downloadingAssetId === pdf.id;
                           return (
-                            <a
+                            <button
                               key={pdf.id}
-                              href={getApiUrl(info.downloadUrl)}
-                              download={info.suggestedFilename}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-[1.01] active:scale-[0.99] ${
+                              type="button"
+                              onClick={() => handleDownloadFile(info.downloadUrl, info.suggestedFilename, pdf.id)}
+                              disabled={downloadingAssetId !== null}
+                              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed ${
                                 info.isBook
                                   ? 'hover:border-blue-500 bg-blue-500/5 hover:bg-blue-500/10 border-blue-500/20 text-blue-900 dark:text-blue-100'
                                   : 'hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-100'
@@ -2545,13 +2582,19 @@ export default function Home() {
                             >
                               <span>{info.badgeEmoji}</span>
                               <span>{info.title}</span>
-                              {info.formattedSize && (
-                                <span className="text-[10px] opacity-75 font-mono">
-                                  ({info.formattedSize})
-                                </span>
+                              {isDownloading ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-amber-600 dark:text-amber-400" />
+                              ) : (
+                                <>
+                                  {info.formattedSize && (
+                                    <span className="text-[10px] opacity-75 font-mono">
+                                      ({info.formattedSize})
+                                    </span>
+                                  )}
+                                  <Download className="w-3.5 h-3.5 opacity-80 shrink-0" />
+                                </>
                               )}
-                              <Download className="w-3.5 h-3.5 opacity-80 shrink-0" />
-                            </a>
+                            </button>
                           );
                         })}
                       </div>
