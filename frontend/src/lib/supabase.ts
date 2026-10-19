@@ -184,7 +184,11 @@ export async function getDirectSupabaseBundle(
 
   const l = list[0];
   const assets: SupabaseMediaAsset[] = (l.media_assets || []).map((a: any) => {
-    const hasTg = Boolean(a.telegram_file_id || a.telegram_message_id);
+    const isDirectUrl = Boolean(
+      a.local_file_path &&
+      (a.local_file_path.startsWith('http://') || a.local_file_path.startsWith('https://'))
+    );
+    const hasTg = Boolean(a.telegram_file_id || a.telegram_message_id || isDirectUrl);
     return {
       id: a.id,
       asset_type: a.asset_type,
@@ -194,7 +198,7 @@ export async function getDirectSupabaseBundle(
       telegram_file_id: a.telegram_file_id,
       telegram_message_id: a.telegram_message_id || null,
       content_text: a.content_text || null,
-      stream_url: `${fallbackBaseUrl}/api/stream/${a.id}`,
+      stream_url: isDirectUrl ? a.local_file_path : `${fallbackBaseUrl}/api/stream/${a.id}`,
       is_available: hasTg,
     };
   });

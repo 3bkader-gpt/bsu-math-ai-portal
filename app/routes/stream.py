@@ -7,7 +7,7 @@ from pathlib import Path
 logger = logging.getLogger("stream_router")
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from app.config import settings
 from app.db.database import get_db
@@ -111,6 +111,10 @@ async def stream_media_asset(
     if asset.content_text:
         headers = {"Content-Length": str(len(asset.content_text.encode('utf-8')))}
         return Response(content=b"" if is_head else asset.content_text.encode('utf-8'), media_type="text/plain; charset=utf-8", headers=headers)
+
+    # 1.1 Direct Remote Storage Redirect (e.g. Supabase Storage CDN)
+    if asset.local_file_path and (asset.local_file_path.startswith("http://") or asset.local_file_path.startswith("https://")):
+        return RedirectResponse(url=asset.local_file_path, status_code=307)
 
     local_path = Path(asset.local_file_path) if asset.local_file_path else None
 
