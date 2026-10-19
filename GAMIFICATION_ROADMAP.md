@@ -8,8 +8,19 @@
 
 ---
 
+## 🔒 Strict Quality Gate & CI/CD Protocol
+Every task, feature, or code modification in this roadmap must adhere strictly to the following 5-step loop:
+1. **Implement Feature/Fix:** Write modular, typed code adhering strictly to the phase checklist.
+2. **Local Validation:** Run `npm run typecheck` and `npm run build` locally in `frontend/` (0 errors required).
+3. **Verification Test:** Verify functionality and edge cases with automated tests or scripts.
+4. **Atomic Conventional Commit & Push:** Commit with clear semantic prefix (`feat:`, `fix:`, `refactor:`) and push to `main`.
+5. **CI Gate & Auto-Deploy:** GitHub Actions CI (`.github/workflows/ci.yml`) validates the build on Ubuntu; Cloudflare Pages deploys to production. Check off the completed subtask in this document.
+
+---
+
 ## 🗺️ Master Progress Tracker
 
+- [x] **Phase 0: Baseline Freeze (`v1.0.0-stable`) & CI/CD Quality Gate Setup**
 - [ ] **Phase 1: Event Bus & Pure Core Engine (Contracts & Testing)**
 - [ ] **Phase 2: Supabase Architecture, Anonymous Auth & RPC Ingestion**
 - [ ] **Phase 3: State Management, IndexedDB Outbox & Gamification Host**
