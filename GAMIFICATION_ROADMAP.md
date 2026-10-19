@@ -21,7 +21,7 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 ## 🗺️ Master Progress Tracker
 
 - [x] **Phase 0: Baseline Freeze (`v1.0.0-stable`) & CI/CD Quality Gate Setup**
-- [ ] **Phase 1: Event Bus & Pure Core Engine (Contracts & Testing)**
+- [x] **Phase 1: Event Bus & Pure Core Engine (Contracts & Testing)**
 - [ ] **Phase 2: Supabase Architecture, Anonymous Auth & RPC Ingestion**
 - [ ] **Phase 3: State Management, IndexedDB Outbox & Gamification Host**
 - [ ] **Phase 4: Telemetry Detectors & Content Modalities Integration**
@@ -35,17 +35,17 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 ### 🔷 Phase 1: Event Bus & Pure Core Engine
 > **Goal:** Create the single source of truth for events, game rules, and pure domain math without touching React or network calls.
 
-- [ ] **1.1 Shared Events Contract (`src/shared/events/types.ts`)**
+- [x] **1.1 Shared Events Contract (`src/shared/events/types.ts`)**
   - Define `AppEvents` map (`media.progress`, `quiz.finished`, `flashcard.flipped`, `lecture.completed`, `study_guide.read`).
   - Define `EffectEvent` map (`xp.gained`, `level.up`, `streak.updated`, `badge.unlocked`, `confetti.trigger`, `sound.play`).
   - Add standardized event metadata (`eventId: uuid`, `timestamp: number`, `lectureId: number`).
 
-- [ ] **1.2 Buffered Event Bus (`src/shared/events/bus.ts`)**
+- [x] **1.2 Buffered Event Bus (`src/shared/events/bus.ts`)**
   - Implement a lightweight (~35 LOC) zero-dependency pub/sub bus.
   - Implement **Event Buffering Queue**: If listeners (Gamification Engine) are not yet loaded or initialized, buffer emitted events and flush them once registered.
   - Export singleton `eventBus` and helper `createEventBus<T>()`.
 
-- [ ] **1.3 Gamification Rules Configuration (`src/config/gamification-rules.ts`)**
+- [x] **1.3 Gamification Rules Configuration (`src/config/gamification-rules.ts`)**
   - Define XP gain table:
     - Audio podcast: +5 XP per 5 min, +25 XP on completion.
     - Video explainer: +10 XP per 5 min, +35 XP on completion.
@@ -61,14 +61,14 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
     - *"محارب الشلل"* (Maintained a 3-day active streak).
     - *"ختم المنهج"* (Finished an entire subject).
 
-- [ ] **1.4 Pure Core Logic Engine (`src/modules/gamification/core/`)**
+- [x] **1.4 Pure Core Logic Engine (`src/modules/gamification/core/`)**
   - `types.ts`: Define domain models (`GamificationState`, `StreakData`, `AchievementRecord`).
   - `xp.ts`: Pure functions for XP addition, level progression calculation, and daily XP cap guards.
   - `streak.ts`: Streak progression calculation, streak preservation, and freeze token mechanics.
   - `achievements.ts`: Check achievement criteria against current state & incoming events.
   - `reducer.ts`: Pure root reducer `processEvent(currentState, event) => { nextState, effects[] }`.
 
-- [ ] **1.5 Unit Test Suite (`tests/gamification/core.test.ts`)**
+- [x] **1.5 Unit Test Suite (`tests/gamification/core.test.ts`)**
   - Test XP additions & level transitions.
   - Test perfect quiz handling and confetti trigger effect output.
   - Test streak calculation boundary conditions.
