@@ -74,7 +74,7 @@ export function GamificationInitializer() {
           level >= 1 &&
           state.unlockedBadges.length > 0 &&
           state.currentStreak >= 1 &&
-          emittedEffects.includes('xp.awarded') &&
+          emittedEffects.includes('xp.gained') &&
           emittedEffects.includes('badge.unlocked');
 
         return {
