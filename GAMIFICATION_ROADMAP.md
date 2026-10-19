@@ -23,7 +23,7 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 - [x] **Phase 0: Baseline Freeze (`v1.0.0-stable`) & CI/CD Quality Gate Setup**
 - [x] **Phase 1: Event Bus & Pure Core Engine (Contracts & Testing)**
 - [x] **Phase 2: Supabase Architecture, Anonymous Auth & RPC Ingestion**
-- [ ] **Phase 3: State Management, IndexedDB Outbox & Gamification Host**
+- [x] **Phase 3: State Management, IndexedDB Outbox & Gamification Host**
 - [ ] **Phase 4: Telemetry Detectors & Content Modalities Integration**
 - [ ] **Phase 5: KaTeX Performance Optimization & Zero-Lag Guard**
 - [ ] **Phase 6: Audio Sprite, Micro-Interactions, Badges & Cohort Leaderboard**
@@ -120,22 +120,22 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 ### 🔷 Phase 3: State Management, IndexedDB Outbox & Gamification Host
 > **Goal:** Enable optimistic instant UI updates with asynchronous, fault-tolerant offline persistence.
 
-- [ ] **3.1 IndexedDB Storage Engine (`src/modules/gamification/sync/idb.ts`)**
+- [x] **3.1 IndexedDB Storage Engine (`src/modules/gamification/sync/idb.ts`)**
   - Integrate lightweight `idb-keyval` for persistent outbox queue (avoiding main-thread blocking and 5MB LocalStorage limits).
   - Outbox structure: array of serialized events with retry counts and timestamps.
 
-- [ ] **3.2 Zustand Store (`src/modules/gamification/store/useGamificationStore.ts`)**
+- [x] **3.2 Zustand Store (`src/modules/gamification/store/useGamificationStore.ts`)**
   - Define state: `totalXp`, `level`, `currentStreak`, `achievements`, `pendingEventsCount`, `dailyActivity`.
   - Configure `skipHydration: true` to prevent Next.js SSR hydration mismatches.
   - Provide atomic selectors (e.g., `useXP()`, `useStreak()`, `useBadges()`) to guarantee fine-grained reactivity.
 
-- [ ] **3.3 Outbox & Batch Synchronization (`src/modules/gamification/sync/outbox.ts`)**
+- [x] **3.3 Outbox & Batch Synchronization (`src/modules/gamification/sync/outbox.ts`)**
   - Batch event flushing every 15–30 seconds.
   - Drain outbox on `visibilitychange: hidden` using `navigator.sendBeacon` for zero data loss on tab close.
   - Handle network disconnection gracefully (keep events in IndexedDB until online).
   - Reconcile local state with authoritative server response.
 
-- [ ] **3.4 Isolated Gamification Island (`src/modules/gamification/ui/GamificationHost.tsx`)**
+- [x] **3.4 Isolated Gamification Island (`src/modules/gamification/ui/GamificationHost.tsx`)**
   - Mount `<GamificationHost />` in `src/app/layout.tsx`.
   - Lazy load the entire gamification module post-hydration via `requestIdleCallback`.
   - Listen to `effectBus` to trigger sounds, toasts, and modals imperatively without causing page re-renders.

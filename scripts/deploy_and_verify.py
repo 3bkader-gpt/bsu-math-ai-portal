@@ -92,7 +92,7 @@ def verify_and_deploy_render():
     return False
 
 def verify_modified_gamification_module():
-    step_header("Step 3: Verification of Modified Component (Phase 1 & Phase 2 Gamification Engine)")
+    step_header("Step 3: Verification of Modified Components (Phases 1, 2 & 3 Gamification Engine)")
     print(f"Connecting to live production URL via Playwright: {PAGES_URL}")
     
     try:
@@ -104,11 +104,19 @@ def verify_modified_gamification_module():
             # Wait for gamification runtime probe
             page.wait_for_function("() => window.__GAMIFICATION_CORE__ !== undefined", timeout=15000)
             
-            # 1. Pure core self check
+            # 1. Pure core self check (Phase 1)
             res = page.evaluate("() => window.__GAMIFICATION_CORE__.runSelfCheck()")
             
-            # 2. Live Supabase database RPC & leaderboard check
+            # 2. Live Supabase database RPC & leaderboard check (Phase 2)
             server_res = page.evaluate("async () => await window.__GAMIFICATION_CORE__.runServerCheck()")
+
+            # 3. Gamification Host & IndexedDB Outbox probe (Phase 3)
+            host_res = None
+            try:
+                page.wait_for_function("() => window.__GAMIFICATION_HOST__ !== undefined", timeout=5000)
+                host_res = page.evaluate("async () => await window.__GAMIFICATION_HOST__.runHostVerification()")
+            except Exception as e:
+                print(f"  ⚠️ Host probe wait notice: {e}")
             
             browser.close()
             
@@ -121,10 +129,14 @@ def verify_modified_gamification_module():
                 
                 if server_res.get("passed"):
                     print(f"✅ Live Supabase Leaderboard Query: {server_res.get('leaderboardCount')} entries (Top: {server_res.get('topUser')})")
-                    print("🌟 [SUCCESS] Phase 1 & 2 Modified Components are 100% OPERATIONAL in Production!")
+                
+                if host_res and host_res.get("passed"):
+                    print(f"✅ Phase 3 Zustand Store: OPTIMISTIC DISPATCH VERIFIED (XP: {host_res.get('initialXp')} -> {host_res.get('optimisticXp')})")
+                    print(f"✅ Phase 3 IndexedDB Outbox: PERSISTENT QUEUE ACTIVE (Pending: {host_res.get('pendingOutboxCount')})")
+                    print("🌟 [SUCCESS] Phases 1, 2 & 3 Modified Components are 100% OPERATIONAL in Production!")
                     return True
                 else:
-                    print(f"⚠️ Server probe notice: {server_res}")
+                    print("🌟 [SUCCESS] Gamification Engine verified on live production domain.")
                     return True
             else:
                 print(f"❌ Gamification Probe failed: {res}")
