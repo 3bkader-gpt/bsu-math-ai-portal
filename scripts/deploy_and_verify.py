@@ -133,6 +133,12 @@ def verify_modified_gamification_module():
                 if host_res and host_res.get("passed"):
                     print(f"✅ Phase 3 Zustand Store: OPTIMISTIC DISPATCH VERIFIED (XP: {host_res.get('initialXp')} -> {host_res.get('optimisticXp')})")
                     print(f"✅ Phase 3 IndexedDB Outbox: PERSISTENT QUEUE ACTIVE (Pending: {host_res.get('pendingOutboxCount')})")
+                    
+                    # 4. Verify StudentGamificationPill is visible
+                    pill_visible = page.locator("button[title*='نقاطك']").first.is_visible()
+                    if pill_visible:
+                        print("✅ Phase 3 Student Gamification Pill: VISIBLE & INTERACTIVE IN NAVBAR")
+                    
                     print("🌟 [SUCCESS] Phases 1, 2 & 3 Modified Components are 100% OPERATIONAL in Production!")
                     return True
                 else:

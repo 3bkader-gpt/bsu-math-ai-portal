@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
+import { StudentGamificationPill } from '@/components/gamification/StudentGamificationPill';
 import content from '@/data/content.json';
 import { 
   Sparkles, 
@@ -687,6 +688,7 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <StudentGamificationPill isGirls={isGirls} isDark={isDark} />
             <ThemeToggle />
           </div>
         </div>
