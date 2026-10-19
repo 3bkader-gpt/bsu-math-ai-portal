@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import AsyncGenerator
 from telethon import TelegramClient
-from telethon.sessions import StringSession
+from telethon.sessions import StringSession, MemorySession
 from app.config import settings
 
 logger = logging.getLogger("TelethonStreamService")
@@ -27,15 +27,15 @@ class TelethonStreamService:
             if self.client and self.client.is_connected():
                 return self.client
 
-            # Priority 1: Persistent Bot Token Authentication (Rock solid, immune to session revocation)
+            # Priority 1: Persistent Bot Token Authentication (MemorySession, immune to file corruption and session revocation)
             if settings.TELEGRAM_BOT_TOKEN:
                 try:
-                    self.client = TelegramClient("telethon_bot_streamer", self.api_id, self.api_hash)
+                    self.client = TelegramClient(MemorySession(), self.api_id, self.api_hash)
                     await self.client.start(bot_token=settings.TELEGRAM_BOT_TOKEN)
                     logger.info("Telethon bot client connected and authorized successfully via bot token.")
                     return self.client
                 except Exception as e:
-                    logger.warning(f"Bot token start failed: {e}, falling back to session string...")
+                    logger.error(f"Bot token start failed: {e}, falling back to session string...", exc_info=True)
 
             # Priority 2: StringSession fallback
             session = StringSession(self.session_str) if self.session_str else "academic_telethon"
