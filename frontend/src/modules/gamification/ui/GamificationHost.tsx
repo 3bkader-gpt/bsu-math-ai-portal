@@ -75,9 +75,8 @@ export function GamificationHost() {
       useGamificationStore.getState().dispatchAppEvent(event);
     };
 
-    // Listen to all raw and derived application events
+    // Listen to milestone and educational activity events (excluding raw telemetry heartbeats)
     const eventTypes = [
-      'media.progress',
       'media.completed',
       'audio.streak_5min',
       'video.streak_5min',

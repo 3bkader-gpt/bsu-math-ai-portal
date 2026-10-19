@@ -1,7 +1,7 @@
 import { GAMIFICATION_CONFIG, BadgeDefinition } from '@/config/gamification-rules';
 import { AppEvent, GamificationEffect } from '@/shared/events/types';
 import { createEffect } from '@/shared/events/bus';
-import { GamificationState } from './types';
+import { GamificationState, isCompletedActivity } from './types';
 
 /**
  * Pure function: Evaluates state and incoming event to check if any new badge is unlocked.
@@ -33,14 +33,16 @@ export function evaluateAchievements(
             icon: def.icon,
           })
         );
-        effects.push(createEffect('sound.play', { sound: 'success' }));
+        effects.push(createEffect('sound.play', { sound: 'badge_unlock' }));
         effects.push(createEffect('confetti.trigger', { intensity: 'medium' }));
       }
     }
   };
 
-  // 1. "أول الغيث" - First step
-  unlock('first_step');
+  // 1. "أول الغيث" - First step (Awarded strictly on first completed educational activity)
+  if (isCompletedActivity(event)) {
+    unlock('first_step');
+  }
 
   // 2. Streaks (streak_3, streak_7)
   if (state.currentStreak >= 3) {

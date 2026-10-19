@@ -1,6 +1,6 @@
 import { GAMIFICATION_CONFIG } from '@/config/gamification-rules';
 import { AppEvent, GamificationEffect } from '@/shared/events/types';
-import { GamificationState, ReducerResult } from './types';
+import { GamificationState, ReducerResult, isCompletedActivity } from './types';
 import { applyXpGain } from './xp';
 import { evaluateDailyStreak, getCairoDate } from './streak';
 import { evaluateAchievements } from './achievements';
@@ -17,26 +17,29 @@ export function processGamificationEvent(
 ): ReducerResult {
   const allEffects: GamificationEffect[] = [];
   const currentCairoDate = getCairoDate(event.meta.timestamp);
+  let workingState = state;
 
-  // 1. Evaluate Daily Streak
-  const streakResult = evaluateDailyStreak(state, event.meta.timestamp);
-  let workingState = streakResult.nextState;
-  allEffects.push(...streakResult.effects);
+  // 1. Evaluate Daily Streak ONLY on verified completed activity
+  if (isCompletedActivity(event)) {
+    const streakResult = evaluateDailyStreak(workingState, event.meta.timestamp);
+    workingState = streakResult.nextState;
+    allEffects.push(...streakResult.effects);
 
-  // If streak was extended today, award daily streak XP bonus
-  if (streakResult.streakExtended && streakResult.isNewDay) {
-    const streakBonus = Math.min(
-      workingState.currentStreak * GAMIFICATION_CONFIG.xp.streakDailyBonusFactor,
-      GAMIFICATION_CONFIG.xp.maxStreakBonus
-    );
-    const xpRes = applyXpGain(
-      workingState,
-      streakBonus,
-      `مكافأة الاستمرار اليومي (${workingState.currentStreak} أيام)`,
-      currentCairoDate
-    );
-    workingState = xpRes.nextState;
-    allEffects.push(...xpRes.effects);
+    // If streak was extended today, award daily streak XP bonus
+    if (streakResult.streakExtended && streakResult.isNewDay) {
+      const streakBonus = Math.min(
+        workingState.currentStreak * GAMIFICATION_CONFIG.xp.streakDailyBonusFactor,
+        GAMIFICATION_CONFIG.xp.maxStreakBonus
+      );
+      const xpRes = applyXpGain(
+        workingState,
+        streakBonus,
+        `مكافأة الاستمرار اليومي (${workingState.currentStreak} أيام)`,
+        currentCairoDate
+      );
+      workingState = xpRes.nextState;
+      allEffects.push(...xpRes.effects);
+    }
   }
 
   // 2. Process XP and Action Metrics based on Event Type
@@ -138,7 +141,7 @@ export function processGamificationEvent(
     }
 
     case 'study_guide.read': {
-      if (event.payload.dwellSec >= 180) {
+      if (event.payload.dwellSec >= 60) {
         const xpRes = applyXpGain(
           workingState,
           GAMIFICATION_CONFIG.xp.studyGuideDwell,

@@ -114,7 +114,7 @@ export interface GamificationEffects {
     intensity: 'subtle' | 'medium' | 'epic';
   };
   'sound.play': {
-    sound: 'success' | 'level_up' | 'streak_fire' | 'xp_chime';
+    sound: 'badge_unlock' | 'level_up' | 'streak_fire' | 'xp_chime' | 'quiz_correct' | 'success';
   };
 }
 

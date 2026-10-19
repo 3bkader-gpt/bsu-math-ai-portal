@@ -199,6 +199,8 @@ function LectureContent() {
           lectureId: bundle.lecture_num,
           kind: 'video',
         });
+        quizDetectorRef.current = createQuizDetector(bundle.lecture_num);
+        flashcardDetectorRef.current = createFlashcardDetector(bundle.lecture_num);
 
         // Resolve subject name if not embedded
         if (bundle.subject_name) {
@@ -217,12 +219,18 @@ function LectureContent() {
         const quizAsset = bundle.assets?.find((a) => a.asset_type === 'quiz_md');
         if (quizAsset) {
           if (quizAsset.content_text) {
-            setQuizQuestions(parseQuizMarkdown(quizAsset.content_text));
+            const parsed = parseQuizMarkdown(quizAsset.content_text);
+            setQuizQuestions(parsed);
+            quizDetectorRef.current?.setTotalQuestions(parsed.length);
           } else if (quizAsset.stream_url) {
             fetch(getApiUrl(quizAsset.stream_url))
               .then((r) => r.text())
               .then((text) => {
-                if (isMounted) setQuizQuestions(parseQuizMarkdown(text));
+                if (isMounted) {
+                  const parsed = parseQuizMarkdown(text);
+                  setQuizQuestions(parsed);
+                  quizDetectorRef.current?.setTotalQuestions(parsed.length);
+                }
               })
               .catch(console.error);
           }
@@ -247,12 +255,18 @@ function LectureContent() {
         const cardsAsset = bundle.assets?.find((a) => a.asset_type === 'flashcards_md');
         if (cardsAsset) {
           if (cardsAsset.content_text) {
-            setFlashcards(parseFlashcardsMarkdown(cardsAsset.content_text));
+            const parsed = parseFlashcardsMarkdown(cardsAsset.content_text);
+            setFlashcards(parsed);
+            flashcardDetectorRef.current?.setTotalCards(parsed.length);
           } else if (cardsAsset.stream_url) {
             fetch(getApiUrl(cardsAsset.stream_url))
               .then((r) => r.text())
               .then((text) => {
-                if (isMounted) setFlashcards(parseFlashcardsMarkdown(text));
+                if (isMounted) {
+                  const parsed = parseFlashcardsMarkdown(text);
+                  setFlashcards(parsed);
+                  flashcardDetectorRef.current?.setTotalCards(parsed.length);
+                }
               })
               .catch(console.error);
           }

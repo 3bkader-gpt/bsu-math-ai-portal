@@ -181,5 +181,45 @@ describe('Gamification Engine - Phase 1 Verification', () => {
       expect(result.state.unlockedBadges).toContain('five_of_five');
       expect(result.state.lecturesCompletedCount).toBe(1);
     });
+
+    it('REGRESSION GUARD: media.progress on playback start must NOT grant XP, streak, or first_step badge', () => {
+      const state = createInitialGamificationState('student-fresh');
+      const progressEvent = createAppEvent('media.progress', {
+        kind: 'audio',
+        lectureId: 1,
+        currentSec: 0,
+        totalSec: 1200,
+      });
+
+      const result = processGamificationEvent(state, progressEvent);
+
+      // Must be 100% clean - 0 XP, 0 streak, 0 badges, 0 sound/confetti
+      expect(result.state.totalXp).toBe(0);
+      expect(result.state.currentStreak).toBe(0);
+      expect(result.state.lastActiveDate).toBeNull();
+      expect(result.state.unlockedBadges).toHaveLength(0);
+      expect(result.effects).toHaveLength(0);
+    });
+
+    it('media.completed awards completion XP, extends daily streak, and unlocks "أول الغيث"', () => {
+      const state = createInitialGamificationState('student-fresh');
+      const completedEvent = createAppEvent('media.completed', {
+        kind: 'audio',
+        lectureId: 1,
+        durationSec: 1200,
+      });
+
+      const result = processGamificationEvent(state, completedEvent);
+
+      // Audio (25) + Daily Streak Bonus (10) = 35 XP
+      expect(result.state.totalXp).toBe(35);
+      expect(result.state.currentStreak).toBe(1);
+      expect(result.state.unlockedBadges).toContain('first_step');
+
+      const effectTypes = result.effects.map((e) => e.type);
+      expect(effectTypes).toContain('xp.gained');
+      expect(effectTypes).toContain('badge.unlocked');
+      expect(effectTypes).toContain('sound.play');
+    });
   });
 });
