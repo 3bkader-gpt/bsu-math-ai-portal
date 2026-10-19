@@ -51,6 +51,12 @@ import {
   downloadPdfFile,
   isAssetStorageAvailable,
 } from '@/lib/lecture-utils';
+import {
+  createMediaDetector,
+  createQuizDetector,
+  createFlashcardDetector,
+  trackStudyGuideRead,
+} from '@/modules/telemetry';
 
 function LectureLoadingSkeleton() {
   return (
@@ -140,6 +146,12 @@ function LectureContent() {
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
+  // Telemetry Detector Refs
+  const audioDetectorRef = useRef<ReturnType<typeof createMediaDetector> | null>(null);
+  const videoDetectorRef = useRef<ReturnType<typeof createMediaDetector> | null>(null);
+  const quizDetectorRef = useRef<ReturnType<typeof createQuizDetector> | null>(null);
+  const flashcardDetectorRef = useRef<ReturnType<typeof createFlashcardDetector> | null>(null);
+
   // Load Lecture Bundle on mount or ID change
   useEffect(() => {
     if (!lectureIdParam) {
@@ -176,9 +188,17 @@ function LectureContent() {
           throw new Error('لم يتم العثور على بيانات المحاضرة.');
         }
 
-        if (!isMounted) return;
-
         setLectureBundle(bundle);
+
+        // Initialize Telemetry Detectors
+        audioDetectorRef.current = createMediaDetector({
+          lectureId: bundle.lecture_num,
+          kind: 'audio',
+        });
+        videoDetectorRef.current = createMediaDetector({
+          lectureId: bundle.lecture_num,
+          kind: 'video',
+        });
 
         // Resolve subject name if not embedded
         if (bundle.subject_name) {
@@ -256,6 +276,25 @@ function LectureContent() {
       }
     };
   }, [lectureIdParam]);
+
+  // Synchronize Quiz and Flashcard Detectors
+  useEffect(() => {
+    if (lectureBundle && quizQuestions.length > 0) {
+      quizDetectorRef.current = createQuizDetector(
+        lectureBundle.lecture_num,
+        quizQuestions.length
+      );
+    }
+  }, [lectureBundle?.lecture_num, quizQuestions.length]);
+
+  useEffect(() => {
+    if (lectureBundle && flashcards.length > 0) {
+      flashcardDetectorRef.current = createFlashcardDetector(
+        lectureBundle.lecture_num,
+        flashcards.length
+      );
+    }
+  }, [lectureBundle?.lecture_num, flashcards.length]);
 
   // Audio Controls
   const togglePlay = () => {
@@ -691,12 +730,23 @@ function LectureContent() {
                     ref={audioRef}
                     src={getApiUrl(audioAsset.stream_url)}
                     onTimeUpdate={() => {
-                      if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+                      if (audioRef.current) {
+                        const cur = audioRef.current.currentTime;
+                        setCurrentTime(cur);
+                        audioDetectorRef.current?.onTimeUpdate(cur);
+                      }
                     }}
                     onLoadedMetadata={() => {
-                      if (audioRef.current) setDuration(audioRef.current.duration);
+                      if (audioRef.current) {
+                        const dur = audioRef.current.duration;
+                        setDuration(dur);
+                        audioDetectorRef.current?.setDuration(dur);
+                      }
                     }}
-                    onEnded={() => setIsPlaying(false)}
+                    onEnded={() => {
+                      setIsPlaying(false);
+                      audioDetectorRef.current?.onEnded();
+                    }}
                     onError={(e) => console.error('Audio playback error:', e)}
                   />
 
@@ -869,6 +919,15 @@ function LectureContent() {
                     preload="metadata"
                     src={getApiUrl(videoAsset.stream_url)}
                     className="w-full max-h-[580px] bg-black"
+                    onLoadedMetadata={(e) => {
+                      videoDetectorRef.current?.setDuration(e.currentTarget.duration);
+                    }}
+                    onTimeUpdate={(e) => {
+                      videoDetectorRef.current?.onTimeUpdate(e.currentTarget.currentTime);
+                    }}
+                    onEnded={() => {
+                      videoDetectorRef.current?.onEnded();
+                    }}
                   >
                     {content.videoTab.unsupported}
                   </video>
@@ -1025,6 +1084,7 @@ function LectureContent() {
                               setUserAnswers({});
                               setShowHints({});
                               setScore(null);
+                              quizDetectorRef.current?.reset();
                               // Dynamic Shuffle
                               setQuizQuestions((prev) =>
                                 prev.map((q) => {
@@ -1329,6 +1389,8 @@ function LectureContent() {
                                 onClick={() => {
                                   const next = { ...userAnswers, [qIdx]: optIdx };
                                   setUserAnswers(next);
+                                  quizDetectorRef.current?.onAnswerSelected(qIdx, optIdx);
+
                                   let correctCount = 0;
                                   Object.entries(next).forEach(([idx, chosen]) => {
                                     if (quizQuestions[parseInt(idx)]?.correctIndex === chosen) {
@@ -1336,6 +1398,10 @@ function LectureContent() {
                                     }
                                   });
                                   setScore(correctCount);
+
+                                  if (Object.keys(next).length === quizQuestions.length) {
+                                    quizDetectorRef.current?.submitQuiz(correctCount, quizQuestions.length);
+                                  }
                                 }}
                                 style={optStyle}
                                 className="w-full min-h-[56px] sm:min-h-[66px] p-4 sm:p-5 rounded-2xl border text-right transition-all flex items-center justify-between gap-4 text-sm sm:text-lg leading-relaxed cursor-pointer shadow-xs hover:border-blue-400 active:scale-[0.99]"
@@ -1466,7 +1532,14 @@ function LectureContent() {
                 }}
                 className="p-6 sm:p-10 rounded-3xl border"
               >
-                <StudyGuideViewer content={guideText} />
+                <StudyGuideViewer
+                  content={guideText}
+                  onDwell={(dwellSec) => {
+                    if (dwellSec === 60 && lectureBundle) {
+                      trackStudyGuideRead(lectureBundle.lecture_num, 60);
+                    }
+                  }}
+                />
               </div>
             </div>
           )}
@@ -1482,7 +1555,12 @@ function LectureContent() {
                 }}
                 className="p-6 sm:p-10 rounded-3xl border"
               >
-                <FlashcardsViewer cards={flashcards} />
+                <FlashcardsViewer
+                  cards={flashcards}
+                  onCardFlipped={(cardIdx) => {
+                    flashcardDetectorRef.current?.onCardFlipped(cardIdx);
+                  }}
+                />
               </div>
             </div>
           )}

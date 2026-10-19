@@ -12,18 +12,29 @@ interface Flashcard {
 
 interface FlashcardsViewerProps {
   cards: Flashcard[];
+  onCardFlipped?: (cardIndex: number) => void;
 }
 
-export function FlashcardsViewer({ cards }: FlashcardsViewerProps) {
+export function FlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+
+  const toggleFlip = () => {
+    setIsFlipped((prev) => {
+      const next = !prev;
+      if (next && onCardFlipped) {
+        onCardFlipped(currentIndex);
+      }
+      return next;
+    });
+  };
 
   // Keyboard navigation support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        setIsFlipped((prev) => !prev);
+        toggleFlip();
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         handleNext();
@@ -106,7 +117,7 @@ export function FlashcardsViewer({ cards }: FlashcardsViewerProps) {
       {/* Interactive Card */}
       <div
         id="flashcard-card-box"
-        onClick={() => setIsFlipped(!isFlipped)}
+        onClick={toggleFlip}
         className="w-full min-h-[260px] sm:min-h-[340px] cursor-pointer select-none group"
       >
         <div
