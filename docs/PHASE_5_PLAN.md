@@ -27,17 +27,17 @@
 ## 📋 Granular Subtasks
 
 ### Subtask 5.1: High-Performance MathRenderer with Memoization & String Cache
-- [ ] Implement `katexCache` map in `src/components/MathRenderer.tsx`.
-- [ ] Memoize `MathRenderer` component with `React.memo`.
-- [ ] Add error boundary fallback (`throwOnError: false`).
+- [x] Implement `katexCache` map in `src/components/MathRenderer.tsx`.
+- [x] Memoize `MathRenderer` component with `React.memo`.
+- [x] Add error boundary fallback (`throwOnError: false`).
 
 ### Subtask 5.2: Study Guide & Flashcards KaTeX Isolation
-- [ ] Verify `StudyGuideViewer` table and text parser uses cached math rendering.
-- [ ] Ensure card flipping animation in `FlashcardsViewer` runs purely via CSS 3D transforms (`rotateY`) on GPU without re-running KaTeX parsing.
+- [x] Verify `StudyGuideViewer` table and text parser uses cached math rendering.
+- [x] Ensure card flipping animation in `FlashcardsViewer` runs purely via CSS 3D transforms (`rotateY`) on GPU without re-running KaTeX parsing.
 
 ### Subtask 5.3: Automated Verification & Quality Gate
-- [ ] Benchmark KaTeX memoization with Vitest unit tests.
-- [ ] Run full 5-step Quality Gate:
+- [x] Benchmark KaTeX memoization with Vitest unit tests.
+- [x] Run full 5-step Quality Gate:
   - `npm run typecheck`, `npm test`, `npm run build`.
   - Atomic commit & push.
   - Deploy via Wrangler CLI & verify Render CLI.

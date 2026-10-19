@@ -15,7 +15,7 @@ interface FlashcardsViewerProps {
   onCardFlipped?: (cardIndex: number) => void;
 }
 
-export function FlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerProps) {
+export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -208,5 +208,15 @@ export function FlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerProps
     </div>
   );
 }
+
+export const FlashcardsViewer = React.memo(
+  RawFlashcardsViewer,
+  (prev, next) => {
+    return (
+      prev.cards === next.cards &&
+      prev.onCardFlipped === next.onCardFlipped
+    );
+  }
+);
 
 export default FlashcardsViewer;

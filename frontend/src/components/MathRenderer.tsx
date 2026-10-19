@@ -10,25 +10,73 @@ const KATEX_MACROS: Record<string, string> = {
   "\\underlineb": "\\underline{b}",
 };
 
+// Global High-Capacity String Cache for rendered KaTeX HTML (Zero-Lag Engine)
+const MAX_CACHE_SIZE = 2500;
+const katexRenderCache = new Map<string, string>();
+
+/**
+ * Renders a LaTeX formula to HTML using KaTeX, backed by an in-memory string cache.
+ * Guarantees that identical math formulas are parsed and converted to HTML at most ONCE.
+ */
+export function renderKaTeXCached(formula: string, isBlock: boolean): string {
+  const cacheKey = `${isBlock ? 'B:' : 'I:'}${formula}`;
+  const cached = katexRenderCache.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  try {
+    const html = katex.renderToString(formula, {
+      displayMode: isBlock,
+      throwOnError: false,
+      output: 'html',
+      macros: KATEX_MACROS,
+    });
+
+    if (katexRenderCache.size >= MAX_CACHE_SIZE) {
+      // Evict oldest 200 entries to prevent memory leaks
+      const keys = katexRenderCache.keys();
+      for (let i = 0; i < 200; i++) {
+        const key = keys.next().value;
+        if (key) katexRenderCache.delete(key);
+      }
+    }
+
+    katexRenderCache.set(cacheKey, html);
+    return html;
+  } catch {
+    return formula;
+  }
+}
+
+/**
+ * Returns current size of KaTeX render cache.
+ */
+export function getKaTeXCacheSize(): number {
+  return katexRenderCache.size;
+}
+
+/**
+ * Clears KaTeX render cache (useful for benchmarks and testing).
+ */
+export function clearKaTeXCache(): void {
+  katexRenderCache.clear();
+}
+
 interface MathRendererProps {
   text: string;
   className?: string;
   block?: boolean;
 }
 
-export function MathRenderer({ text, className = '', block = false }: MathRendererProps) {
+export function RawMathRenderer({ text, className = '', block = false }: MathRendererProps) {
   const renderedContent = useMemo(() => {
     if (!text) return null;
 
     // Explicit block mode with pure formula
     if (block && !text.includes('$')) {
       try {
-        const html = katex.renderToString(text.trim(), {
-          displayMode: true,
-          throwOnError: false,
-          output: 'html',
-          macros: KATEX_MACROS,
-        });
+        const html = renderKaTeXCached(text.trim(), true);
         return (
           <div
             dir="ltr"
@@ -101,12 +149,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
         const formula = isBlock ? raw.slice(2, -2).trim() : raw.slice(1, -1).trim();
 
         try {
-          const html = katex.renderToString(formula, {
-            displayMode: isBlock,
-            throwOnError: false,
-            output: 'html',
-            macros: KATEX_MACROS,
-          });
+          const html = renderKaTeXCached(formula, isBlock);
 
           if (isBlock) {
             parts.push(
@@ -213,12 +256,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
           );
         } else {
           try {
-            const html = katex.renderToString(formula, {
-              displayMode: true,
-              throwOnError: false,
-              output: 'html',
-              macros: KATEX_MACROS,
-            });
+            const html = renderKaTeXCached(formula, true);
             elements.push(
               <div
                 key={`blk-${keyCounter++}`}
@@ -246,12 +284,7 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
           );
         } else {
           try {
-            const html = katex.renderToString(formula, {
-              displayMode: false,
-              throwOnError: false,
-              output: 'html',
-              macros: KATEX_MACROS,
-            });
+            const html = renderKaTeXCached(formula, false);
             elements.push(
               <span
                 key={`inl-${keyCounter++}`}
@@ -327,5 +360,16 @@ export function MathRenderer({ text, className = '', block = false }: MathRender
 
   return <span className={className}>{renderedContent}</span>;
 }
+
+export const MathRenderer = React.memo(
+  RawMathRenderer,
+  (prev, next) => {
+    return (
+      prev.text === next.text &&
+      prev.className === next.className &&
+      prev.block === next.block
+    );
+  }
+);
 
 export default MathRenderer;
