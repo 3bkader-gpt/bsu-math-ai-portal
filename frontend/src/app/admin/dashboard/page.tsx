@@ -386,7 +386,7 @@ export default function AdminDashboardPage() {
       selectedFiles.forEach((file) => formData.append('files', file));
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for large lecture PDFs
 
       const res = await fetch(getApiUrl('/api/upload'), {
         method: 'POST',
@@ -1455,7 +1455,7 @@ export default function AdminDashboardPage() {
                 style={{ color: diagnosticsTab === 'matrix' ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
               >
                 <Layers className="w-4 h-4" />
-                <span>مصفوفة الـ 21 محاضرة (5/5)</span>
+                <span>مصفوفة المحاضرات والمصادر</span>
                 {diagnosticsData?.summary && (
                   <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-500/10 text-cyan-500 font-bold">
                     {diagnosticsData.summary.complete_5_of_5}/{diagnosticsData.summary.total_lectures}
@@ -1653,7 +1653,7 @@ export default function AdminDashboardPage() {
                             : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
                         }`}
                       >
-                        الكل (21)
+                        الكل ({diagnosticsData?.summary?.total_lectures || 29})
                       </button>
                       <button
                         onClick={() => setMatrixFilter('COMPLETE')}
@@ -1663,7 +1663,7 @@ export default function AdminDashboardPage() {
                             : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
                         }`}
                       >
-                        مكتملة 5/5
+                        مكتملة 5/5 ({diagnosticsData?.summary?.complete_5_of_5 || 21})
                       </button>
                       <button
                         onClick={() => setMatrixFilter('INCOMPLETE')}
@@ -1673,7 +1673,7 @@ export default function AdminDashboardPage() {
                             : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
                         }`}
                       >
-                        تحتاج ملفات إضافية
+                        تحتاج ملفات إضافية ({diagnosticsData?.summary?.partial_modality || 8})
                       </button>
                     </div>
                   </div>
@@ -1701,18 +1701,37 @@ export default function AdminDashboardPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
-                          {diagnosticsData?.lectures
-                            ?.filter((lec: any) => {
-                              if (matrixFilter === 'COMPLETE') return lec.score === '5/5';
-                              if (matrixFilter === 'INCOMPLETE') return lec.score !== '5/5';
-                              return true;
-                            })
-                            ?.filter((lec: any) => {
-                              if (!matrixSearch) return true;
-                              const s = matrixSearch.toLowerCase();
-                              return lec.title.toLowerCase().includes(s) || lec.subject.toLowerCase().includes(s);
-                            })
-                            ?.map((lec: any) => (
+                          {(() => {
+                            const list = (diagnosticsData?.lectures || [])
+                              .filter((lec: any) => {
+                                if (matrixFilter === 'COMPLETE') return lec.score === '5/5';
+                                if (matrixFilter === 'INCOMPLETE') return lec.score !== '5/5';
+                                return true;
+                              })
+                              .filter((lec: any) => {
+                                if (!matrixSearch) return true;
+                                const s = matrixSearch.toLowerCase();
+                                return lec.title.toLowerCase().includes(s) || lec.subject.toLowerCase().includes(s);
+                              });
+
+                            if (list.length === 0) {
+                              return (
+                                <tr>
+                                  <td colSpan={7} className="p-8 text-center">
+                                    <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+                                      <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                                      <span className="font-bold text-sm">
+                                        {matrixFilter === 'INCOMPLETE'
+                                          ? 'رائع! لا توجد أي محاضرات تحتاج ملفات إضافية حالياً 🎉'
+                                          : 'لا توجد نتائج مطابقة لبحثك'}
+                                      </span>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            }
+
+                            return list.map((lec: any) => (
                               <tr 
                                 key={lec.lecture_id}
                                 className="transition-colors hover:bg-black/5 dark:hover:bg-white/5"
@@ -1792,7 +1811,8 @@ export default function AdminDashboardPage() {
                                   )}
                                 </td>
                               </tr>
-                            ))}
+                            ));
+                          })()}
                         </tbody>
                       </table>
                     </div>
