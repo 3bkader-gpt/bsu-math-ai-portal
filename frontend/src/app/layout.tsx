@@ -3,6 +3,7 @@ import { Cairo, Outfit } from "next/font/google";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 import { GamificationInitializer } from "@/components/gamification/GamificationInitializer";
+import { GamificationHost } from "@/modules/gamification/ui/GamificationHost";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -86,6 +87,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen antialiased transition-colors duration-200 overflow-x-clip max-w-[100vw] w-full">
         <GamificationInitializer />
+        <GamificationHost />
         {children}
       </body>
     </html>
