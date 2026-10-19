@@ -25,7 +25,7 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 - [x] **Phase 2: Supabase Architecture, Anonymous Auth & RPC Ingestion**
 - [x] **Phase 3: State Management, IndexedDB Outbox & Gamification Host**
 - [x] **Phase 4: Telemetry Detectors & Content Modalities Integration**
-- [ ] **Phase 5: KaTeX Performance Optimization & Zero-Lag Guard**
+- [x] **Phase 5: KaTeX Performance Optimization & Zero-Lag Guard**
 - [ ] **Phase 6: Audio Sprite, Micro-Interactions, Badges & Cohort Leaderboard**
 
 ---
@@ -172,15 +172,15 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 ### 🔷 Phase 5: KaTeX Performance Optimization & Zero-Lag Guard
 > **Goal:** Guarantee 60fps responsiveness by isolating complex KaTeX mathematical formulas from gamification animations.
 
-- [ ] **5.1 KaTeX Server-Side Rendering (`renderToString`) Architecture**
+- [x] **5.1 KaTeX Server-Side Rendering (`renderToString`) Architecture**
   - Verify that KaTeX math renders to pure HTML strings without React state attachments.
   - Prevent re-parsing formulas during XP gains or streak increments.
 
-- [ ] **5.2 Micro-Interaction Component Isolation**
+- [x] **5.2 Micro-Interaction Component Isolation**
   - Use HTML CSS variables for audio/video progress bars instead of React `useState` re-renders.
   - Ensure floating XP indicators render in isolated portals (`ReactDOM.createPortal`).
 
-- [ ] **5.3 Motion Optimization**
+- [x] **5.3 Motion Optimization**
   - Use `LazyMotion` + `domAnimation` from Framer Motion.
   - Animate strictly on GPU-accelerated properties (`transform`, `opacity`).
   - Respect `prefers-reduced-motion` browser settings.

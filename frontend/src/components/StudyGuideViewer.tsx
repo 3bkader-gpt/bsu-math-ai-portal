@@ -10,7 +10,7 @@ interface StudyGuideViewerProps {
   onDwell?: (dwellSec: number) => void;
 }
 
-export function StudyGuideViewer({ content, onDwell }: StudyGuideViewerProps) {
+export function RawStudyGuideViewer({ content, onDwell }: StudyGuideViewerProps) {
   React.useEffect(() => {
     if (!content) return;
     let dwell = 0;
@@ -297,9 +297,17 @@ export function StudyGuideViewer({ content, onDwell }: StudyGuideViewerProps) {
     }
   }
 
-  if (tableBuffer.length > 0) flushTable();
-
   return <div className="space-y-1 text-right">{elements}</div>;
 }
+
+export const StudyGuideViewer = React.memo(
+  RawStudyGuideViewer,
+  (prev, next) => {
+    return (
+      prev.content === next.content &&
+      prev.onDwell === next.onDwell
+    );
+  }
+);
 
 export default StudyGuideViewer;
