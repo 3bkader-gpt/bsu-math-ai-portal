@@ -93,6 +93,8 @@ def verify_and_deploy_render():
 
 def verify_modified_gamification_module():
     step_header("Step 3: Verification of Modified Components (Phases 1, 2 & 3 Gamification Engine)")
+    print(f"Waiting 4s for Cloudflare CDN edge propagation to settle...")
+    time.sleep(4)
     print(f"Connecting to live production URL via Playwright: {PAGES_URL}")
     
     try:
@@ -102,7 +104,7 @@ def verify_modified_gamification_module():
             page.goto(PAGES_URL, wait_until="networkidle", timeout=30000)
             
             # Wait for gamification runtime probe
-            page.wait_for_function("() => window.__GAMIFICATION_CORE__ !== undefined", timeout=15000)
+            page.wait_for_function("() => window.__GAMIFICATION_CORE__ !== undefined", timeout=20000)
             
             # 1. Pure core self check (Phase 1)
             res = page.evaluate("() => window.__GAMIFICATION_CORE__.runSelfCheck()")
