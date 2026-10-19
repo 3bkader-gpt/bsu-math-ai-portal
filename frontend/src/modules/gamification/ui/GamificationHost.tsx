@@ -7,6 +7,8 @@ import { startOutboxSyncService, flushOutboxBatch } from '../sync/outbox';
 import { getOrCreateAnonymousSession } from '../supabase/auth';
 import { clearOutbox, getOutboxCount } from '../sync/idb';
 import { fetchCohortLeaderboard } from '../supabase/gamification';
+import { playSound } from '@/lib/audio/soundEngine';
+import { triggerConfetti } from '@/lib/effects/confetti';
 import type { AppEvent, GamificationEffect } from '@/shared/events/types';
 
 interface ToastItem {
@@ -119,6 +121,12 @@ export function GamificationHost() {
           title: `🎖️ وسام جديد: ${payload.title}`,
           subtitle: payload.description,
         });
+      } else if (effect.type === 'confetti.trigger') {
+        const payload = effect.payload as any;
+        triggerConfetti(payload.intensity || 'standard');
+      } else if (effect.type === 'sound.play') {
+        const payload = effect.payload as any;
+        playSound(payload.sound);
       }
     };
 

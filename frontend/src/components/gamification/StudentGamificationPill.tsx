@@ -23,7 +23,10 @@ import {
   ChevronRight,
   Sparkles,
   RefreshCw,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
+import { isAudioMuted, toggleAudioMute } from '@/lib/audio/soundEngine';
 
 export function StudentGamificationPill({
   isGirls = false,
@@ -43,6 +46,11 @@ export function StudentGamificationPill({
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [activeTab, setActiveTab] = useState<'progress' | 'badges' | 'leaderboard'>('progress');
   const [loadingLb, setLoadingLb] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    setIsMuted(isAudioMuted());
+  }, []);
 
   // Level calculations
   const currentLevelBaseXp = getXpRequiredForLevel(level);
@@ -177,12 +185,26 @@ export function StudentGamificationPill({
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setIsMuted(toggleAudioMute())}
+                  title={isMuted ? 'تفعيل المؤثرات الصوتية 🔊' : 'كتم المؤثرات الصوتية 🔇'}
+                  className="w-8 h-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer"
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-4 h-4 text-rose-500" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="w-8 h-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Navigation Tabs */}
