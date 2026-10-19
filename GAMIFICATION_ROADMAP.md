@@ -22,7 +22,7 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 
 - [x] **Phase 0: Baseline Freeze (`v1.0.0-stable`) & CI/CD Quality Gate Setup**
 - [x] **Phase 1: Event Bus & Pure Core Engine (Contracts & Testing)**
-- [ ] **Phase 2: Supabase Architecture, Anonymous Auth & RPC Ingestion**
+- [x] **Phase 2: Supabase Architecture, Anonymous Auth & RPC Ingestion**
 - [ ] **Phase 3: State Management, IndexedDB Outbox & Gamification Host**
 - [ ] **Phase 4: Telemetry Detectors & Content Modalities Integration**
 - [ ] **Phase 5: KaTeX Performance Optimization & Zero-Lag Guard**
@@ -79,12 +79,12 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 ### 🔷 Phase 2: Supabase Architecture, Anonymous Auth & RPC Ingestion
 > **Goal:** Build the secure, tamper-proof, Cairo-timezone-aligned backend database infrastructure.
 
-- [ ] **2.1 Supabase Anonymous Authentication Setup**
+- [x] **2.1 Supabase Anonymous Authentication Setup**
   - Enable Anonymous Sign-ins in Supabase Project Settings.
   - Configure frontend client helper `getOrCreateAnonymousSession()` to guarantee an authenticated `auth.uid()` with RLS protection from the first millisecond.
   - Prepare `linkIdentity` flow for seamless future conversion to permanent email/account without losing progress.
 
-- [ ] **2.2 Database Schema Migration (`supabase/migrations/`)**
+- [x] **2.2 Database Schema Migration (`supabase/migrations/`)**
   - Create table `public.profiles`:
     - Columns: `id (uuid, FK auth.users)`, `nickname (text)`, `persona ('boys'|'girls')`, `cohort_id (int)`, `total_xp (bigint)`, `level (int)`, `current_streak (int)`, `longest_streak (int)`, `last_active_date (date)`, `freezes_left (int)`.
   - Create table `public.activity_events`:
@@ -100,19 +100,19 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
     - Composite PK `(user_id, lecture_id int)`.
     - Columns: `media_progress (jsonb)`, `quiz_completed (bool)`, `updated_at (timestamptz)`.
 
-- [ ] **2.3 Idempotent Ingestion RPC (`ingest_events(jsonb)`)**
+- [x] **2.3 Idempotent Ingestion RPC (`ingest_events(jsonb)`)**
   - Stored Procedure in PostgreSQL with `SECURITY DEFINER`.
   - Handle idempotency via `ON CONFLICT (id) DO NOTHING` on `activity_events`.
   - Calculate date boundaries strictly in Cairo timezone: `(now() at time zone 'Africa/Cairo')::date`.
   - Update `daily_activity`, recalculate `profiles.current_streak` & `total_xp` in a single atomic transaction.
   - Return reconciled profile values to client for instant verification.
 
-- [ ] **2.4 Row Level Security (RLS) Policies**
+- [x] **2.4 Row Level Security (RLS) Policies**
   - Enforce `auth.uid() = user_id` for reads on all user tables.
   - Prevent direct client `INSERT`/`UPDATE` on `profiles` and `daily_activity` (mutations allowed only through `ingest_events` RPC).
   - Public read-only access for sanitized cohort leaderboard view.
 
-- [ ] **2.5 Automated Verification Script**
+- [x] **2.5 Automated Verification Script**
   - Write and run `scripts/verify_gamification_rpc.js` to simulate anonymous auth and event ingestion.
 
 ---

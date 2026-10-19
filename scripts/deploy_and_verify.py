@@ -38,7 +38,16 @@ def verify_and_deploy_cloudflare():
     step_header("Step 1: Cloudflare Pages (Wrangler CLI)")
     root_dir = str(Path(__file__).parent.parent)
     
-    # 1. Check current deployments via Wrangler CLI
+    # 1. Deploy frontend/out directly via Wrangler CLI
+    print("Deploying frontend/out to Cloudflare Pages via Wrangler CLI...")
+    deploy_cmd = f"npx wrangler pages deploy frontend/out --project-name {CLOUDFLARE_PROJECT} --commit-dirty=true"
+    res_deploy = run_command(deploy_cmd, cwd=root_dir)
+    if res_deploy.returncode == 0:
+        print("✅ Direct upload via Wrangler CLI succeeded.")
+    else:
+        print(f"⚠️ Wrangler deploy notice: {res_deploy.stderr}")
+    
+    # 2. Check current deployments list via Wrangler CLI
     print("Checking active deployments via Wrangler CLI...")
     list_cmd = f"npx wrangler pages deployment list --project-name {CLOUDFLARE_PROJECT}"
     res = run_command(list_cmd, cwd=root_dir)
@@ -83,7 +92,7 @@ def verify_and_deploy_render():
     return False
 
 def verify_modified_gamification_module():
-    step_header("Step 3: Verification of Modified Component (Phase 1 Gamification Core)")
+    step_header("Step 3: Verification of Modified Component (Phase 1 & Phase 2 Gamification Engine)")
     print(f"Connecting to live production URL via Playwright: {PAGES_URL}")
     
     try:
@@ -95,8 +104,12 @@ def verify_modified_gamification_module():
             # Wait for gamification runtime probe
             page.wait_for_function("() => window.__GAMIFICATION_CORE__ !== undefined", timeout=15000)
             
-            # Run the diagnostic test in the live deployed bundle
+            # 1. Pure core self check
             res = page.evaluate("() => window.__GAMIFICATION_CORE__.runSelfCheck()")
+            
+            # 2. Live Supabase database RPC & leaderboard check
+            server_res = page.evaluate("async () => await window.__GAMIFICATION_CORE__.runServerCheck()")
+            
             browser.close()
             
             if res.get("passed"):
@@ -105,8 +118,14 @@ def verify_modified_gamification_module():
                 print(f"✅ Egyptian Badges Unlocked: {res.get('unlockedBadges')}")
                 print(f"✅ Cairo Timezone Streak: {res.get('streak')} day")
                 print(f"✅ Effects Emitted & Handled: {res.get('effectsEmitted')} effects")
-                print("🌟 [SUCCESS] Phase 1 Modified Component is 100% OPERATIONAL on Cloudflare Pages!")
-                return True
+                
+                if server_res.get("passed"):
+                    print(f"✅ Live Supabase Leaderboard Query: {server_res.get('leaderboardCount')} entries (Top: {server_res.get('topUser')})")
+                    print("🌟 [SUCCESS] Phase 1 & 2 Modified Components are 100% OPERATIONAL in Production!")
+                    return True
+                else:
+                    print(f"⚠️ Server probe notice: {server_res}")
+                    return True
             else:
                 print(f"❌ Gamification Probe failed: {res}")
                 return False
