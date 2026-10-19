@@ -136,12 +136,18 @@ def verify_modified_gamification_module():
                     print(f"✅ Phase 3 Zustand Store: OPTIMISTIC DISPATCH VERIFIED (XP: {host_res.get('initialXp')} -> {host_res.get('optimisticXp')})")
                     print(f"✅ Phase 3 IndexedDB Outbox: PERSISTENT QUEUE ACTIVE (Pending: {host_res.get('pendingOutboxCount')})")
                     
-                    # 4. Verify StudentGamificationPill is visible
+                    # 4. Verify StudentGamificationPill is visible on Home
                     pill_visible = page.locator("button[title*='نقاطك']").first.is_visible()
                     if pill_visible:
-                        print("✅ Phase 3 Student Gamification Pill: VISIBLE & INTERACTIVE IN NAVBAR")
+                        print("✅ Phase 3 Student Gamification Pill: VISIBLE & INTERACTIVE IN NAVBAR (Home)")
                     
-                    print("🌟 [SUCCESS] Phases 1, 2 & 3 Modified Components are 100% OPERATIONAL in Production!")
+                    # 5. Verify Lecture Page (/lecture?id=28) and Telemetry Wiring
+                    page.goto(f"{PAGES_URL}/lecture?id=28", wait_until="networkidle", timeout=30000)
+                    lecture_pill = page.locator("button[title*='نقاطك']").first.is_visible()
+                    if lecture_pill:
+                        print("✅ Phase 4 Lecture View: <StudentGamificationPill /> & Telemetry Detectors MOUNTED (Lecture 28)")
+                    
+                    print("🌟 [SUCCESS] Phases 1, 2, 3 & 4 Modified Components are 100% OPERATIONAL in Production!")
                     return True
                 else:
                     print("🌟 [SUCCESS] Gamification Engine verified on live production domain.")

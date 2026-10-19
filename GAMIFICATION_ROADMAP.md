@@ -24,7 +24,7 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 - [x] **Phase 1: Event Bus & Pure Core Engine (Contracts & Testing)**
 - [x] **Phase 2: Supabase Architecture, Anonymous Auth & RPC Ingestion**
 - [x] **Phase 3: State Management, IndexedDB Outbox & Gamification Host**
-- [ ] **Phase 4: Telemetry Detectors & Content Modalities Integration**
+- [x] **Phase 4: Telemetry Detectors & Content Modalities Integration**
 - [ ] **Phase 5: KaTeX Performance Optimization & Zero-Lag Guard**
 - [ ] **Phase 6: Audio Sprite, Micro-Interactions, Badges & Cohort Leaderboard**
 
@@ -145,24 +145,24 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 ### 🔷 Phase 4: Telemetry Detectors & Content Modalities Integration
 > **Goal:** Connect players and interactive content to the event bus without polluting lecture components with gamification logic.
 
-- [ ] **4.1 Telemetry Collector (`src/modules/telemetry/collector.ts`)**
+- [x] **4.1 Telemetry Collector (`src/modules/telemetry/collector.ts`)**
   - Receive raw events from media players, quiz, flashcards.
   - Deduplicate and normalize timestamps before bus emission.
 
-- [ ] **4.2 Streaming Progress Detector (`src/modules/telemetry/detectors/mediaDetector.ts`)**
+- [x] **4.2 Streaming Progress Detector (`src/modules/telemetry/detectors/mediaDetector.ts`)**
   - Throttle video/audio `timeupdate` to emit `media.progress` only once every 5 seconds.
   - Maintain active listening tracking to identify honest learning vs scrubbing skips.
   - Emit milestone events (`audio.streak_5min`, `lecture.completed`).
 
-- [ ] **4.3 Active Recall Quiz Detector (`src/modules/telemetry/detectors/quizDetector.ts`)**
+- [x] **4.3 Active Recall Quiz Detector (`src/modules/telemetry/detectors/quizDetector.ts`)**
   - Listen to quiz completion.
   - Determine score ratios, first-try bonuses, and perfect streak triggers.
 
-- [ ] **4.4 Flashcards & Study Guide Detectors**
+- [x] **4.4 Flashcards & Study Guide Detectors**
   - Track card flips and complete deck traversal.
   - Track dwell time on Study Guide with mathematical formula inspection.
 
-- [ ] **4.5 Hooking into Components**
+- [x] **4.5 Hooking into Components**
   - Attach telemetry hooks to `AudioPlayer` in `src/app/lecture/page.tsx`.
   - Attach telemetry hooks to `VideoPlayer` in `src/app/lecture/page.tsx`.
   - Attach telemetry hooks to `QuizViewer` and `FlashcardsViewer`.

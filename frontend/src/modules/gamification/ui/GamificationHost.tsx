@@ -73,13 +73,17 @@ export function GamificationHost() {
       useGamificationStore.getState().dispatchAppEvent(event);
     };
 
-    // Listen to all raw application events
+    // Listen to all raw and derived application events
     const eventTypes = [
       'media.progress',
       'media.completed',
+      'audio.streak_5min',
+      'video.streak_5min',
       'quiz.finished',
+      'quiz.perfect_score',
       'flashcard.flipped',
       'flashcard.deck_completed',
+      'flashcard.speed_run',
       'study_guide.read',
       'lecture.completed',
     ] as const;

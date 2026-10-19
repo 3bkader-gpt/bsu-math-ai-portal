@@ -7,9 +7,22 @@ import contentData from '@/data/content.json';
 
 interface StudyGuideViewerProps {
   content: string;
+  onDwell?: (dwellSec: number) => void;
 }
 
-export function StudyGuideViewer({ content }: StudyGuideViewerProps) {
+export function StudyGuideViewer({ content, onDwell }: StudyGuideViewerProps) {
+  React.useEffect(() => {
+    if (!content) return;
+    let dwell = 0;
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        dwell += 1;
+        if (onDwell) onDwell(dwell);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [content, onDwell]);
+
   if (!content) {
     return (
       <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
