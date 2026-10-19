@@ -8,6 +8,7 @@ import MathRenderer from '@/components/MathRenderer';
 import StudyGuideViewer from '@/components/StudyGuideViewer';
 import FlashcardsViewer from '@/components/FlashcardsViewer';
 import ThemeToggle from '@/components/ThemeToggle';
+import { StudentGamificationPill } from '@/components/gamification/StudentGamificationPill';
 import content from '@/data/content.json';
 import {
   ArrowRight,
@@ -424,7 +425,8 @@ function LectureContent() {
           </div>
 
           {/* Theme & Persona Switcher */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <StudentGamificationPill isGirls={currentPersona === 'girls'} isDark={currentMode === 'dark'} />
             <ThemeToggle />
           </div>
         </div>
