@@ -190,30 +190,31 @@ Every task, feature, or code modification in this roadmap must adhere strictly t
 ### 🔷 Phase 6: Audio Sprite, Micro-Interactions, Badges & Cohort Leaderboard
 > **Goal:** Infuse the platform with collegiate delight, dopamine reward loops, and healthy peer momentum.
 
-- [ ] **6.1 Audio Sprite Engine (`src/lib/audio-engine/`)**
-  - Single lightweight audio sprite (~30KB MP3/AAC) with micro-sounds:
+- [x] **6.1 Audio Sprite Engine (`src/lib/audio-engine/`)**
+  - Single lightweight procedural Web Audio API synthesizer (`src/lib/audio/soundEngine.ts`) with micro-sounds:
     - *Success Ding* (Correct quiz answer / Flashcard flip).
     - *XP Chime* (Gaining points).
-    - *Level Up Horn* (Reaching new tier).
-    - *Streak Flame* (Continuing daily streak).
+    - *Level Up Horn* (Reaching new tier fanfare).
+    - *Streak Flame* (Continuing daily streak fire resonance).
   - Lazy load Web Audio context upon first student interaction (gesture-safe).
-  - Respect student mute preference (`localStorage.getItem('bsu_portal_mute')`).
+  - Respect student mute preference (`localStorage.getItem('bsu_portal_audio_muted')`).
 
-- [ ] **6.2 High-Performance Particle Engine**
-  - OffscreenCanvas / WebWorker backed Confetti (`canvas-confetti` with `useWorker: true`).
+- [x] **6.2 High-Performance Particle Engine**
+  - Lightweight GPU-composited Canvas Confetti burst (`src/lib/effects/confetti.ts`).
+  - Egyptian collegiate palette (Gold, Emerald, Cyan, Teal, Rose, Royal Purple).
   - Custom celebration bursts on 100% quiz scores and milestone lectures.
 
-- [ ] **6.3 Visual Gamification UI Components**
+- [x] **6.3 Visual Gamification UI Components**
   - `<XPBar />`: Sleek header progress indicator showing distance to next level.
   - `<StreakBadge />`: Fire flame counter with Egyptian persona encouraging copy ("3 أيام ورا بعض يا وحش").
   - `<LevelUpModal />`: Exciting collegiate celebration modal upon leveling up.
   - `<BadgeDrawer />`: Shelf displaying unlocked vs locked badges.
 
-- [ ] **6.4 Anonymous Cohort Leaderboard**
+- [x] **6.4 Anonymous Cohort Leaderboard**
   - High-performance cached SQL view: Top students of the week (Nickname + Level + XP).
   - Zero sensitive data exposure; privacy-first student nicknames ("باشمهندس مجهول", "عاشق الجبر").
 
-- [ ] **6.5 End-to-End Stress Test & Cloudflare Deployment**
+- [x] **6.5 End-to-End Stress Test & Cloudflare Deployment**
   - Verify Lighthouse score > 95 on mobile with active gamification.
   - Validate zero hydration mismatches in Next.js Turbopack build.
-  - Deploy to production on Cloudflare Pages.
+  - Deploy to production on Cloudflare Pages and Render.

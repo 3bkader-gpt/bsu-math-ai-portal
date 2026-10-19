@@ -34,22 +34,22 @@
 ## 📋 Granular Subtasks
 
 ### Subtask 6.1: Zero-Dependency Web Audio Synthesizer (`src/lib/audio/soundEngine.ts`)
-- [ ] Implement procedural audio generator with Web Audio `AudioContext`.
-- [ ] Implement sound triggers for `xp_chime`, `level_up`, `streak_fire`, `badge_unlock`.
-- [ ] Connect `sound.play` events from `effectBus` directly to `soundEngine`.
-- [ ] Add mute/unmute state management with persistent LocalStorage storage.
+- [x] Implement procedural audio generator with Web Audio `AudioContext`.
+- [x] Implement sound triggers for `xp_chime`, `level_up`, `streak_fire`, `badge_unlock`.
+- [x] Connect `sound.play` events from `effectBus` directly to `soundEngine`.
+- [x] Add mute/unmute state management with persistent LocalStorage storage.
 
 ### Subtask 6.2: Canvas Confetti Celebrations (`src/lib/effects/confetti.ts`)
-- [ ] Integrate lightweight canvas confetti emitter.
-- [ ] Connect `confetti.trigger` events from `effectBus`.
+- [x] Integrate lightweight canvas confetti emitter.
+- [x] Connect `confetti.trigger` events from `effectBus`.
 
 ### Subtask 6.3: Badges Showcase & Cohort Leaderboard UI
-- [ ] Polish `<StudentGamificationPill />` badges view with Egyptian iconography and localized collegiate descriptions.
-- [ ] Verify leaderboard sorting, avatar crowns, and rank indicators.
+- [x] Polish `<StudentGamificationPill />` badges view with Egyptian iconography and localized collegiate descriptions.
+- [x] Verify leaderboard sorting, avatar crowns, and rank indicators.
 
 ### Subtask 6.4: Automated Verification & Quality Gate
-- [ ] Write Vitest unit tests `frontend/tests/gamification/sound_and_effects.test.ts`.
-- [ ] Run full 5-step Quality Gate:
+- [x] Write Vitest unit tests `frontend/tests/gamification/sound_and_effects.test.ts`.
+- [x] Run full 5-step Quality Gate:
   - `npm run typecheck`, `npm test`, `npm run build`.
   - Atomic commit & push.
   - Deploy via Wrangler CLI & verify Render CLI.

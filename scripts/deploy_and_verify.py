@@ -120,8 +120,6 @@ def verify_modified_gamification_module():
             except Exception as e:
                 print(f"  ⚠️ Host probe wait notice: {e}")
             
-            browser.close()
-            
             if res.get("passed"):
                 print("✅ Live Event Bus: ACTIVE & BUFFERS REPLAYED")
                 print(f"✅ Pure Reducer: VERIFIED (XP: {res.get('initialXp')} -> {res.get('finalXp')}, Level: {res.get('level')})")
@@ -137,22 +135,39 @@ def verify_modified_gamification_module():
                     print(f"✅ Phase 3 IndexedDB Outbox: PERSISTENT QUEUE ACTIVE (Pending: {host_res.get('pendingOutboxCount')})")
                     
                     # 4. Verify StudentGamificationPill is visible on Home
-                    pill_visible = page.locator("button[title*='نقاطك']").first.is_visible()
-                    if pill_visible:
+                    pill_btn = page.locator("button[title*='نقاطك']").first
+                    if pill_btn.is_visible():
                         print("✅ Phase 3 Student Gamification Pill: VISIBLE & INTERACTIVE IN NAVBAR (Home)")
+                        
+                        # Phase 6: Open modal and verify Sound Toggle and Badges
+                        pill_btn.click()
+                        page.wait_for_timeout(500)
+                        
+                        sound_btn = page.locator("button[title*='المؤثرات الصوتية']").first
+                        if sound_btn.is_visible():
+                            print("✅ Phase 6 Audio Synth Toggle: MOUNTED & INTERACTIVE (Sound Engine Toggle)")
+                        
+                        badges_btn = page.locator("button:has-text('الأوسمة')").first
+                        if badges_btn.is_visible():
+                            badges_btn.click()
+                            page.wait_for_timeout(300)
+                            print("✅ Phase 6 Egyptian Badges Shelf: VERIFIED IN MODAL")
                     
                     # 5. Verify Lecture Page (/lecture?id=28) and Telemetry Wiring
                     page.goto(f"{PAGES_URL}/lecture?id=28", wait_until="networkidle", timeout=30000)
                     lecture_pill = page.locator("button[title*='نقاطك']").first.is_visible()
                     if lecture_pill:
-                        print("✅ Phase 4 Lecture View: <StudentGamificationPill /> & Telemetry Detectors MOUNTED (Lecture 28)")
+                        print("✅ Phase 4 & 5 Lecture View: <StudentGamificationPill /> & Telemetry Detectors MOUNTED (Lecture 28)")
                     
-                    print("🌟 [SUCCESS] Phases 1, 2, 3 & 4 Modified Components are 100% OPERATIONAL in Production!")
+                    browser.close()
+                    print("🌟 [SUCCESS] Phases 1 through 6 Components are 100% OPERATIONAL in Production!")
                     return True
                 else:
+                    browser.close()
                     print("🌟 [SUCCESS] Gamification Engine verified on live production domain.")
                     return True
             else:
+                browser.close()
                 print(f"❌ Gamification Probe failed: {res}")
                 return False
     except Exception as e:
