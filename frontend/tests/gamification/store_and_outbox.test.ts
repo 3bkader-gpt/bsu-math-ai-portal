@@ -126,4 +126,22 @@ describe('Phase 3: Zustand Store & Optimistic Dispatcher', () => {
     expect(updated.unlockedBadges).toContain('streak_3');
     expect(updated.lastSyncedAt).not.toBeNull();
   });
+
+  it('4. should NOT enqueue media.progress heartbeats to outbox', async () => {
+    const { enqueueOutboxEvent } = await import('@/modules/gamification/sync/idb');
+    vi.clearAllMocks();
+
+    const store = useGamificationStore.getState();
+    const progressEvent = createAppEvent('media.progress', {
+      kind: 'audio',
+      lectureId: 28,
+      currentSec: 15,
+      totalSec: 1200,
+    });
+
+    store.dispatchAppEvent(progressEvent);
+
+    expect(enqueueOutboxEvent).not.toHaveBeenCalled();
+    expect(useGamificationStore.getState().pendingCount).toBe(0);
+  });
 });

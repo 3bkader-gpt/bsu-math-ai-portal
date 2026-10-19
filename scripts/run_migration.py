@@ -13,8 +13,10 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").replace("postgresql+psycopg2://", "postgresql://")
 
-def run_migration():
-    migration_file = Path(__file__).parent.parent / "supabase" / "migrations" / "20261019_phase2_gamification_schema.sql"
+def run_migration(filename="20261020_fix_ingest_events_rpc.sql"):
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+    migration_file = Path(__file__).parent.parent / "supabase" / "migrations" / filename
     sql = migration_file.read_text(encoding="utf-8")
     
     print(f"Applying migration: {migration_file.name} ...")

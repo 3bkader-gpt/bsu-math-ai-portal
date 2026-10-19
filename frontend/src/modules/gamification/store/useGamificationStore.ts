@@ -3,6 +3,7 @@ import {
   GamificationState,
   createInitialGamificationState,
   processGamificationEvent,
+  isCompletedActivity,
 } from '../core';
 import { effectBus } from '@/shared/events/bus';
 import type { AppEvent } from '@/shared/events/types';
@@ -86,34 +87,42 @@ export const useGamificationStore = create<GamificationStoreState>(
         event
       );
 
-      // 2. Optimistic local state update
-      set({
-        ...nextState,
-        pendingCount: currentState.pendingCount + 1,
-      });
-
-      // 3. Persist to cache
+      // 2. Persist to cache
       saveCachedState(nextState);
 
-      // 4. Emit all effects imperatively onto effectBus for UI fanfares
+      // 3. Emit all effects imperatively onto effectBus for UI fanfares
       effects.forEach((eff) => {
         effectBus.emit(eff.type as any, eff as any);
       });
 
-      // 5. Enqueue event into persistent IndexedDB outbox
-      enqueueOutboxEvent({
-        id: event.meta?.id || crypto.randomUUID(),
-        type: event.type,
-        lectureId: event.meta?.lectureId || null,
-        payload: event.payload as Record<string, any>,
-        clientTs: event.meta?.timestamp
-          ? new Date(event.meta.timestamp).toISOString()
-          : new Date().toISOString(),
-        retryCount: 0,
-        enqueuedAt: Date.now(),
-      }).catch((err) => {
-        console.error('[GamificationStore] Failed to enqueue to outbox:', err);
-      });
+      // 4. Enqueue event into persistent IndexedDB outbox ONLY for verified milestone activities
+      const shouldSyncToServer =
+        isCompletedActivity(event) || event.type === 'quiz.perfect_score';
+
+      if (shouldSyncToServer) {
+        set({
+          ...nextState,
+          pendingCount: currentState.pendingCount + 1,
+        });
+
+        enqueueOutboxEvent({
+          id: event.meta?.id || crypto.randomUUID(),
+          type: event.type,
+          lectureId: event.meta?.lectureId || null,
+          payload: event.payload as Record<string, any>,
+          clientTs: event.meta?.timestamp
+            ? new Date(event.meta.timestamp).toISOString()
+            : new Date().toISOString(),
+          retryCount: 0,
+          enqueuedAt: Date.now(),
+        }).catch((err) => {
+          console.error('[GamificationStore] Failed to enqueue to outbox:', err);
+        });
+      } else {
+        set({
+          ...nextState,
+        });
+      }
     },
 
     reconcileWithServer: (response: IngestRpcResponse) => {
