@@ -670,9 +670,9 @@ export default function Home() {
         }}
         className="sticky top-0 z-40 border-b backdrop-blur-md transition-colors"
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-[4rem] sm:min-h-[5rem] py-2.5 flex items-center justify-between gap-2.5 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 py-1.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-4">
           
-          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div
               style={{
                 backgroundColor: isGirls 
@@ -682,17 +682,17 @@ export default function Home() {
                   ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5') 
                   : (isDark ? 'rgba(45, 212, 191, 0.35)' : '#B2DFDB'),
               }}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl border flex items-center justify-center shadow-sm shrink-0"
+              className="w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center shadow-xs shrink-0"
             >
               {isGirls ? (
-                <span className="text-xl sm:text-2xl">🎀</span>
+                <span className="text-lg sm:text-xl">🎀</span>
               ) : (
-                <GraduationCap className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: 'var(--accent-primary)' }} />
+                <GraduationCap className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" style={{ color: 'var(--accent-primary)' }} />
               )}
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="font-extrabold text-base sm:text-xl tracking-tight whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="font-extrabold text-sm sm:text-base tracking-tight whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
                   {isGirls ? 'منصة المنهج 🎀' : 'منصة المنهج'}
                 </h1>
                 <span
@@ -701,19 +701,19 @@ export default function Home() {
                     borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : (isDark ? 'rgba(45, 212, 191, 0.35)' : '#B2DFDB'),
                     color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : (isDark ? '#2DD4BF' : '#184E4E'),
                   }}
-                  className="hidden md:inline-block px-2.5 py-0.5 text-[11px] font-bold rounded-full border shrink-0"
+                  className="hidden md:inline-block px-2 py-0.5 text-[10px] font-bold rounded-full border shrink-0"
                 >
                   {isGirls ? "🎀 You're Just A Baby Girl" : 'نسخة الشباب'}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-sm font-medium mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-[10px] sm:text-xs font-medium mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
                 <span className="sm:hidden">تربية بني سويف • تانية رياضيات</span>
                 <span className="hidden sm:inline">{isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <button
               onClick={() => setIsMistakeNotebookOpen(true)}
               style={{
@@ -721,7 +721,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer"
               title="كراسة الأخطاء الذكية وتكرار لايتنر"
             >
               <span>🧠 كراسة الأخطاء</span>
@@ -733,7 +733,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer"
               title="جلسة الـ 5 دقائق السريعة"
             >
               <span>⏱️ 5 دقائق</span>
@@ -745,7 +745,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer"
               title="أنهيت مذاكرتي لليوم"
             >
               <span>☕ استريح</span>
@@ -762,11 +762,11 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="md:hidden p-2 rounded-xl border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              className="md:hidden p-1.5 rounded-lg border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               title="القائمة والإعدادات"
               aria-label="القائمة والإعدادات"
             >
-              <Menu className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+              <Menu className="w-4.5 h-4.5" style={{ color: 'var(--accent-primary)' }} />
             </button>
           </div>
         </div>
@@ -822,15 +822,15 @@ export default function Home() {
                 borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F2CBD5') : 'var(--border-prominent)',
                 color: 'var(--text-primary)',
               }}
-              className="w-full pr-11 pl-4 py-3 sm:py-4 rounded-2xl text-sm sm:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all placeholder:text-slate-400"
+              className="w-full pr-10 pl-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-teal-500/40 transition-all placeholder:text-slate-400"
             />
-            <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute right-4 top-[20px] sm:top-[26px] pointer-events-none" style={{ color: 'var(--text-muted)' }} />
+            <Search className="w-4 h-4 absolute right-3.5 top-[15px] sm:top-[18px] pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           </div>
         </div>
       </section>
 
       {/* Main Content Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-7 sm:space-y-8">
         
         {/* Phase 1: Zero-Redundancy Smart Resume ("كمّل من حيث وقفت") */}
         <SmartResumeCard />
@@ -858,7 +858,7 @@ export default function Home() {
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
               }}
-              className="inline-flex items-center p-1 rounded-2xl border self-start sm:self-auto shadow-sm"
+              className="inline-flex items-center p-0.5 rounded-xl border self-start sm:self-auto shadow-xs"
             >
               <button
                 type="button"
@@ -871,10 +871,10 @@ export default function Home() {
                     ? '#FFFFFF' 
                     : 'var(--text-secondary)',
                 }}
-                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
               >
                 <span>الترم الأول</span>
-                <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/20 text-white font-mono">
                   {subjects.filter(s => (s.semester ?? 1) === 1).length}
                 </span>
               </button>
@@ -890,10 +890,10 @@ export default function Home() {
                     ? '#FFFFFF' 
                     : 'var(--text-secondary)',
                 }}
-                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
               >
                 <span>الترم الثاني</span>
-                <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/20 text-white font-mono">
                   {subjects.filter(s => (s.semester ?? 1) === 2).length}
                 </span>
               </button>

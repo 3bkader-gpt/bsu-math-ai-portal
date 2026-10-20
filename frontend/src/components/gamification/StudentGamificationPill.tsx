@@ -126,7 +126,7 @@ export function StudentGamificationPill({
             ? 'rgba(45, 212, 191, 0.35)'
             : '#B2DFDB',
         }}
-        className="group relative flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-1.5 rounded-full border shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer text-xs sm:text-sm font-bold"
+        className="group relative flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full border shadow-xs hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer text-xs font-bold"
       >
         {/* Streak Flame */}
         <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
