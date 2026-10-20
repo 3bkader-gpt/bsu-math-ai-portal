@@ -137,20 +137,26 @@ export function StudentGamificationPill({
         <span className="text-gray-300 dark:text-gray-700 font-light">•</span>
 
         {/* Total XP */}
-        <div className="flex items-center gap-1 text-teal-600 dark:text-teal-300">
-          <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-teal-500 dark:fill-teal-400" />
+        <div
+          style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}
+          className="flex items-center gap-1"
+        >
+          <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
           <span className="font-black font-mono">{totalXp}</span>
           <span className="text-[10px] opacity-75">XP</span>
         </div>
 
-        <span className="text-gray-300 dark:text-gray-700 font-light hidden xs:inline">•</span>
+        <span className="text-gray-400 dark:text-gray-600 font-light hidden xs:inline">•</span>
 
         {/* Level Tag */}
         <div
           style={{
             backgroundColor: isGirls
-              ? 'rgba(244, 114, 182, 0.2)'
-              : 'rgba(20, 184, 166, 0.2)',
+              ? (isDark ? 'rgba(244, 114, 182, 0.25)' : 'rgba(244, 114, 182, 0.2)')
+              : (isDark ? 'rgba(45, 212, 191, 0.25)' : 'rgba(20, 184, 166, 0.2)'),
+            color: isGirls
+              ? (isDark ? '#F472B6' : '#BE185D')
+              : (isDark ? '#5EEAD4' : '#0D9488'),
           }}
           className="hidden xs:flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold"
         >
@@ -171,13 +177,16 @@ export function StudentGamificationPill({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 ${
+            isDark ? 'dark' : ''
+          }`}
           dir="rtl"
         >
           <div
             style={{
               backgroundColor: isDark ? '#131922' : '#FFFFFF',
               borderColor: isDark ? '#1E2B3A' : '#E3D7C1',
+              color: isDark ? '#F1F5F9' : '#162828',
             }}
             className="w-full max-w-lg rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
           >
@@ -196,14 +205,28 @@ export function StudentGamificationPill({
               className="px-5 py-4 border-b flex items-center justify-between"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-xl">
+                <div
+                  style={{
+                    backgroundColor: isGirls
+                      ? 'rgba(244, 114, 182, 0.2)'
+                      : 'rgba(20, 184, 166, 0.2)',
+                    color: isGirls ? '#F472B6' : '#2DD4BF',
+                  }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                >
                   {isGirls ? '🎀' : '🎓'}
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-base sm:text-lg text-gray-900 dark:text-gray-100">
+                  <h3
+                    style={{ color: isDark ? '#F1F5F9' : '#162828' }}
+                    className="font-extrabold text-base sm:text-lg"
+                  >
                     ملف الإنجازات الأكاديمي
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  <p
+                    style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                    className="text-xs font-medium"
+                  >
                     {levelTitle} • المستوى {level}
                   </p>
                 </div>
@@ -213,17 +236,19 @@ export function StudentGamificationPill({
                   type="button"
                   onClick={() => setIsMuted(toggleAudioMute())}
                   title={isMuted ? 'تفعيل المؤثرات الصوتية 🔊' : 'كتم المؤثرات الصوتية 🔇'}
-                  className="w-8 h-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer"
+                  style={{ color: isDark ? '#CBD5E1' : '#526E6E' }}
+                  className="w-8 h-8 rounded-full hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
                 >
                   {isMuted ? (
                     <VolumeX className="w-4 h-4 text-rose-500" />
                   ) : (
-                    <Volume2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                    <Volume2 className="w-4 h-4 text-teal-400" />
                   )}
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer"
+                  style={{ color: isDark ? '#CBD5E1' : '#526E6E' }}
+                  className="w-8 h-8 rounded-full hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -231,33 +256,63 @@ export function StudentGamificationPill({
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex border-b border-gray-200 dark:border-gray-800 px-4 pt-2 gap-2 text-xs font-bold">
+            <div
+              style={{ borderColor: isDark ? '#1E2B3A' : '#E3D7C1' }}
+              className="flex border-b px-4 pt-2 gap-2 text-xs font-bold"
+            >
               <button
                 onClick={() => setActiveTab('progress')}
-                className={`pb-2.5 px-3 border-b-2 transition-colors ${
-                  activeTab === 'progress'
-                    ? 'border-teal-500 text-teal-600 dark:text-teal-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                style={{
+                  color:
+                    activeTab === 'progress'
+                      ? isDark
+                        ? '#2DD4BF'
+                        : '#0D9488'
+                      : isDark
+                      ? '#94A3B8'
+                      : '#526E6E',
+                  borderColor: activeTab === 'progress' ? '#2DD4BF' : 'transparent',
+                }}
+                className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer ${
+                  activeTab === 'progress' ? 'font-black' : 'font-medium'
                 }`}
               >
                 المستوى والتقدم
               </button>
               <button
                 onClick={() => setActiveTab('badges')}
-                className={`pb-2.5 px-3 border-b-2 transition-colors ${
-                  activeTab === 'badges'
-                    ? 'border-teal-500 text-teal-600 dark:text-teal-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                style={{
+                  color:
+                    activeTab === 'badges'
+                      ? isDark
+                        ? '#2DD4BF'
+                        : '#0D9488'
+                      : isDark
+                      ? '#94A3B8'
+                      : '#526E6E',
+                  borderColor: activeTab === 'badges' ? '#2DD4BF' : 'transparent',
+                }}
+                className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer ${
+                  activeTab === 'badges' ? 'font-black' : 'font-medium'
                 }`}
               >
                 الأوسمة والشارات ({unlockedBadges.length})
               </button>
               <button
                 onClick={() => setActiveTab('leaderboard')}
-                className={`pb-2.5 px-3 border-b-2 transition-colors ${
-                  activeTab === 'leaderboard'
-                    ? 'border-teal-500 text-teal-600 dark:text-teal-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                style={{
+                  color:
+                    activeTab === 'leaderboard'
+                      ? isDark
+                        ? '#2DD4BF'
+                        : '#0D9488'
+                      : isDark
+                      ? '#94A3B8'
+                      : '#526E6E',
+                  borderColor: activeTab === 'leaderboard' ? '#2DD4BF' : 'transparent',
+                }}
+                className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer ${
+                  activeTab === 'leaderboard' ? 'font-black' : 'font-medium'
                 }`}
               >
                 لوحة شرف الدفعة 🏆
@@ -277,22 +332,31 @@ export function StudentGamificationPill({
                     className="p-4 rounded-2xl border space-y-3"
                   >
                     <div className="flex justify-between items-center text-sm font-bold">
-                      <span className="text-gray-700 dark:text-gray-300">
+                      <span style={{ color: isDark ? '#F1F5F9' : '#162828' }}>
                         التقدم للمستوى {level + 1}
                       </span>
-                      <span className="text-teal-600 dark:text-teal-400 font-mono">
+                      <span
+                        style={{ color: isDark ? '#2DD4BF' : '#0D9488' }}
+                        className="font-mono font-black"
+                      >
                         {totalXp} / {nextLevelXp} XP
                       </span>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3 overflow-hidden p-0.5">
+                    <div
+                      style={{ backgroundColor: isDark ? '#0E1724' : '#E2E8F0' }}
+                      className="w-full rounded-full h-3 overflow-hidden p-0.5"
+                    >
                       <div
-                        className="bg-gradient-to-l from-teal-400 to-emerald-500 h-full rounded-full transition-all duration-500"
+                        className="bg-gradient-to-l from-teal-400 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-sm"
                         style={{ width: `${levelProgressPercent}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-[11px] text-gray-500 dark:text-gray-400 font-medium">
+                    <div
+                      style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                      className="flex justify-between text-[11px] font-medium"
+                    >
                       <span>{levelProgressPercent}% مكتمل</span>
                       <span>باقي {Math.max(0, nextLevelXp - totalXp)} XP للترقية</span>
                     </div>
@@ -311,10 +375,16 @@ export function StudentGamificationPill({
                         <Flame className="w-5 h-5 fill-amber-500" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <div
+                          style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                          className="text-xs font-medium"
+                        >
                           أيام الاستمرار
                         </div>
-                        <div className="text-base font-extrabold text-gray-900 dark:text-gray-100">
+                        <div
+                          style={{ color: isDark ? '#F1F5F9' : '#162828' }}
+                          className="text-base font-extrabold"
+                        >
                           {streak} {streak === 1 ? 'يوم' : 'أيام'}
                         </div>
                       </div>
@@ -327,14 +397,20 @@ export function StudentGamificationPill({
                       }}
                       className="p-3.5 rounded-2xl border flex items-center gap-3"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-500 flex items-center justify-center shrink-0">
-                        <Shield className="w-5 h-5 fill-sky-500" />
+                      <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0">
+                        <Shield className="w-5 h-5 fill-sky-400" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <div
+                          style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                          className="text-xs font-medium"
+                        >
                           درع التجميد
                         </div>
-                        <div className="text-base font-extrabold text-gray-900 dark:text-gray-100">
+                        <div
+                          style={{ color: isDark ? '#F1F5F9' : '#162828' }}
+                          className="text-base font-extrabold"
+                        >
                           1 متاح
                         </div>
                       </div>
@@ -343,7 +419,10 @@ export function StudentGamificationPill({
 
                   {/* Egyptian Badges Highlight */}
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <h4
+                      style={{ color: isDark ? '#CBD5E1' : '#526E6E' }}
+                      className="text-xs font-bold uppercase tracking-wider"
+                    >
                       أحدث الشارات المفتوحة
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -353,16 +432,30 @@ export function StudentGamificationPill({
                         .map((b) => (
                           <div
                             key={b.id}
-                            className="p-2.5 rounded-xl border border-teal-500/30 bg-teal-500/5 flex items-center gap-2.5"
+                            style={{
+                              backgroundColor: isDark
+                                ? 'rgba(45, 212, 191, 0.1)'
+                                : '#E6F4F1',
+                              borderColor: isDark
+                                ? 'rgba(45, 212, 191, 0.3)'
+                                : '#B2DFDB',
+                            }}
+                            className="p-2.5 rounded-xl border flex items-center gap-2.5"
                           >
-                            <div className="w-9 h-9 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-300 flex items-center justify-center shrink-0">
+                            <div className="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0">
                               <BadgeIcon name={b.icon} className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
-                              <div className="font-bold text-xs text-teal-600 dark:text-teal-300 truncate">
+                              <div
+                                style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}
+                                className="font-extrabold text-xs truncate"
+                              >
                                 {b.title}
                               </div>
-                              <div className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-1">
+                              <div
+                                style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                                className="text-[10px] line-clamp-1"
+                              >
                                 {b.description}
                               </div>
                             </div>
@@ -383,48 +476,100 @@ export function StudentGamificationPill({
                         style={{
                           backgroundColor: isUnlocked
                             ? isDark
-                              ? 'rgba(45, 212, 191, 0.08)'
+                              ? 'rgba(45, 212, 191, 0.12)'
                               : '#E6F4F1'
                             : isDark
-                            ? '#1A222D'
-                            : '#F5F5F5',
+                            ? '#1C2533'
+                            : '#FAF5EA',
                           borderColor: isUnlocked
                             ? isDark
-                              ? 'rgba(45, 212, 191, 0.3)'
-                              : '#B2DFDB'
+                              ? 'rgba(45, 212, 191, 0.4)'
+                              : '#80CBC4'
                             : isDark
-                            ? '#243242'
-                            : '#E0E0E0',
+                            ? '#2A3B4F'
+                            : '#E3D7C1',
                         }}
-                        className={`p-3 rounded-2xl border flex items-center gap-3.5 transition-all ${
-                          !isUnlocked ? 'opacity-60 grayscale' : 'shadow-sm'
-                        }`}
+                        className="p-3.5 rounded-2xl border flex items-center gap-3.5 transition-all shadow-sm"
                       >
                         <div
-                          className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-                            isUnlocked
-                              ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300'
-                              : 'bg-gray-200 dark:bg-gray-800 text-gray-400'
-                          }`}
+                          style={{
+                            backgroundColor: isUnlocked
+                              ? isDark
+                                ? 'rgba(45, 212, 191, 0.2)'
+                                : 'rgba(13, 148, 136, 0.15)'
+                              : isDark
+                              ? '#253346'
+                              : '#E8E1D3',
+                            color: isUnlocked
+                              ? isDark
+                                ? '#5EEAD4'
+                                : '#0D9488'
+                              : isDark
+                              ? '#94A3B8'
+                              : '#8C7B65',
+                          }}
+                          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
                         >
                           <BadgeIcon name={b.icon} className="w-6 h-6" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h5 className="font-extrabold text-sm text-gray-900 dark:text-gray-100">
+                          <div className="flex items-center justify-between gap-2">
+                            <h5
+                              style={{
+                                color: isUnlocked
+                                  ? isDark
+                                    ? '#F1F5F9'
+                                    : '#162828'
+                                  : isDark
+                                  ? '#E2E8F0'
+                                  : '#334155',
+                              }}
+                              className="font-extrabold text-sm"
+                            >
                               {b.title}
                             </h5>
                             {isUnlocked ? (
-                              <span className="text-[10px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold">
+                              <span
+                                style={{
+                                  backgroundColor: isDark
+                                    ? 'rgba(16, 185, 129, 0.2)'
+                                    : 'rgba(5, 150, 105, 0.15)',
+                                  color: isDark ? '#6EE7B7' : '#047857',
+                                  borderColor: isDark
+                                    ? 'rgba(16, 185, 129, 0.4)'
+                                    : 'rgba(5, 150, 105, 0.3)',
+                                }}
+                                className="text-[11px] border px-2.5 py-0.5 rounded-full font-extrabold shrink-0"
+                              >
                                 مفتوح ✓
                               </span>
                             ) : (
-                              <span className="text-[10px] text-gray-400 font-medium">
+                              <span
+                                style={{
+                                  backgroundColor: isDark
+                                    ? 'rgba(255, 255, 255, 0.06)'
+                                    : 'rgba(0, 0, 0, 0.05)',
+                                  color: isDark ? '#CBD5E1' : '#64748B',
+                                  borderColor: isDark ? '#2A3B4F' : '#D9C8AC',
+                                }}
+                                className="text-[11px] border px-2.5 py-0.5 rounded-full font-bold shrink-0"
+                              >
                                 مقفول 🔒
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                          <p
+                            style={{
+                              color: isUnlocked
+                                ? isDark
+                                  ? '#CBD5E1'
+                                  : '#526E6E'
+                                : isDark
+                                ? '#94A3B8'
+                                : '#64748B',
+                            }}
+                            className="text-xs mt-1 leading-relaxed"
+                          >
                             {b.description}
                           </p>
                         </div>
@@ -437,15 +582,24 @@ export function StudentGamificationPill({
               {activeTab === 'leaderboard' && (
                 <div className="space-y-3">
                   {loadingLb ? (
-                    <div className="text-center py-8 text-gray-400 text-xs font-semibold animate-pulse">
+                    <div
+                      style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                      className="text-center py-8 text-xs font-semibold animate-pulse"
+                    >
                       جاري تحميل لوحة شرف الدفعة...
                     </div>
                   ) : leaderboard.length === 0 ? (
-                    <div className="text-center py-8 text-gray-400 text-xs">
+                    <div
+                      style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                      className="text-center py-8 text-xs font-medium"
+                    >
                       لا يوجد متسابقين حتى الآن. ابدأ بالمذاكرة لتكون الأول!
                     </div>
                   ) : (
-                    <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                    <div
+                      style={{ borderColor: isDark ? '#1E2B3A' : '#E3D7C1' }}
+                      className="divide-y divide-gray-200 dark:divide-gray-800"
+                    >
                       {leaderboard.map((student) => (
                         <div
                           key={student.user_id}
@@ -455,12 +609,12 @@ export function StudentGamificationPill({
                             <span
                               className={`w-6 text-center font-black ${
                                 student.rank === 1
-                                  ? 'text-amber-500 text-base'
+                                  ? 'text-amber-400 text-base'
                                   : student.rank === 2
-                                  ? 'text-gray-400 text-sm'
+                                  ? 'text-slate-300 text-sm'
                                   : student.rank === 3
-                                  ? 'text-amber-700 text-sm'
-                                  : 'text-gray-500'
+                                  ? 'text-amber-600 text-sm'
+                                  : 'text-gray-400'
                               }`}
                             >
                               {student.rank === 1
@@ -472,15 +626,24 @@ export function StudentGamificationPill({
                                 : `#${student.rank}`}
                             </span>
                             <div>
-                              <div className="font-bold text-gray-900 dark:text-gray-100">
+                              <div
+                                style={{ color: isDark ? '#F1F5F9' : '#162828' }}
+                                className="font-extrabold text-xs sm:text-sm"
+                              >
                                 {student.nickname}
                               </div>
-                              <div className="text-[10px] text-gray-400">
+                              <div
+                                style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                                className="text-[10px] font-medium"
+                              >
                                 المستوى {student.level} • {student.current_streak} يوم استمرار 🔥
                               </div>
                             </div>
                           </div>
-                          <div className="font-mono font-extrabold text-teal-600 dark:text-teal-400 text-sm">
+                          <div
+                            style={{ color: isDark ? '#2DD4BF' : '#0D9488' }}
+                            className="font-mono font-extrabold text-xs sm:text-sm"
+                          >
                             {student.total_xp} XP
                           </div>
                         </div>
