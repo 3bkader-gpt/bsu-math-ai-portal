@@ -494,3 +494,30 @@ Categorize common mathematical missteps with constructive feedback:
 3. **7-Day Retention (D7):** **>= 65%** weekly return rate (measured via `session.started`).
 4. **Burnout Dropout Prevention:** **> 40%** reduction in mid-quiz abandonment due to the 3-tier hint ladder and burnout detector.
 5. **Technical Excellence:** Continuous **60fps** rendering with zero UI thread stutters during KaTeX math rendering and animation cycles.
+
+---
+
+## 🧪 Soft Launch Protocol & Pre-Data Behavioral Thresholds
+
+Before advancing to Phase 3 feature development, a **7-Day Soft Launch (10–20 Students)** will run on production with a frozen behavioral baseline to measure authentic mathematical study habits.
+
+### 1. Locked Pre-Data Quantitative Thresholds
+To prevent post-hoc rationalization, success thresholds are frozen prior to observing cohort metrics:
+* **7-Day Retention (D7):** Target **>= 25%** across the 7-day cohort (typical non-mandatory college app average: 15–20%).
+* **Mistake Review Completion Rate:** Target **>= 50%** of due Leitner questions reviewed and promoted to Box 2+.
+* **Median Time to First Action:** Target **<= 45 seconds** from initial page open to first deliberate action (`session.first_action`).
+* **400 XP Cap Friction:** **< 5%** of daily active students hitting the 400 XP cap, confirming fair pacing without artificial study truncation.
+
+### 2. Qualitative Pulse Protocol (5-Student Interview)
+Because quantitative logs indicate *what* occurred without explaining *why*, 5 students will be asked exactly two brief questions on Day 4:
+1. *"What is the first thing that grabbed your attention and kept you using the portal?"*
+2. *"What felt frustrating, distracting, or slowed down your study flow?"*
+
+### 3. Student Transparency & Ethical Data Notice
+Students are explicitly informed in the onboarding copy:
+> *"جميع تفاعلات المذاكرة تُسجل مجهولة الهوية بالكامل بدون أسماء أو بيانات شخصية، بهدف تحسين وتطوير تجربة المذاكرة لدفعة تانية رياضيات."*
+
+### 4. Intra-Launch Engineering Discipline (Zero Measurement Pollution)
+* **Allowed during observation:** Low-risk sensory and aesthetic polish (audio cues, micro-animations, flow timer, KaTeX rendering optimizations, hint pipeline generation).
+* **Strictly frozen during observation:** Core reward mechanics (flexible streak logic, confidence rating XP bonuses, daily cap numbers) must remain unchanged to preserve statistical integrity of the baseline measurement.
+
