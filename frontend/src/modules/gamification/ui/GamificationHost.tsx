@@ -220,20 +220,23 @@ export function GamificationHost() {
   return (
     <div
       aria-live="polite"
-      className="fixed bottom-6 left-6 z-[9999] pointer-events-none flex flex-col gap-2 max-w-sm w-full"
+      className="fixed bottom-4 inset-x-3 sm:bottom-6 sm:inset-x-auto sm:left-6 sm:max-w-sm z-[9999] pointer-events-none flex flex-col gap-2.5"
       dir="rtl"
     >
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="pointer-events-auto bg-[#184E4E]/95 dark:bg-[#131922]/95 backdrop-blur-md text-white border border-teal-500/30 rounded-xl px-4 py-3 shadow-2xl flex items-center justify-between animate-in fade-in slide-in-from-bottom-3 duration-200"
+          className="pointer-events-auto bg-[#131922]/95 dark:bg-[#0B0F14]/95 text-white border border-teal-500/40 rounded-2xl p-3.5 shadow-2xl flex items-center gap-3 backdrop-blur-md animate-in fade-in slide-in-from-bottom-3 duration-200"
         >
-          <div>
-            <div className="font-bold text-sm tracking-wide text-teal-200">
+          <div className="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0 text-lg">
+            {t.type === 'xp' ? '⚡' : t.type === 'level' ? '🎉' : '🎖️'}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-black text-sm tracking-wide text-teal-300">
               {t.title}
             </div>
             {t.subtitle && (
-              <div className="text-xs text-gray-200 opacity-90 mt-0.5">
+              <div className="text-xs text-slate-200 font-medium mt-0.5 line-clamp-2 leading-relaxed">
                 {t.subtitle}
               </div>
             )}
