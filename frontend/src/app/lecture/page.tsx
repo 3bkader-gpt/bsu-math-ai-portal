@@ -660,23 +660,31 @@ function LectureContent() {
                     key={pdf.id}
                     onClick={() => !downloadingAssetId && handleDownloadOriginalFile(info.downloadUrl, info.suggestedFilename, pdf.id)}
                     style={{
-                      backgroundColor: isBook ? 'rgba(59, 130, 246, 0.05)' : 'rgba(245, 158, 11, 0.05)',
-                      borderColor: isBook ? 'rgba(59, 130, 246, 0.25)' : 'rgba(245, 158, 11, 0.25)',
+                      backgroundColor: isDark
+                        ? (isBook ? 'rgba(59, 130, 246, 0.12)' : 'rgba(245, 158, 11, 0.12)')
+                        : (isBook ? 'rgba(59, 130, 246, 0.06)' : 'rgba(245, 158, 11, 0.06)'),
+                      borderColor: isDark
+                        ? (isBook ? 'rgba(59, 130, 246, 0.35)' : 'rgba(245, 158, 11, 0.35)')
+                        : (isBook ? '#BFDBFE' : '#FDE68A'),
                     }}
                     className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer group hover:scale-[1.01] active:scale-[0.99] shadow-xs ${
                       isBook
-                        ? 'hover:border-blue-500/60 hover:bg-blue-500/10'
-                        : 'hover:border-amber-500/60 hover:bg-amber-500/10'
+                        ? 'hover:border-blue-500 hover:bg-blue-500/10'
+                        : 'hover:border-amber-500 hover:bg-amber-500/10'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       {/* Icon Container */}
                       <div
-                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-xl shadow-xs ${
-                          isBook
-                            ? 'bg-blue-500/15 text-blue-600 dark:text-blue-300'
-                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-300'
-                        }`}
+                        style={{
+                          backgroundColor: isDark
+                            ? (isBook ? 'rgba(59, 130, 246, 0.25)' : 'rgba(245, 158, 11, 0.25)')
+                            : (isBook ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'),
+                          color: isDark
+                            ? (isBook ? '#93C5FD' : '#FCD34D')
+                            : (isBook ? '#1D4ED8' : '#B45309'),
+                        }}
+                        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-xl shadow-xs"
                       >
                         {info.badgeEmoji}
                       </div>
@@ -685,25 +693,41 @@ function LectureContent() {
                       <div className="min-w-0 text-right space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
-                            className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
-                              isBook
-                                ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/20'
-                                : 'bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-500/20'
-                            }`}
+                            style={{
+                              backgroundColor: isDark
+                                ? (isBook ? 'rgba(59, 130, 246, 0.25)' : 'rgba(245, 158, 11, 0.25)')
+                                : (isBook ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'),
+                              color: isDark
+                                ? (isBook ? '#93C5FD' : '#FCD34D')
+                                : (isBook ? '#1E40AF' : '#92400E'),
+                              borderColor: isDark
+                                ? (isBook ? 'rgba(59, 130, 246, 0.4)' : 'rgba(245, 158, 11, 0.4)')
+                                : (isBook ? '#93C5FD' : '#FCD34D'),
+                            }}
+                            className="text-[10px] font-black px-2 py-0.5 rounded-md border"
                           >
                             {info.badgeText}
                           </span>
                           {info.formattedSize && (
-                            <span className="text-[11px] font-mono font-bold opacity-60" style={{ color: 'var(--text-muted)' }}>
-                              {info.formattedSize}
+                            <span
+                              style={{ color: 'var(--text-muted)' }}
+                              className="text-[11px] font-mono font-bold"
+                            >
+                              ({info.formattedSize})
                             </span>
                           )}
                         </div>
-                        <h4 className="text-xs sm:text-sm font-black leading-snug line-clamp-2" style={{ color: 'var(--text-primary)' }}>
+                        <h4
+                          className="text-xs sm:text-sm font-black leading-snug line-clamp-2"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
                           {info.title}
                         </h4>
                         {info.subtitle && (
-                          <p className="text-[11px] font-medium leading-relaxed opacity-75 line-clamp-1" style={{ color: 'var(--text-secondary)' }}>
+                          <p
+                            className="text-[11px] font-bold leading-relaxed line-clamp-1"
+                            style={{ color: 'var(--text-secondary)' }}
+                          >
                             {info.subtitle}
                           </p>
                         )}
@@ -715,11 +739,11 @@ function LectureContent() {
                       <button
                         type="button"
                         disabled={downloadingAssetId !== null}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-xs border cursor-pointer ${
-                          isBook
-                            ? 'bg-blue-600 text-white group-hover:bg-blue-700 border-blue-500/30'
-                            : 'bg-amber-600 text-white group-hover:bg-amber-700 border-amber-500/30'
-                        }`}
+                        style={{
+                          backgroundColor: isBook ? '#2563EB' : '#D97706',
+                          borderColor: isBook ? '#1D4ED8' : '#B45309',
+                        }}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-xs border cursor-pointer hover:scale-105 active:scale-95 text-white"
                         title={`تحميل ${info.title}`}
                         aria-label={`تحميل ${info.title}`}
                       >
