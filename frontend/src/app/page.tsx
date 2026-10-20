@@ -706,9 +706,8 @@ export default function Home() {
                   {isGirls ? "🎀 You're Just A Baby Girl" : 'نسخة الشباب'}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-sm font-medium mt-0.5 leading-snug whitespace-nowrap truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none" style={{ color: 'var(--text-muted)' }}>
-                <span className="xs:hidden">تربية بني سويف • رياضيات</span>
-                <span className="hidden xs:inline sm:hidden">تربية بني سويف • تانية رياضيات</span>
+              <p className="text-[11px] sm:text-sm font-medium mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
+                <span className="sm:hidden">تربية بني سويف • تانية رياضيات</span>
                 <span className="hidden sm:inline">{isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}</span>
               </p>
             </div>
@@ -1054,7 +1053,7 @@ export default function Home() {
                       </div>
                       <div className="mt-2.5 flex items-center justify-between text-[11px] sm:text-xs" style={{ color: 'var(--text-muted)' }}>
                         <span 
-                          className="font-semibold truncate max-w-[85px] sm:max-w-none text-[10px] sm:text-xs" 
+                          className="font-semibold text-[10px] sm:text-xs whitespace-nowrap" 
                           style={{ color: activeGlowColor }}
                         >
                           {activeBadgeTag}
