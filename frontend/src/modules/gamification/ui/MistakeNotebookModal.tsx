@@ -118,7 +118,7 @@ export function MistakeNotebookModal({
         {/* Header */}
         <div
           style={{ borderColor: 'var(--border-subtle)' }}
-          className="p-5 sm:p-6 border-b flex items-center justify-between gap-4"
+          className="p-4 sm:p-5 border-b flex items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3">
             <div
@@ -139,7 +139,7 @@ export function MistakeNotebookModal({
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
             style={{ color: 'var(--text-muted)' }}
           >
             <X className="w-5 h-5" />
@@ -152,7 +152,7 @@ export function MistakeNotebookModal({
             backgroundColor: 'var(--bg-surface-elevated)',
             borderColor: 'var(--border-subtle)',
           }}
-          className="px-5 py-3 border-b grid grid-cols-5 gap-2 text-center text-xs font-bold"
+          className="px-4 py-2.5 sm:px-5 sm:py-3 border-b grid grid-cols-5 gap-2 text-center text-xs font-bold"
         >
           {[1, 2, 3, 4, 5].map((box) => {
             const count = summary.boxCounts[box] || 0;
@@ -177,34 +177,40 @@ export function MistakeNotebookModal({
         </div>
 
         {/* Body Content */}
-        <div className="p-5 sm:p-7 flex-1 overflow-y-auto space-y-6">
+        <div
+          className={`p-4 sm:p-6 flex-1 ${
+            !hasItems
+              ? 'overflow-hidden flex flex-col items-center justify-center'
+              : 'overflow-y-auto no-scrollbar'
+          } space-y-4`}
+        >
           {isLoading ? (
-            <div className="py-16 text-center space-y-3">
+            <div className="py-12 text-center space-y-3">
               <div className="w-8 h-8 mx-auto border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
               <p className="text-sm font-semibold text-gray-500">جاري فتح كراسة الأخطاء...</p>
             </div>
           ) : !hasItems ? (
             /* Clean Empty State */
-            <div className="py-12 text-center space-y-4 animate-fade-in">
+            <div className="py-2 sm:py-4 my-auto text-center space-y-3 animate-fade-in max-w-sm mx-auto">
               <div
                 style={{
                   backgroundColor: 'rgba(16, 185, 129, 0.15)',
                   color: 'var(--accent-emerald)',
                 }}
-                className="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center shadow-lg"
+                className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl flex items-center justify-center shadow-lg"
               >
-                <Trophy className="w-10 h-10" />
+                <Trophy className="w-8 h-8 sm:w-10 sm:h-10" />
               </div>
-              <div className="space-y-1.5">
-                <h4 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>
+              <div className="space-y-1">
+                <h4 className="text-lg sm:text-xl font-black" style={{ color: 'var(--text-primary)' }}>
                   كراسة أخطائك نظيفة لليوم! 🎉
                 </h4>
-                <p className="text-sm font-medium max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-xs sm:text-sm font-medium leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   كل الأسئلة تم تثبيتها في مستويات متباعدة. استرح اليوم، وسنذكرك بالأسئلة التالية في موعدها المحدد علمياً.
                 </p>
               </div>
               {summary.masteredCount > 0 && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                   <Award className="w-4 h-4" />
                   <span>أتقنت {summary.masteredCount} سؤال رياضي بشكل نهائي!</span>
                 </div>
@@ -212,7 +218,7 @@ export function MistakeNotebookModal({
             </div>
           ) : (
             /* Active Review Flashcard */
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-5 animate-fade-in w-full">
               {/* Progress pill */}
               <div className="flex items-center justify-between text-xs font-bold text-gray-500">
                 <span>سؤال {currentIndex + 1} من {dueItems.length} مستحق للمراجعة</span>
