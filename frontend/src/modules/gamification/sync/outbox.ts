@@ -88,7 +88,8 @@ export async function flushOutboxKeepalive(): Promise<boolean> {
     return false;
   }
   try {
-    const pending = await getOutboxEvents(25);
+    // 1. Cap to at most 20 events per keepalive dispatch to guarantee payload stays well below browser's 64KB limit
+    const pending = await getOutboxEvents(20);
     if (!pending || pending.length === 0) return false;
 
     const payload: IngestRpcPayload[] = pending.map((item) => ({
@@ -98,7 +99,6 @@ export async function flushOutboxKeepalive(): Promise<boolean> {
       payload: item.payload,
       clientTs: item.clientTs,
     }));
-    const ids = pending.map((item) => item.id);
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://cjmlnpdtfclzcvehebsv.supabase.co';
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_iukVp-1coXRxhHD3T_pqoQ_k2g1PnN5';
@@ -117,7 +117,13 @@ export async function flushOutboxKeepalive(): Promise<boolean> {
     const endpoint = `${supabaseUrl}/rest/v1/rpc/ingest_events`;
     const bodyStr = JSON.stringify({ events: payload });
 
-    // 1. Modern fetch with keepalive: true (supports custom auth headers during page exit)
+    // Ensure payload is under the 60KB safety threshold
+    if (bodyStr.length > 60000) {
+      console.warn('[Outbox Keepalive] payload too large for keepalive:', bodyStr.length);
+      return false;
+    }
+
+    // 2. Dispatch via fetch keepalive (or fallback to sendBeacon)
     if (typeof fetch === 'function') {
       fetch(endpoint, {
         method: 'POST',
@@ -130,12 +136,14 @@ export async function flushOutboxKeepalive(): Promise<boolean> {
         keepalive: true,
       }).catch(() => {});
     } else if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-      // 2. Fallback to navigator.sendBeacon
       const blob = new Blob([bodyStr], { type: 'application/json' });
       navigator.sendBeacon(`${endpoint}?apikey=${anonKey}`, blob);
     }
 
-    await removeOutboxEvents(ids);
+    // NOTE: We deliberately do NOT remove items from IndexedDB here.
+    // Because keepalive is unconfirmed fire-and-forget, keeping items in IndexedDB guarantees
+    // zero data loss if network drops. Upon next session, flushOutboxBatch will confirm delivery with 200 OK
+    // and remove them safely, while the server's event UUID idempotency prevents duplicate XP.
     return true;
   } catch (e) {
     console.warn('[Outbox Keepalive] error:', e);
