@@ -55,7 +55,7 @@ export function SmartResumeCard() {
     TabIcon = Headphones;
     const sec = audioSec || 0;
     targetUrl += `&t=${sec}`;
-    mediaSubtitle = `بودكاست المحاضرة — الدقيقة ${formatMinutesSeconds(sec)}`;
+    mediaSubtitle = `ريكورد المحاضرة — الدقيقة ${formatMinutesSeconds(sec)}`;
   } else if (lastTab === 'video') {
     TabIcon = Video;
     const sec = videoSec || 0;

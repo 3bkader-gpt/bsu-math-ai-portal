@@ -614,90 +614,123 @@ function LectureContent() {
         {sortedOriginalPdfs.length > 0 && (
           <section
             style={{
-              backgroundColor: 'var(--bg-surface-elevated)',
+              backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
               boxShadow: 'var(--card-shadow)',
             }}
-            className="p-4 sm:p-6 rounded-3xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all"
+            className="p-5 sm:p-6 rounded-3xl border space-y-4 transition-all"
           >
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
-                style={{
-                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                  color: '#10b981',
-                }}
-              >
-                <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            {/* Header: Clean & Integrated */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
+                  style={{
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                    color: '#10b981',
+                  }}
+                >
+                  <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm sm:text-base flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <span>ملفات المحاضرة الأصلية المعتمدة</span>
+                  </h3>
+                  <p className="text-xs font-medium mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    المصادر الرسمية المرفوعة للمحاضرة للتحميل المباشر والمذاكرة
+                  </p>
+                </div>
               </div>
-              <div>
-                <div className="font-extrabold text-sm sm:text-base flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                  <span>ملفات المحاضرة الأصلية المعتمدة</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                    {sortedOriginalPdfs.length} {sortedOriginalPdfs.length === 1 ? 'ملف' : 'ملفات'}
-                  </span>
-                </div>
-                <div className="text-xs sm:text-sm font-medium mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                  المصادر الرسمية المرفوعة للمحاضرة (الكشكول بخط اليد وجزء الكتاب المقرر)
-                </div>
+
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span>📄</span>
+                <span>{sortedOriginalPdfs.length === 1 ? 'ملف أصلي متاح' : `${sortedOriginalPdfs.length} ملفات أصلية`}</span>
               </div>
             </div>
 
-            <div className="flex items-stretch sm:items-center gap-3 flex-wrap">
+            {/* File Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {sortedOriginalPdfs.map((pdf) => {
                 const info = getOriginalPdfDetails(pdf, lectureBundle.lecture_num);
                 const isDownloading = downloadingAssetId === pdf.id;
+                const isBook = info.isBook;
+
                 return (
-                  <button
+                  <div
                     key={pdf.id}
-                    type="button"
-                    onClick={() => handleDownloadOriginalFile(info.downloadUrl, info.suggestedFilename, pdf.id)}
-                    disabled={downloadingAssetId !== null}
-                    className={`flex-1 sm:flex-initial inline-flex items-center justify-between sm:justify-start gap-3 px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed ${
-                      info.isBook
-                        ? 'hover:border-blue-500 bg-blue-500/5 hover:bg-blue-500/10 border-blue-500/20 text-blue-900 dark:text-blue-100'
-                        : 'hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-100'
+                    onClick={() => !downloadingAssetId && handleDownloadOriginalFile(info.downloadUrl, info.suggestedFilename, pdf.id)}
+                    style={{
+                      backgroundColor: isBook ? 'rgba(59, 130, 246, 0.05)' : 'rgba(245, 158, 11, 0.05)',
+                      borderColor: isBook ? 'rgba(59, 130, 246, 0.25)' : 'rgba(245, 158, 11, 0.25)',
+                    }}
+                    className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer group hover:scale-[1.01] active:scale-[0.99] shadow-xs ${
+                      isBook
+                        ? 'hover:border-blue-500/60 hover:bg-blue-500/10'
+                        : 'hover:border-amber-500/60 hover:bg-amber-500/10'
                     }`}
-                    title={`تحميل ${info.title} (${info.subtitle})`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-lg shrink-0">{info.badgeEmoji}</span>
-                      <div className="flex flex-col text-right">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${
-                            info.isBook
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200'
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200'
-                          }`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Icon Container */}
+                      <div
+                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-xl shadow-xs ${
+                          isBook
+                            ? 'bg-blue-500/15 text-blue-600 dark:text-blue-300'
+                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-300'
+                        }`}
+                      >
+                        {info.badgeEmoji}
+                      </div>
+
+                      {/* Details - Full text without clipping */}
+                      <div className="min-w-0 text-right space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                              isBook
+                                ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/20'
+                                : 'bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-500/20'
+                            }`}
+                          >
                             {info.badgeText}
                           </span>
-                          <span className="font-bold text-xs sm:text-sm truncate max-w-[160px] sm:max-w-[220px]">
-                            {info.title}
-                          </span>
+                          {info.formattedSize && (
+                            <span className="text-[11px] font-mono font-bold opacity-60" style={{ color: 'var(--text-muted)' }}>
+                              {info.formattedSize}
+                            </span>
+                          )}
                         </div>
-                        {info.subtitle && info.isBook && (
-                          <span className="text-[11px] opacity-75 truncate max-w-[200px] sm:max-w-[240px]">
+                        <h4 className="text-xs sm:text-sm font-black leading-snug line-clamp-2" style={{ color: 'var(--text-primary)' }}>
+                          {info.title}
+                        </h4>
+                        {info.subtitle && (
+                          <p className="text-[11px] font-medium leading-relaxed opacity-75 line-clamp-1" style={{ color: 'var(--text-secondary)' }}>
                             {info.subtitle}
-                          </span>
+                          </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0 pr-1">
-                      {isDownloading ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-amber-600 dark:text-amber-400" />
-                      ) : (
-                        <>
-                          {info.formattedSize && (
-                            <span className="text-[11px] font-mono opacity-70">
-                              ({info.formattedSize})
-                            </span>
-                          )}
-                          <Download className="w-4 h-4 opacity-80" />
-                        </>
-                      )}
+                    {/* Dedicated Download Action Button */}
+                    <div className="shrink-0">
+                      <button
+                        type="button"
+                        disabled={downloadingAssetId !== null}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-xs border cursor-pointer ${
+                          isBook
+                            ? 'bg-blue-600 text-white group-hover:bg-blue-700 border-blue-500/30'
+                            : 'bg-amber-600 text-white group-hover:bg-amber-700 border-amber-500/30'
+                        }`}
+                        title={`تحميل ${info.title}`}
+                        aria-label={`تحميل ${info.title}`}
+                      >
+                        {isDownloading ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        ) : (
+                          <Download className="w-4 h-4 text-white group-hover:translate-y-0.5 transition-transform" />
+                        )}
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -718,75 +751,98 @@ function LectureContent() {
           </div>
         )}
 
-        {/* Spacious Tabs Navigation */}
-        <div
+        {/* Ergonomic & Spacious Navigation Dock */}
+        <nav
           style={{
             backgroundColor: 'var(--bg-surface)',
             borderColor: 'var(--border-subtle)',
             boxShadow: 'var(--card-shadow)',
           }}
-          className="rounded-3xl border p-2 flex items-center gap-2 overflow-x-auto no-scrollbar touch-pan-x"
+          className="rounded-2xl border p-1.5 transition-all"
+          aria-label="أقسام المحاضرة"
         >
-          <button
-            onClick={() => setActiveTab('audio')}
-            style={{
-              backgroundColor: activeTab === 'audio' ? 'var(--accent-primary)' : 'transparent',
-              color: activeTab === 'audio' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
-            }}
-            className="flex-1 min-w-[120px] sm:min-w-[150px] py-3 sm:py-3.5 px-3 rounded-2xl transition-all flex items-center justify-center gap-2 font-black text-xs sm:text-sm cursor-pointer hover:opacity-90"
-          >
-            <Headphones className="w-4 h-4 shrink-0" />
-            <span>{isGirls ? '🌸 بودكاست روقان' : 'بودكاست الشرح'}</span>
-          </button>
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth md:grid md:grid-cols-5">
+            {/* TAB 1: AUDIO RECORD */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('audio')}
+              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+                activeTab === 'audio'
+                  ? isGirls
+                    ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
+                    : 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 font-black shadow-xs'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+              }`}
+            >
+              <Headphones className={`w-4 h-4 shrink-0 ${activeTab === 'audio' ? (isGirls ? 'text-pink-500' : 'text-cyan-500') : 'opacity-70'}`} />
+              <span className="whitespace-nowrap">{isGirls ? '🌸 ريكورد روقان' : 'ريكورد الشرح'}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('video')}
-            style={{
-              backgroundColor: activeTab === 'video' ? 'var(--accent-primary)' : 'transparent',
-              color: activeTab === 'video' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
-            }}
-            className="flex-1 min-w-[120px] sm:min-w-[150px] py-3 sm:py-3.5 px-3 rounded-2xl transition-all flex items-center justify-center gap-2 font-black text-xs sm:text-sm cursor-pointer hover:opacity-90"
-          >
-            <Video className="w-4 h-4 shrink-0" />
-            <span>{isGirls ? '🎬 فيديو الشرح' : 'فيديو الشرح'}</span>
-          </button>
+            {/* TAB 2: VIDEO */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('video')}
+              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+                activeTab === 'video'
+                  ? isGirls
+                    ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
+                    : 'bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-black shadow-xs'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+              }`}
+            >
+              <Video className={`w-4 h-4 shrink-0 ${activeTab === 'video' ? (isGirls ? 'text-pink-500' : 'text-purple-500') : 'opacity-70'}`} />
+              <span className="whitespace-nowrap">{isGirls ? '🎬 فيديو الشرح' : 'فيديو الشرح'}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('quiz')}
-            style={{
-              backgroundColor: activeTab === 'quiz' ? 'var(--accent-primary)' : 'transparent',
-              color: activeTab === 'quiz' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
-            }}
-            className="flex-1 min-w-[130px] sm:min-w-[170px] py-3 sm:py-3.5 px-3 rounded-2xl transition-all flex items-center justify-center gap-2 font-black text-xs sm:text-sm cursor-pointer hover:opacity-90"
-          >
-            <HelpCircle className="w-4 h-4 shrink-0" />
-            <span>{isGirls ? '🧁 اختبري شطارتك' : 'كويز المحاضرة'} ({quizQuestions.length})</span>
-          </button>
+            {/* TAB 3: QUIZ */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('quiz')}
+              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+                activeTab === 'quiz'
+                  ? isGirls
+                    ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
+                    : 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 font-black shadow-xs'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+              }`}
+            >
+              <HelpCircle className={`w-4 h-4 shrink-0 ${activeTab === 'quiz' ? (isGirls ? 'text-pink-500' : 'text-amber-500') : 'opacity-70'}`} />
+              <span className="whitespace-nowrap">{isGirls ? '🧁 اختبري شطارتك' : 'كويز المحاضرة'} {quizQuestions.length > 0 ? `(${quizQuestions.length})` : ''}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('guide')}
-            style={{
-              backgroundColor: activeTab === 'guide' ? 'var(--accent-primary)' : 'transparent',
-              color: activeTab === 'guide' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
-            }}
-            className="flex-1 min-w-[130px] sm:min-w-[170px] py-3 sm:py-3.5 px-3 rounded-2xl transition-all flex items-center justify-center gap-2 font-black text-xs sm:text-sm cursor-pointer hover:opacity-90"
-          >
-            <FileText className="w-4 h-4 shrink-0" />
-            <span>{isGirls ? '🎀 النوتس والزتونة' : 'الدليل والزتونة'}</span>
-          </button>
+            {/* TAB 4: STUDY GUIDE */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('guide')}
+              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+                activeTab === 'guide'
+                  ? isGirls
+                    ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
+                    : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-black shadow-xs'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+              }`}
+            >
+              <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'guide' ? (isGirls ? 'text-pink-500' : 'text-emerald-500') : 'opacity-70'}`} />
+              <span className="whitespace-nowrap">{isGirls ? '🎀 النوتس والزتونة' : 'الدليل والزتونة'}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('flashcards')}
-            style={{
-              backgroundColor: activeTab === 'flashcards' ? 'var(--accent-primary)' : 'transparent',
-              color: activeTab === 'flashcards' ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)',
-            }}
-            className="flex-1 min-w-[120px] sm:min-w-[160px] py-3 sm:py-3.5 px-3 rounded-2xl transition-all flex items-center justify-center gap-2 font-black text-xs sm:text-sm cursor-pointer hover:opacity-90"
-          >
-            <Layers className="w-4 h-4 shrink-0" />
-            <span>{isGirls ? '🪞 فلاش كاردز' : 'كروت المراجعة'} ({flashcards.length})</span>
-          </button>
-        </div>
+            {/* TAB 5: FLASHCARDS */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('flashcards')}
+              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+                activeTab === 'flashcards'
+                  ? isGirls
+                    ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
+                    : 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 font-black shadow-xs'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+              }`}
+            >
+              <Layers className={`w-4 h-4 shrink-0 ${activeTab === 'flashcards' ? (isGirls ? 'text-pink-500' : 'text-indigo-500') : 'opacity-70'}`} />
+              <span className="whitespace-nowrap">{isGirls ? '🪞 كروت المراجعة' : 'كروت المراجعة'} {flashcards.length > 0 ? `(${flashcards.length})` : ''}</span>
+            </button>
+          </div>
+        </nav>
 
         {/* Tab Content Display Area */}
         <div className="pt-2">
@@ -967,7 +1023,7 @@ function LectureContent() {
                   </div>
                   <div className="space-y-1.5">
                     <h3 className="font-black text-lg" style={{ color: 'var(--text-primary)' }}>
-                      بودكاست الشرح قيد المعالجة السحابية ⏳
+                      ريكورد الشرح قيد المعالجة السحابية ⏳
                     </h3>
                     <p className="text-xs sm:text-sm font-semibold leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                       يتم تسجيل ومزامنة الصوت لهذه المحاضرة على السحابة. يمكنك حالياً دراسة محتوى المحاضرة كاملاً عبر الكويز التفاعلي والدليل والزتونة.
