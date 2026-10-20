@@ -497,27 +497,32 @@ Categorize common mathematical missteps with constructive feedback:
 
 ---
 
-## 🧪 Soft Launch Protocol & Pre-Data Behavioral Thresholds
+## 🧪 Soft Launch Protocol & Directional Baseline Thresholds
 
-Before advancing to Phase 3 feature development, a **7-Day Soft Launch (10–20 Students)** will run on production with a frozen behavioral baseline to measure authentic mathematical study habits.
+Before advancing to Phase 3 feature development, a **7-Day Soft Launch (10–20 Students)** runs on production with a frozen behavioral baseline to measure authentic mathematical study habits.
 
-### 1. Locked Pre-Data Quantitative Thresholds
-To prevent post-hoc rationalization, success thresholds are frozen prior to observing cohort metrics:
-* **7-Day Retention (D7):** Target **>= 25%** across the 7-day cohort (typical non-mandatory college app average: 15–20%).
-* **Mistake Review Completion Rate:** Target **>= 50%** of due Leitner questions reviewed and promoted to Box 2+.
-* **Median Time to First Action:** Target **<= 45 seconds** from initial page open to first deliberate action (`session.first_action`).
-* **400 XP Cap Friction:** **< 5%** of daily active students hitting the 400 XP cap, confirming fair pacing without artificial study truncation.
+### 1. Directional Trend Indicators (Not Rigid Pass/Fail Gates)
+Given the small cohort size ($N = 10\text{--}20$ students), each individual student represents a significant **5–10% statistical swing** in D7 retention. Furthermore, on low DAU days (e.g., DAU = 5), a strict threshold like "< 5% reaching the cap" mathematically allows zero students. Therefore, quantitative metrics are treated as **directional trend indicators**, evaluated alongside qualitative student feedback and behavioral patterns:
+* **7-Day Retention (D7) Benchmark:** Directional target **>= 25%** across the 7-day cohort (non-mandatory university study app baseline is typically 15–20%).
+* **Mistake Review Engagement:** Directional target **>= 50%** of due Leitner notebook questions reviewed and promoted to Box 2+.
+* **Median Time to First Action:** Target **<= 45 seconds** from initial page open to first deliberate action (`session.first_action`), enabled by direct Supabase edge CDN content loading.
+* **400 XP Daily Cap Friction:** Track whether eager students encounter artificial study truncation; at low DAU, 1–2 students hitting the cap indicates high enthusiasm rather than systemic failure.
 
-### 2. Qualitative Pulse Protocol (5-Student Interview)
+### 2. Academic Seasonality & Calendar Context
+University mathematics platform engagement is overwhelmingly dictated by academic calendar milestones (upcoming midterms, quizzes, and tutorial section deadlines). If launched during a quiet lecture week without impending assessments, naturally lower retention is expected and does not reflect a platform deficiency. The launch should ideally be coordinated with or evaluated against the nearest academic deliverable (e.g., upcoming section assignment or midterm).
+
+### 3. Qualitative Pulse Protocol (5-Student Interview)
 Because quantitative logs indicate *what* occurred without explaining *why*, 5 students will be asked exactly two brief questions on Day 4:
 1. *"What is the first thing that grabbed your attention and kept you using the portal?"*
 2. *"What felt frustrating, distracting, or slowed down your study flow?"*
+Decisions to iterate or advance will be synthesized from the combination of behavioral patterns and direct student voice.
 
-### 3. Student Transparency & Ethical Data Notice
+### 4. Student Transparency & Ethical Data Notice
 Students are explicitly informed in the onboarding copy:
 > *"جميع تفاعلات المذاكرة تُسجل مجهولة الهوية بالكامل بدون أسماء أو بيانات شخصية، بهدف تحسين وتطوير تجربة المذاكرة لدفعة تانية رياضيات."*
 
-### 4. Intra-Launch Engineering Discipline (Zero Measurement Pollution)
-* **Allowed during observation:** Low-risk sensory and aesthetic polish (audio cues, micro-animations, flow timer, KaTeX rendering optimizations, hint pipeline generation).
-* **Strictly frozen during observation:** Core reward mechanics (flexible streak logic, confidence rating XP bonuses, daily cap numbers) must remain unchanged to preserve statistical integrity of the baseline measurement.
+### 5. Intra-Launch Engineering Discipline (Zero Measurement Pollution)
+Any dynamic mechanism that alters session pacing will contaminate baseline session duration and retention measurements:
+* **Allowed during observation:** STRICTLY cosmetic and sensory polish ONLY (audio sprites/cues, haptic vibration, KaTeX font rendering, CSS styling, visual polish).
+* **POSTPONED until after measurement:** **Flow timer** and **Burnout detector** (which actively modify study duration and break cadence) are strictly deferred to Phase 3. Core reward mechanics (flexible streak logic, confidence rating XP bonuses, daily cap numbers) remain completely untouched throughout the 7-day observation window.
 
