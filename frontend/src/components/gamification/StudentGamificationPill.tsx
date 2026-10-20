@@ -30,8 +30,12 @@ import {
   Headphones,
   Video,
   Layers,
+  Edit3,
+  User,
+  Loader2,
 } from 'lucide-react';
-import { isAudioMuted, toggleAudioMute } from '@/lib/audio/soundEngine';
+import { isAudioMuted, toggleAudioMute, playSound } from '@/lib/audio/soundEngine';
+import { updateStudentProfile } from '@/modules/gamification/supabase/auth';
 
 const BADGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Sparkles,
@@ -70,10 +74,56 @@ export function StudentGamificationPill({
   const [activeTab, setActiveTab] = useState<'progress' | 'badges' | 'leaderboard'>('progress');
   const [loadingLb, setLoadingLb] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [studentName, setStudentName] = useState<string>('');
+  const [nameInput, setNameInput] = useState<string>('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   useEffect(() => {
     setIsMuted(isAudioMuted());
   }, []);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('bsu_portal_student_nickname') || '';
+      if (stored && stored !== 'عاشق الرياضيات' && stored !== 'عاشقة الرياضيات') {
+        setStudentName(stored);
+        setNameInput(stored);
+      } else {
+        setStudentName('');
+        setNameInput('');
+      }
+
+      const creds = JSON.parse(localStorage.getItem('bsu_portal_guest_auth') || '{}');
+      if (creds.user_id) {
+        setCurrentUserId(creds.user_id);
+      }
+    } catch {}
+  }, [isOpen]);
+
+  const handleSaveName = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = nameInput.trim();
+    if (!trimmed || isSavingName) return;
+
+    setIsSavingName(true);
+    try {
+      localStorage.setItem('bsu_portal_student_nickname', trimmed);
+      setStudentName(trimmed);
+      await updateStudentProfile({ nickname: trimmed });
+      playSound('xp_chime');
+      setIsEditingName(false);
+
+      // Refresh leaderboard live to reflect the student's new name immediately
+      const freshLb = await fetchCohortLeaderboard(50);
+      setLeaderboard(freshLb);
+    } catch (err) {
+      console.warn('Failed to update student profile nickname:', err);
+    } finally {
+      setIsSavingName(false);
+    }
+  };
 
   // Level calculations
   const currentLevelBaseXp = getXpRequiredForLevel(level);
@@ -96,7 +146,7 @@ export function StudentGamificationPill({
     setIsOpen(true);
     if (leaderboard.length === 0) {
       setLoadingLb(true);
-      fetchCohortLeaderboard(20)
+      fetchCohortLeaderboard(50)
         .then((data) => setLeaderboard(data))
         .catch(() => {})
         .finally(() => setLoadingLb(false));
@@ -581,12 +631,136 @@ export function StudentGamificationPill({
 
               {activeTab === 'leaderboard' && (
                 <div className="space-y-3">
+                  {/* Student Name Registration / Edit Card */}
+                  {!studentName || isEditingName ? (
+                    <div 
+                      className="p-3 sm:p-3.5 rounded-2xl border transition-all"
+                      style={{
+                        backgroundColor: isDark 
+                          ? 'rgba(45, 212, 191, 0.08)' 
+                          : (isGirls ? 'rgba(255, 101, 132, 0.08)' : 'rgba(230, 244, 241, 0.8)'),
+                        borderColor: isDark 
+                          ? 'rgba(45, 212, 191, 0.25)' 
+                          : (isGirls ? 'rgba(255, 101, 132, 0.25)' : 'rgba(17, 94, 89, 0.2)'),
+                      }}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-base">🏆</span>
+                        <div>
+                          <h4 className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+                            {studentName ? 'تعديل اسمك في لوحة شرف الدفعة' : 'سجّل اسمك للظهور في لوحة الشرف'}
+                          </h4>
+                          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                            اكتب اسمك ليظهر لزملائك مع مستواك ونقاطك التراكمية
+                          </p>
+                        </div>
+                      </div>
+
+                      <form onSubmit={handleSaveName} className="flex items-center gap-1.5 sm:gap-2">
+                        <input
+                          type="text"
+                          value={nameInput}
+                          onChange={(e) => setNameInput(e.target.value)}
+                          placeholder={isGirls ? 'اسمك الكريم (مثلاً: سارة أحمد)' : 'اسمك الكريم (مثلاً: أحمد محمد)'}
+                          maxLength={35}
+                          className="flex-1 px-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-1 focus:ring-teal-500 transition-all placeholder:text-slate-400"
+                          style={{
+                            backgroundColor: 'var(--bg-surface)',
+                            borderColor: 'var(--border-subtle)',
+                            color: 'var(--text-primary)',
+                          }}
+                          autoFocus
+                        />
+                        <button
+                          type="submit"
+                          disabled={!nameInput.trim() || isSavingName}
+                          className="px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs disabled:opacity-50 cursor-pointer shrink-0 flex items-center gap-1"
+                          style={{
+                            backgroundColor: 'var(--accent-primary)',
+                          }}
+                        >
+                          {isSavingName ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>حفظ...</span>
+                            </>
+                          ) : (
+                            <span>{studentName ? 'حفظ التعديل' : 'حفظ وظهور ✨'}</span>
+                          )}
+                        </button>
+                        {studentName && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNameInput(studentName);
+                              setIsEditingName(false);
+                            }}
+                            className="px-2 py-1.5 rounded-xl text-xs font-medium opacity-70 hover:opacity-100 cursor-pointer"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
+                            إلغاء
+                          </button>
+                        )}
+                      </form>
+                    </div>
+                  ) : (
+                    <div
+                      className="p-2.5 rounded-xl border flex items-center justify-between gap-2.5 transition-all"
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-subtle)',
+                      }}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div 
+                          className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
+                          style={{
+                            backgroundColor: 'var(--bg-surface)',
+                            borderColor: 'var(--border-subtle)',
+                          }}
+                        >
+                          {isGirls ? '🎀' : '🎓'}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>اسمك في اللوحة:</span>
+                            <span className="text-xs font-extrabold truncate" style={{ color: 'var(--accent-primary)' }}>
+                              {studentName}
+                            </span>
+                          </div>
+                          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                            {totalXp} XP • المستوى {level} • {streak} يوم استمرار 🔥
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNameInput(studentName);
+                          setIsEditingName(true);
+                        }}
+                        className="px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-transform hover:scale-105 active:scale-95 cursor-pointer shrink-0 flex items-center gap-1"
+                        style={{
+                          backgroundColor: 'var(--bg-surface)',
+                          borderColor: 'var(--border-subtle)',
+                          color: 'var(--text-secondary)',
+                        }}
+                        title="تغيير اسمك في لوحة الشرف"
+                      >
+                        <Edit3 className="w-3 h-3 opacity-70" />
+                        <span>تعديل</span>
+                      </button>
+                    </div>
+                  )}
+
                   {loadingLb ? (
                     <div
                       style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
-                      className="text-center py-8 text-xs font-semibold animate-pulse"
+                      className="text-center py-8 text-xs font-semibold animate-pulse flex items-center justify-center gap-2"
                     >
-                      جاري تحميل لوحة شرف الدفعة...
+                      <Loader2 className="w-4 h-4 animate-spin text-teal-500" />
+                      <span>جاري تحميل لوحة شرف الدفعة...</span>
                     </div>
                   ) : leaderboard.length === 0 ? (
                     <div
@@ -598,56 +772,79 @@ export function StudentGamificationPill({
                   ) : (
                     <div
                       style={{ borderColor: isDark ? '#1E2B3A' : '#E3D7C1' }}
-                      className="divide-y divide-gray-200 dark:divide-gray-800"
+                      className="space-y-1"
                     >
-                      {leaderboard.map((student) => (
-                        <div
-                          key={student.user_id}
-                          className="py-2.5 flex items-center justify-between gap-3 text-xs"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span
-                              className={`w-6 text-center font-black ${
-                                student.rank === 1
-                                  ? 'text-amber-400 text-base'
+                      {leaderboard.map((student) => {
+                        const isMe =
+                          (currentUserId && student.user_id === currentUserId) ||
+                          (studentName && student.nickname === studentName);
+                        return (
+                          <div
+                            key={student.user_id}
+                            style={{
+                              backgroundColor: isMe 
+                                ? (isDark ? 'rgba(45, 212, 191, 0.08)' : (isGirls ? 'rgba(255, 101, 132, 0.08)' : 'rgba(230, 244, 241, 0.75)')) 
+                                : 'transparent',
+                              borderColor: isMe 
+                                ? (isDark ? 'rgba(45, 212, 191, 0.35)' : (isGirls ? 'rgba(255, 101, 132, 0.35)' : 'rgba(17, 94, 89, 0.3)')) 
+                                : 'transparent',
+                            }}
+                            className={`py-2 px-2.5 rounded-xl border flex items-center justify-between gap-3 text-xs transition-colors ${
+                              isMe ? 'shadow-2xs' : ''
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span
+                                className={`w-6 text-center font-black shrink-0 ${
+                                  student.rank === 1
+                                    ? 'text-amber-400 text-base'
+                                    : student.rank === 2
+                                    ? 'text-slate-300 text-sm'
+                                    : student.rank === 3
+                                    ? 'text-amber-600 text-sm'
+                                    : 'text-gray-400'
+                                }`}
+                              >
+                                {student.rank === 1
+                                  ? '🥇'
                                   : student.rank === 2
-                                  ? 'text-slate-300 text-sm'
+                                  ? '🥈'
                                   : student.rank === 3
-                                  ? 'text-amber-600 text-sm'
-                                  : 'text-gray-400'
-                              }`}
-                            >
-                              {student.rank === 1
-                                ? '🥇'
-                                : student.rank === 2
-                                ? '🥈'
-                                : student.rank === 3
-                                ? '🥉'
-                                : `#${student.rank}`}
-                            </span>
-                            <div>
-                              <div
-                                style={{ color: isDark ? '#F1F5F9' : '#162828' }}
-                                className="font-extrabold text-xs sm:text-sm"
-                              >
-                                {student.nickname}
-                              </div>
-                              <div
-                                style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
-                                className="text-[10px] font-medium"
-                              >
-                                المستوى {student.level} • {student.current_streak} يوم استمرار 🔥
+                                  ? '🥉'
+                                  : `#${student.rank}`}
+                              </span>
+                              <div className="min-w-0">
+                                <div
+                                  style={{ color: isDark ? '#F1F5F9' : '#162828' }}
+                                  className="font-extrabold text-xs sm:text-sm flex items-center gap-1.5"
+                                >
+                                  <span className="truncate">{student.nickname}</span>
+                                  {isMe && (
+                                    <span 
+                                      className="text-[10px] px-1.5 py-0.2 rounded-full font-bold shrink-0 text-white"
+                                      style={{ backgroundColor: 'var(--accent-primary)' }}
+                                    >
+                                      أنت
+                                    </span>
+                                  )}
+                                </div>
+                                <div
+                                  style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
+                                  className="text-[10px] font-medium"
+                                >
+                                  المستوى {student.level} • {student.current_streak} يوم استمرار 🔥
+                                </div>
                               </div>
                             </div>
+                            <div
+                              style={{ color: isDark ? '#2DD4BF' : '#0D9488' }}
+                              className="font-mono font-extrabold text-xs sm:text-sm shrink-0"
+                            >
+                              {student.total_xp} XP
+                            </div>
                           </div>
-                          <div
-                            style={{ color: isDark ? '#2DD4BF' : '#0D9488' }}
-                            className="font-mono font-extrabold text-xs sm:text-sm"
-                          >
-                            {student.total_xp} XP
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
