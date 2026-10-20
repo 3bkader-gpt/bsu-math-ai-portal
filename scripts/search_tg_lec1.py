@@ -6,10 +6,14 @@ if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 
-API_ID = 23966686
-API_HASH = "0ba67a50ec826a4bbb5eb6a80c369bfc"
-CHANNEL_ID = -1004453609138
-SESSION_STR = "1BJWap1wBu67_sQPEvGKlkbPdSoKebLWw2LSx3aqpvEuFlg6W2YM_FBMECbwKoBeZvmOfHmb2IrgRX8zUdAJGL--3JlV8EsyAmwl_q0PAt3V9pafsX350j8q0FXXUJIp3_yH8MerFnG0fP0d-Lt65D6F9yP_G1p84WPXZRibOTEH2KU5aER9ZzKC9_MtIQF5ZuSDzVDvN_uuBcyXtFgZ2jK5ejEE7qbGMIqSiyEz6qyyLP4UFwppqqtJHXmBavSN6xJpweXF5xBPVIXtXtmrKgv0w8ib2deiZS3vcJ6WIXhZvAUztDcewzTevqD0XpeM1KeStLkON4sVFWgx-Xz3k10qnjCSa5GY="
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+API_ID = int(os.getenv("TELEGRAM_API_ID", "23966686"))
+API_HASH = os.getenv("TELEGRAM_API_HASH", "")
+CHANNEL_ID = int(os.getenv("TELEGRAM_CHANNEL_ID", "-1004453609138"))
+SESSION_STR = os.getenv("TELETHON_SESSION_STRING", "")
 
 async def main():
     client = TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH)

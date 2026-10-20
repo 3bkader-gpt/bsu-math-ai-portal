@@ -25,8 +25,11 @@ if str(ROOT_DIR) not in sys.path:
 TEMP_DIR = Path(r"D:\الكليه\BOT\media_storage\temp")
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
-SUPABASE_URL = "https://cjmlnpdtfclzcvehebsv.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbWxucGR0ZmNsemN2ZWhlYnN2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MTgyNTIwMiwiZXhwIjoyMTA3NDAxMjAyfQ.GSyJX2iMGJgT2b7lmCoBO1g1zLFQbGve4ttWjt8Lkaw"
+from dotenv import load_dotenv
+load_dotenv(ROOT_DIR / ".env")
+
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://cjmlnpdtfclzcvehebsv.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
 HEADERS = {
     "apikey": SUPABASE_KEY,

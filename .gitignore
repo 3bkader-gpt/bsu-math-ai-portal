@@ -28,6 +28,17 @@ inventory_all_lectures.py
 response_sample.html
 incoming_lectures/
 *سجل_الشات*
+gamification_remediation_plan.md
+scripts/inspect_*.py
+scripts/migrate_*.py
+scripts/find_*.py
+scripts/match_*.py
+scripts/search_*.py
+scripts/upload_all_*.py
+scripts/connect_*.py
+scripts/check_db_*.py
+scripts/check_lecture_*.py
+scripts/check_needed_*.py
 
 
 # Python

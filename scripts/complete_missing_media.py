@@ -25,12 +25,15 @@ logging.basicConfig(
 logger = logging.getLogger("MissingMediaRunner")
 
 # Configuration
-SUPABASE_URL = 'https://cjmlnpdtfclzcvehebsv.supabase.co'
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbWxucGR0ZmNsemN2ZWhlYnN2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MTgyNTIwMiwiZXhwIjoyMTA3NDAxMjAyfQ.GSyJX2iMGJgT2b7lmCoBO1g1zLFQbGve4ttWjt8Lkaw'
-API_ID = 23966686
-API_HASH = "0ba67a50ec826a4bbb5eb6a80c369bfc"
-CHANNEL_ID = -1004453609138
-SESSION_STR = "1BJWap1wBu67_sQPEvGKlkbPdSoKebLWw2LSx3aqpvEuFlg6W2YM_FBMECbwKoBeZvmOfHmb2IrgRX8zUdAJGL--3JlV8EsyAmwl_q0PAt3V9pafsX350j8q0FXXUJIp3_yH8MerFnG0fP0d-Lt65D6F9yP_G1p84WPXZRibOTEH2KU5aER9ZzKC9_MtIQF5ZuSDzVDvN_uuBcyXtFgZ2jK5ejEE7qbGMIqSiyEz6qyyLP4UFwppqqtJHXmBavSN6xJpweXF5xBPVIXtXtmrKgv0w8ib2deiZS3vcJ6WIXhZvAUztDcewzTevqD0XpeM1KeStLkON4sVFWgx-Xz3k10qnjCSa5GY="
+from dotenv import load_dotenv
+load_dotenv(ROOT_DIR / ".env")
+
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://cjmlnpdtfclzcvehebsv.supabase.co')
+SUPABASE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
+API_ID = int(os.getenv("TELEGRAM_API_ID", "23966686"))
+API_HASH = os.getenv("TELEGRAM_API_HASH", "")
+CHANNEL_ID = int(os.getenv("TELEGRAM_CHANNEL_ID", "-1004453609138"))
+SESSION_STR = os.getenv("TELETHON_SESSION_STRING", "")
 
 TEMP_DIR = Path(r"d:\الكليه\BOT\media_storage\temp")
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
