@@ -25,8 +25,31 @@ import {
   RefreshCw,
   Volume2,
   VolumeX,
+  Moon,
+  Target,
+  Headphones,
+  Video,
+  Layers,
 } from 'lucide-react';
 import { isAudioMuted, toggleAudioMute } from '@/lib/audio/soundEngine';
+
+const BADGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Sparkles,
+  Flame,
+  Zap,
+  Target,
+  Moon,
+  Headphones,
+  Video,
+  Layers,
+  Award,
+  Trophy,
+};
+
+function BadgeIcon({ name, className = 'w-5 h-5' }: { name: string; className?: string }) {
+  const Icon = BADGE_ICONS[name] || Award;
+  return <Icon className={className} />;
+}
 
 export function StudentGamificationPill({
   isGirls = false,
@@ -332,12 +355,14 @@ export function StudentGamificationPill({
                             key={b.id}
                             className="p-2.5 rounded-xl border border-teal-500/30 bg-teal-500/5 flex items-center gap-2.5"
                           >
-                            <span className="text-2xl">{b.icon}</span>
-                            <div>
-                              <div className="font-bold text-xs text-teal-600 dark:text-teal-300">
+                            <div className="w-9 h-9 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-300 flex items-center justify-center shrink-0">
+                              <BadgeIcon name={b.icon} className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-bold text-xs text-teal-600 dark:text-teal-300 truncate">
                                 {b.title}
                               </div>
-                              <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                              <div className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-1">
                                 {b.description}
                               </div>
                             </div>
@@ -375,8 +400,14 @@ export function StudentGamificationPill({
                           !isUnlocked ? 'opacity-60 grayscale' : 'shadow-sm'
                         }`}
                       >
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-3xl shrink-0">
-                          {b.icon}
+                        <div
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                            isUnlocked
+                              ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300'
+                              : 'bg-gray-200 dark:bg-gray-800 text-gray-400'
+                          }`}
+                        >
+                          <BadgeIcon name={b.icon} className="w-6 h-6" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
