@@ -320,7 +320,7 @@ export function StudentGamificationPill({
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 overflow-y-auto space-y-4">
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-4 no-scrollbar">
               {activeTab === 'progress' && (
                 <div className="space-y-4">
                   {/* XP & Level Card */}
