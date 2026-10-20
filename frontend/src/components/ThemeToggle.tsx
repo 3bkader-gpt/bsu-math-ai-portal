@@ -190,7 +190,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
 
   return (
     <div
-      className={`inline-flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-2xl border transition-all duration-300 shadow-sm ${className}`}
+      className={`inline-flex items-center gap-1 p-0.5 sm:p-1 rounded-xl border transition-all duration-300 shadow-xs ${className}`}
       style={{
         backgroundColor: 'var(--bg-surface-elevated)',
         borderColor: 'var(--border-subtle)',

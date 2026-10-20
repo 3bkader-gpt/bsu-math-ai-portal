@@ -60,9 +60,22 @@
 }
 
 html {
+  font-size: 14.5px;
   overflow-x: clip;
   max-width: 100vw;
   scroll-behavior: smooth;
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 15.25px;
+  }
 }
 
 body {
@@ -79,23 +92,23 @@ body {
 
 /* Fluid Typography with clamp() - Refined, Proportional & Crisp */
 .fluid-h1 {
-  font-size: clamp(1.35rem, 2.6vw + 0.4rem, 2.25rem);
-  line-height: 1.3;
+  font-size: clamp(1.2rem, 2.2vw + 0.35rem, 1.95rem);
+  line-height: 1.25;
 }
 
 .fluid-h2 {
-  font-size: clamp(1.1rem, 1.8vw + 0.35rem, 1.65rem);
-  line-height: 1.35;
+  font-size: clamp(1.0rem, 1.5vw + 0.3rem, 1.45rem);
+  line-height: 1.3;
 }
 
 .fluid-h3 {
-  font-size: clamp(0.95rem, 1.3vw + 0.25rem, 1.3rem);
-  line-height: 1.4;
+  font-size: clamp(0.875rem, 1.1vw + 0.2rem, 1.15rem);
+  line-height: 1.35;
 }
 
 .fluid-body {
-  font-size: clamp(0.8rem, 0.4vw + 0.45rem, 0.95rem);
-  line-height: 1.6;
+  font-size: clamp(0.75rem, 0.35vw + 0.4rem, 0.875rem);
+  line-height: 1.55;
 }
 
 /* Intrinsic Responsive Course Rail (Horizontal Swipe on Mobile, Auto-Grid on Desktop) */

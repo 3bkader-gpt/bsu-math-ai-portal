@@ -87,30 +87,30 @@ export function SmartResumeCard() {
         borderColor: 'var(--border-subtle)',
         boxShadow: 'var(--card-shadow)',
       }}
-      className="p-5 sm:p-6 rounded-3xl border relative overflow-hidden transition-all duration-300 hover:shadow-xl group"
+      className="p-3.5 sm:p-4.5 rounded-2xl border relative overflow-hidden transition-all duration-300 hover:shadow-lg group"
     >
       {/* Subtle Glow Accent Behind */}
       <div
-        className="absolute -top-12 -left-12 w-36 h-36 rounded-full blur-3xl opacity-20 pointer-events-none"
+        className="absolute -top-12 -left-12 w-32 h-32 rounded-full blur-2xl opacity-15 pointer-events-none"
         style={{ backgroundColor: 'var(--accent-primary)' }}
       />
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative z-10">
+        <div className="flex items-center gap-3">
           <div
             style={{
               backgroundColor: 'var(--accent-primary)',
               color: 'var(--bg-page)',
             }}
-            className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform"
           >
-            <TabIcon className="w-7 h-7" />
+            <TabIcon className="w-5 h-5" />
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5">
               <span
-                className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase"
+                className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   color: 'var(--accent-primary)',
@@ -119,12 +119,12 @@ export function SmartResumeCard() {
               >
                 {subjectName || 'استئناف فوري'}
               </span>
-              <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
                 {mediaSubtitle}
               </span>
             </div>
 
-            <h3 className="text-base sm:text-lg font-black line-clamp-1" style={{ color: 'var(--text-primary)' }}>
+            <h3 className="text-sm sm:text-base font-extrabold line-clamp-1" style={{ color: 'var(--text-primary)' }}>
               {lectureTitle || `المحاضرة رقم ${resume.lectureNum || lectureId}`}
             </h3>
           </div>
@@ -137,7 +137,7 @@ export function SmartResumeCard() {
             backgroundColor: 'var(--accent-primary)',
             color: 'var(--bg-page)',
           }}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm shadow-md hover:opacity-95 active:scale-98 transition-all shrink-0 cursor-pointer"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:opacity-95 active:scale-98 transition-all shrink-0 cursor-pointer"
         >
           <Play className="w-4 h-4 fill-current" />
           <span>كمّل من حيث وقفت</span>

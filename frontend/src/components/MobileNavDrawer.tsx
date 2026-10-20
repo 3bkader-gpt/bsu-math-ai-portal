@@ -172,20 +172,20 @@ export function MobileNavDrawer({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div className="flex items-center gap-2">
             <div 
-              className="w-9 h-9 rounded-xl flex items-center justify-center border shadow-xs"
+              className="w-8 h-8 rounded-lg flex items-center justify-center border shadow-xs"
               style={{
                 backgroundColor: 'var(--bg-surface-elevated)',
                 borderColor: 'var(--border-subtle)',
               }}
             >
-              {isGirls ? '🎀' : <GraduationCap className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />}
+              {isGirls ? '🎀' : <GraduationCap className="w-4.5 h-4.5" style={{ color: 'var(--accent-primary)' }} />}
             </div>
             <div>
-              <h2 className="text-base font-extrabold tracking-tight">إعدادات المنصة</h2>
-              <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
+              <h2 className="text-sm font-extrabold tracking-tight">إعدادات المنصة</h2>
+              <p className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
                 تربية بني سويف • رياضيات
               </p>
             </div>
@@ -193,7 +193,7 @@ export function MobileNavDrawer({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl border transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            className="p-1.5 rounded-lg border transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
@@ -207,29 +207,29 @@ export function MobileNavDrawer({
         </div>
 
         {/* Drawer Body (Scrollable inside drawer without affecting background) */}
-        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-4">
           
           {/* Quick Study Tools */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider px-1" style={{ color: 'var(--text-muted)' }}>
+          <div className="space-y-1.5">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider px-1" style={{ color: 'var(--text-muted)' }}>
               أدوات المذاكرة السريعة
             </h3>
             
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {onOpenMistakeNotebook && (
                 <button
                   onClick={() => {
                     onClose();
                     setTimeout(onOpenMistakeNotebook, 150);
                   }}
-                  className="w-full flex items-center justify-between p-3 rounded-2xl border text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                   style={{
                     backgroundColor: 'var(--bg-surface)',
                     borderColor: 'var(--border-subtle)',
                   }}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-lg">🧠</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🧠</span>
                     <span>كراسة الأخطاء الذكية</span>
                   </div>
                   <ChevronLeft className="w-4 h-4 opacity-50" />
@@ -242,14 +242,14 @@ export function MobileNavDrawer({
                     onClose();
                     setTimeout(onOpenMicroSession, 150);
                   }}
-                  className="w-full flex items-center justify-between p-3 rounded-2xl border text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                   style={{
                     backgroundColor: 'var(--bg-surface)',
                     borderColor: 'var(--border-subtle)',
                   }}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-lg">⏱️</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">⏱️</span>
                     <span>جلسة الـ 5 دقائق</span>
                   </div>
                   <ChevronLeft className="w-4 h-4 opacity-50" />
@@ -262,14 +262,14 @@ export function MobileNavDrawer({
                     onClose();
                     setTimeout(onOpenWrapUp, 150);
                   }}
-                  className="w-full flex items-center justify-between p-3 rounded-2xl border text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                   style={{
                     backgroundColor: 'var(--bg-surface)',
                     borderColor: 'var(--border-subtle)',
                   }}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-lg">☕</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">☕</span>
                     <span>أنهيت مذاكرتي لليوم</span>
                   </div>
                   <ChevronLeft className="w-4 h-4 opacity-50" />
@@ -426,24 +426,24 @@ export function MobileNavDrawer({
 
           {/* Academic Info Badge */}
           <div 
-            className="p-3.5 rounded-2xl border text-center space-y-1"
+            className="p-2.5 rounded-xl border text-center space-y-0.5"
             style={{
               backgroundColor: 'var(--bg-surface-elevated)',
               borderColor: 'var(--border-subtle)',
             }}
           >
-            <p className="text-xs font-bold" style={{ color: 'var(--accent-primary)' }}>
+            <p className="text-[11px] font-bold" style={{ color: 'var(--accent-primary)' }}>
               جامعة بني سويف • كلية التربية
             </p>
-            <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
               الفرقة الثانية • قسم الرياضيات والذكاء الاصطناعي
             </p>
           </div>
         </div>
 
         {/* Drawer Footer */}
-        <div className="p-4 border-t text-center text-[11px]" style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
-          منصة المنهج الذكية v1.2.1 • 2026
+        <div className="p-3 border-t text-center text-[10px]" style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
+          منصة المنهج الذكية v1.2.9 • 2026
         </div>
       </div>
     </div>

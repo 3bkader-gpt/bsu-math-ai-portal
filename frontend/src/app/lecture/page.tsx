@@ -480,19 +480,19 @@ function LectureContent() {
         }}
         className="sticky top-0 z-40 border-b backdrop-blur-md transition-colors"
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 h-13 sm:h-15 py-1.5 flex items-center justify-between gap-3">
           
           {/* Back to Courses Link */}
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl border text-xs sm:text-sm font-bold transition-all shadow-xs hover:scale-[1.02] active:scale-[0.98] group shrink-0"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs hover:scale-[1.02] active:scale-[0.98] group shrink-0"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
               color: 'var(--text-primary)',
             }}
           >
-            <ArrowRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
             <span>رجوع للمقررات</span>
           </Link>
 
@@ -500,7 +500,7 @@ function LectureContent() {
           <div className="hidden md:flex items-center gap-2 min-w-0">
             {subjectName && (
               <span
-                className="text-xs sm:text-sm font-black px-3.5 py-1 rounded-xl border whitespace-nowrap"
+                className="text-xs font-bold px-3 py-0.5 rounded-lg border whitespace-nowrap"
                 style={{
                   backgroundColor: 'var(--bg-surface)',
                   borderColor: 'var(--border-subtle)',
@@ -512,7 +512,7 @@ function LectureContent() {
             )}
             {lectureBundle.doctor && (
               <span
-                className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-xl border opacity-90 whitespace-nowrap"
+                className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg border opacity-90 whitespace-nowrap"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)',
@@ -525,7 +525,7 @@ function LectureContent() {
           </div>
 
           {/* Theme & Persona Switcher */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <StudentGamificationPill isGirls={currentPersona === 'girls'} isDark={currentMode === 'dark'} />
             <div className="hidden md:inline-flex">
               <ThemeToggle />
@@ -538,18 +538,18 @@ function LectureContent() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="md:hidden p-2 rounded-xl border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              className="md:hidden p-1.5 rounded-lg border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               title="القائمة والإعدادات"
               aria-label="القائمة والإعدادات"
             >
-              <Menu className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+              <Menu className="w-4.5 h-4.5" style={{ color: 'var(--accent-primary)' }} />
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Spacious Lecture Page Body */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-7 space-y-4 sm:space-y-6">
         
         {/* Lecture Hero Banner Card */}
         <section
@@ -558,36 +558,36 @@ function LectureContent() {
             borderColor: 'var(--border-subtle)',
             boxShadow: 'var(--card-shadow)',
           }}
-          className="p-6 sm:p-10 rounded-3xl border flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all"
+          className="p-4 sm:p-7 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 transition-all"
         >
-          <div className="flex items-start sm:items-center gap-4 sm:gap-6 min-w-0">
+          <div className="flex items-start sm:items-center gap-3.5 sm:gap-5 min-w-0">
             {/* Big Lecture Number */}
             <div
               style={{
                 backgroundColor: 'var(--accent-primary)',
                 color: isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff'),
               }}
-              className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center font-black text-xl sm:text-3xl shadow-md shrink-0"
+              className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-lg sm:text-2xl shadow-xs shrink-0"
             >
               {isGirls ? `🌸 ${lectureBundle.lecture_num}` : lectureBundle.lecture_num}
             </div>
 
-            <div className="min-w-0 space-y-1 sm:space-y-1.5">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="min-w-0 space-y-0.5 sm:space-y-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span
-                  className="text-xs sm:text-sm font-extrabold"
+                  className="text-xs font-bold"
                   style={{ color: 'var(--accent-primary)' }}
                 >
                   {subjectName || 'المقرر الدراسي'}
                 </span>
                 <span style={{ color: 'var(--text-muted)' }}>•</span>
-                <span className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   {isGirls ? 'جاهزة ومية مية 🎀' : 'المحاضرة متاحة'}
                 </span>
                 {lectureBundle.doctor && (
                   <>
                     <span className="hidden sm:inline" style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span className="text-xs font-bold sm:hidden" style={{ color: 'var(--text-muted)' }}>
+                    <span className="text-[11px] font-bold sm:hidden" style={{ color: 'var(--text-muted)' }}>
                       {lectureBundle.doctor}
                     </span>
                   </>
@@ -595,13 +595,13 @@ function LectureContent() {
               </div>
 
               <h1
-                className="text-xl sm:text-3xl md:text-4xl font-black leading-snug sm:leading-tight"
+                className="text-lg sm:text-2xl font-black leading-snug sm:leading-tight"
                 style={{ color: 'var(--text-primary)' }}
               >
                 {lectureBundle.title}
               </h1>
 
-              <p className="text-xs sm:text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-[11px] sm:text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                 {isGirls 
                   ? 'كل المصادر مشروحة ومترتبة عشان تذاكري بروقان وتركيز 🌸' 
                   : 'جميع المصادر الأكاديمية مشروحة ومفصلة للمذاكرة الذكية'}
@@ -618,19 +618,19 @@ function LectureContent() {
               borderColor: 'var(--border-subtle)',
               boxShadow: 'var(--card-shadow)',
             }}
-            className="p-5 sm:p-6 rounded-3xl border space-y-4 transition-all"
+            className="p-3.5 sm:p-5 rounded-2xl border space-y-3 transition-all"
           >
             {/* Header: Clean & Integrated */}
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 <div
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
+                  className="w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 shadow-xs"
                   style={{
                     backgroundColor: 'rgba(16, 185, 129, 0.12)',
                     color: '#10b981',
                   }}
                 >
-                  <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <BookOpen className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
                   <h3 className="font-black text-sm sm:text-base flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
@@ -785,12 +785,12 @@ function LectureContent() {
           className="rounded-2xl border p-1.5 transition-all"
           aria-label="أقسام المحاضرة"
         >
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth md:grid md:grid-cols-5">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth md:grid md:grid-cols-5">
             {/* TAB 1: AUDIO RECORD */}
             <button
               type="button"
               onClick={() => setActiveTab('audio')}
-              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
                 activeTab === 'audio'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -798,7 +798,7 @@ function LectureContent() {
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
               }`}
             >
-              <Headphones className={`w-4 h-4 shrink-0 ${activeTab === 'audio' ? (isGirls ? 'text-pink-500' : 'text-cyan-500') : 'opacity-70'}`} />
+              <Headphones className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'audio' ? (isGirls ? 'text-pink-500' : 'text-cyan-500') : 'opacity-70'}`} />
               <span className="whitespace-nowrap">{isGirls ? '🌸 ريكورد روقان' : 'ريكورد الشرح'}</span>
             </button>
 
@@ -806,7 +806,7 @@ function LectureContent() {
             <button
               type="button"
               onClick={() => setActiveTab('video')}
-              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
                 activeTab === 'video'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -814,7 +814,7 @@ function LectureContent() {
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
               }`}
             >
-              <Video className={`w-4 h-4 shrink-0 ${activeTab === 'video' ? (isGirls ? 'text-pink-500' : 'text-purple-500') : 'opacity-70'}`} />
+              <Video className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'video' ? (isGirls ? 'text-pink-500' : 'text-purple-500') : 'opacity-70'}`} />
               <span className="whitespace-nowrap">{isGirls ? '🎬 فيديو الشرح' : 'فيديو الشرح'}</span>
             </button>
 
@@ -822,7 +822,7 @@ function LectureContent() {
             <button
               type="button"
               onClick={() => setActiveTab('quiz')}
-              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
                 activeTab === 'quiz'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -830,7 +830,7 @@ function LectureContent() {
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
               }`}
             >
-              <HelpCircle className={`w-4 h-4 shrink-0 ${activeTab === 'quiz' ? (isGirls ? 'text-pink-500' : 'text-amber-500') : 'opacity-70'}`} />
+              <HelpCircle className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'quiz' ? (isGirls ? 'text-pink-500' : 'text-amber-500') : 'opacity-70'}`} />
               <span className="whitespace-nowrap">{isGirls ? '🧁 اختبري شطارتك' : 'كويز المحاضرة'} {quizQuestions.length > 0 ? `(${quizQuestions.length})` : ''}</span>
             </button>
 
@@ -838,7 +838,7 @@ function LectureContent() {
             <button
               type="button"
               onClick={() => setActiveTab('guide')}
-              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
                 activeTab === 'guide'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -846,7 +846,7 @@ function LectureContent() {
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
               }`}
             >
-              <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'guide' ? (isGirls ? 'text-pink-500' : 'text-emerald-500') : 'opacity-70'}`} />
+              <FileText className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'guide' ? (isGirls ? 'text-pink-500' : 'text-emerald-500') : 'opacity-70'}`} />
               <span className="whitespace-nowrap">{isGirls ? '🎀 النوتس والزتونة' : 'الدليل والزتونة'}</span>
             </button>
 
@@ -854,7 +854,7 @@ function LectureContent() {
             <button
               type="button"
               onClick={() => setActiveTab('flashcards')}
-              className={`flex-1 md:flex-initial min-w-[110px] py-2.5 sm:py-3 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none shrink-0 ${
+              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
                 activeTab === 'flashcards'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -862,7 +862,7 @@ function LectureContent() {
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
               }`}
             >
-              <Layers className={`w-4 h-4 shrink-0 ${activeTab === 'flashcards' ? (isGirls ? 'text-pink-500' : 'text-indigo-500') : 'opacity-70'}`} />
+              <Layers className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'flashcards' ? (isGirls ? 'text-pink-500' : 'text-indigo-500') : 'opacity-70'}`} />
               <span className="whitespace-nowrap">{isGirls ? '🪞 كروت المراجعة' : 'كروت المراجعة'} {flashcards.length > 0 ? `(${flashcards.length})` : ''}</span>
             </button>
           </div>
