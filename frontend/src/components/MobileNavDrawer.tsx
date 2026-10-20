@@ -14,7 +14,7 @@ import {
   GraduationCap,
   ChevronLeft
 } from 'lucide-react';
-import { isAudioMuted, toggleAudioMute } from '@/lib/audio/soundEngine';
+import { isAudioMuted, setAudioMuted, playSound } from '@/lib/audio/soundEngine';
 import { THEME_PALETTES, PersonaType, ModeType } from './ThemeToggle';
 
 interface MobileNavDrawerProps {
@@ -130,19 +130,24 @@ export function MobileNavDrawer({
   };
 
   const handlePersonaSelect = (targetPersona: 'boys' | 'girls') => {
+    if ((targetPersona === 'girls' && isGirls) || (targetPersona === 'boys' && !isGirls)) return;
     const currentMode = isDark ? 'dark' : 'light';
     applyTheme(targetPersona, currentMode);
   };
 
-  const handleModeToggle = () => {
+  const handleModeSelect = (targetMode: 'light' | 'dark') => {
+    if ((targetMode === 'dark' && isDark) || (targetMode === 'light' && !isDark)) return;
     const currentPersona = isGirls ? 'girls' : 'boys';
-    const nextMode = isDark ? 'light' : 'dark';
-    applyTheme(currentPersona, nextMode);
+    applyTheme(currentPersona, targetMode);
   };
 
-  const handleSoundToggle = () => {
-    const nextMuted = toggleAudioMute();
-    setIsMuted(nextMuted);
+  const handleSoundSelect = (targetMuted: boolean) => {
+    if (isMuted === targetMuted) return;
+    setAudioMuted(targetMuted);
+    setIsMuted(targetMuted);
+    if (!targetMuted) {
+      playSound('xp_chime');
+    }
   };
 
   if (!isOpen) return null;
@@ -274,101 +279,149 @@ export function MobileNavDrawer({
           </div>
 
           {/* Theme & Persona Customization */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider px-1" style={{ color: 'var(--text-muted)' }}>
-              المظهر والشخصية
+          <div className="space-y-3.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider px-1 flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>المظهر والتفضيلات</span>
             </h3>
 
-            {/* Persona Switcher (Boys vs Girls) */}
-            <div 
-              className="p-1 rounded-2xl border grid grid-cols-2 gap-1"
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => handlePersonaSelect('boys')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  !isGirls ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
-                }`}
+            {/* 1. Persona Switcher (Boys vs Girls) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-bold" style={{ color: 'var(--text-secondary)' }}>
+                  طابع النسخة والأسلوب
+                </span>
+              </div>
+              <div 
+                className="p-1 rounded-2xl border grid grid-cols-2 gap-1"
                 style={{
-                  backgroundColor: !isGirls ? (isDark ? '#2DD4BF' : '#115E59') : 'transparent',
-                  color: !isGirls ? (isDark ? '#0B0F14' : '#FFFFFF') : undefined,
+                  backgroundColor: 'var(--bg-surface)',
+                  borderColor: 'var(--border-subtle)',
                 }}
               >
-                <span>⚡</span>
-                <span>نسخة الشباب</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handlePersonaSelect('boys')}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    !isGirls ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
+                  }`}
+                  style={{
+                    backgroundColor: !isGirls ? (isDark ? '#2DD4BF' : '#115E59') : 'transparent',
+                    color: !isGirls ? (isDark ? '#0B0F14' : '#FFFFFF') : undefined,
+                  }}
+                >
+                  <span>⚡</span>
+                  <span>نسخة الشباب</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handlePersonaSelect('girls')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  isGirls ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
-                }`}
-                style={{
-                  backgroundColor: isGirls ? (isDark ? '#FF6584' : '#C46D82') : 'transparent',
-                  color: isGirls ? (isDark ? '#0D0811' : '#FFFFFF') : undefined,
-                }}
-              >
-                <span>🎀</span>
-                <span>نسخة البنات</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handlePersonaSelect('girls')}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    isGirls ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
+                  }`}
+                  style={{
+                    backgroundColor: isGirls ? (isDark ? '#FF6584' : '#C46D82') : 'transparent',
+                    color: isGirls ? (isDark ? '#0D0811' : '#FFFFFF') : undefined,
+                  }}
+                >
+                  <span>🎀</span>
+                  <span>نسخة البنات</span>
+                </button>
+              </div>
             </div>
 
-            {/* Light / Dark Mode Toggle */}
-            <button
-              type="button"
-              onClick={handleModeToggle}
-              className="w-full flex items-center justify-between p-3 rounded-2xl border text-sm font-bold transition-all cursor-pointer"
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-              }}
-            >
-              <div className="flex items-center gap-2.5">
-                {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
-                <span>نمط العرض</span>
+            {/* 2. Light / Dark Mode Selector */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-bold" style={{ color: 'var(--text-secondary)' }}>
+                  نمط العرض والإضاءة
+                </span>
               </div>
-              <span 
-                className="text-xs px-2.5 py-1 rounded-lg border font-bold"
+              <div 
+                className="p-1 rounded-2xl border grid grid-cols-2 gap-1"
                 style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
+                  backgroundColor: 'var(--bg-surface)',
                   borderColor: 'var(--border-subtle)',
                 }}
               >
-                {isDark ? 'الوضع الليلي 🌙' : 'الوضع النهاري ☀️'}
-              </span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeSelect('light')}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    !isDark ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
+                  }`}
+                  style={{
+                    backgroundColor: !isDark ? '#D97706' : 'transparent',
+                    color: !isDark ? '#FFFFFF' : undefined,
+                  }}
+                >
+                  <Sun className={`w-3.5 h-3.5 ${!isDark ? 'text-white' : 'text-amber-500'}`} />
+                  <span>الوضع النهاري</span>
+                </button>
 
-            {/* Sound Toggle */}
-            <button
-              type="button"
-              onClick={handleSoundToggle}
-              className="w-full flex items-center justify-between p-3 rounded-2xl border text-sm font-bold transition-all cursor-pointer"
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-              }}
-            >
-              <div className="flex items-center gap-2.5">
-                {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-teal-400" />}
-                <span>المؤثرات الصوتية</span>
+                <button
+                  type="button"
+                  onClick={() => handleModeSelect('dark')}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    isDark ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
+                  }`}
+                  style={{
+                    backgroundColor: isDark ? '#4F46E5' : 'transparent',
+                    color: isDark ? '#FFFFFF' : undefined,
+                  }}
+                >
+                  <Moon className={`w-3.5 h-3.5 ${isDark ? 'text-white' : 'text-indigo-400'}`} />
+                  <span>الوضع الليلي</span>
+                </button>
               </div>
-              <span 
-                className={`text-xs px-2.5 py-1 rounded-lg border font-bold ${
-                  isMuted ? 'text-red-400' : 'text-teal-400'
-                }`}
+            </div>
+
+            {/* 3. Sound Effects Selector */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-bold" style={{ color: 'var(--text-secondary)' }}>
+                  المؤثرات الصوتية
+                </span>
+              </div>
+              <div 
+                className="p-1 rounded-2xl border grid grid-cols-2 gap-1"
                 style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
+                  backgroundColor: 'var(--bg-surface)',
                   borderColor: 'var(--border-subtle)',
                 }}
               >
-                {isMuted ? 'مكتوم' : 'مفعّل'}
-              </span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => handleSoundSelect(false)}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    !isMuted ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
+                  }`}
+                  style={{
+                    backgroundColor: !isMuted ? '#0D9488' : 'transparent',
+                    color: !isMuted ? '#FFFFFF' : undefined,
+                  }}
+                >
+                  <Volume2 className={`w-3.5 h-3.5 ${!isMuted ? 'text-white' : 'text-teal-500'}`} />
+                  <span>مفعّلة</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSoundSelect(true)}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    isMuted ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
+                  }`}
+                  style={{
+                    backgroundColor: isMuted ? '#E11D48' : 'transparent',
+                    color: isMuted ? '#FFFFFF' : undefined,
+                  }}
+                >
+                  <VolumeX className={`w-3.5 h-3.5 ${isMuted ? 'text-white' : 'text-rose-500'}`} />
+                  <span>مكتومة</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Academic Info Badge */}
