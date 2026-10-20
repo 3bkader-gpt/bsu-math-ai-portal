@@ -25,7 +25,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "").replace("postgresql+psycopg2://", "
 def create_playwright_test_student():
     client = httpx.Client(timeout=20)
     test_id = str(uuid.uuid4())
-    email = f"playwright.{test_id[:8]}@bsu-math.internal"
+    email = f"zz_test.playwright.{test_id[:8]}@bsu-math.internal"
     pwd = f"Pass_{test_id[:12]}"
     
     r_admin = client.post(
@@ -78,7 +78,7 @@ def run_smoke_test():
         
         # 1. Navigate to homepage and inject authenticated session
         print("\n1. Injecting authenticated session into localStorage...")
-        page.goto("http://localhost:4500/")
+        page.goto("https://bsu-math-ai-portal.pages.dev/")
         page.evaluate(f"""() => {{
             localStorage.setItem('bsu_portal_supabase_auth', JSON.stringify({json.dumps(session)}));
             localStorage.setItem('bsu_persona', 'boys');
@@ -113,7 +113,7 @@ def run_smoke_test():
 
         # 3. Navigate to Lecture 10 Quiz
         print("\n3. Navigating to Lecture 10 Quiz tab...")
-        page.goto("http://localhost:4500/lecture.html?id=10&tab=quiz")
+        page.goto("https://bsu-math-ai-portal.pages.dev/lecture?id=10&tab=quiz")
         page.wait_for_timeout(2000)
 
         # Ensure Quiz Tab is active
