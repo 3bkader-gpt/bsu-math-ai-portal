@@ -448,7 +448,7 @@ export function StudentGamificationPill({
                             <div className="min-w-0">
                               <div
                                 style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}
-                                className="font-extrabold text-xs truncate"
+                                className="font-extrabold text-xs whitespace-nowrap"
                               >
                                 {b.title}
                               </div>
