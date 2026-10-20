@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SUPABASE_URL = 'https://cjmlnpdtfclzcvehebsv.supabase.co';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbWxucGR0ZmNsemN2ZWhlYnN2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MTgyNTIwMiwiZXhwIjoyMTA3NDAxMjAyfQ.GSyJX2iMGJgT2b7lmCoBO1g1zLFQbGve4ttWjt8Lkaw';
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 async function check() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/media_assets?lecture_id=gte.28&lecture_id=lte.35&select=id,lecture_id,asset_type,local_file_path`, {

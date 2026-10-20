@@ -1,0 +1,23 @@
+name: Keep Render Backend Warm
+
+on:
+  schedule:
+    # Runs every 10 minutes (Render spins down after 15 minutes of inactivity)
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-render:
+    name: Ping Render Free-Tier Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          echo "Pinging https://bsu-math-api.onrender.com/docs to prevent cold starts..."
+          RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "https://bsu-math-api.onrender.com/docs")
+          echo "Response code: $RESPONSE_CODE"
+          if [ "$RESPONSE_CODE" -ge 200 ] && [ "$RESPONSE_CODE" -lt 400 ]; then
+            echo "✅ Render backend is active and warm!"
+          else
+            echo "⚠️ Warning: Received response code $RESPONSE_CODE"
+          fi

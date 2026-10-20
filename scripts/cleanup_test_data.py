@@ -21,14 +21,14 @@ def cleanup_test_data():
     print("🧹 AUDITING & PURGING TEST USERS FROM PRODUCTION")
     print("=" * 60)
     
-    # 1. Identify test users (strictly automated test accounts, NEVER real student guests)
+    # 1. Identify test users (strictly automated test accounts with explicit test prefixes)
     cur.execute("""
         SELECT id, email, created_at 
         FROM auth.users 
-        WHERE email LIKE 'test.%' 
+        WHERE email LIKE 'zz_test.%'
+           OR email LIKE 'test.%' 
            OR email LIKE 'concurrent.%' 
            OR email LIKE 'playwright.%'
-           OR email LIKE 'student.%'
            OR email LIKE '%@test.%';
     """)
     test_users = cur.fetchall()

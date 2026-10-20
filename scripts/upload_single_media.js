@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SUPABASE_URL = 'https://cjmlnpdtfclzcvehebsv.supabase.co';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbWxucGR0ZmNsemN2ZWhlYnN2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MTgyNTIwMiwiZXhwIjoyMTA3NDAxMjAyfQ.GSyJX2iMGJgT2b7lmCoBO1g1zLFQbGve4ttWjt8Lkaw';
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 async function uploadWithRetry(localPath, remoteName, contentType, maxRetries = 3) {
   const fileBuffer = fs.readFileSync(localPath);
