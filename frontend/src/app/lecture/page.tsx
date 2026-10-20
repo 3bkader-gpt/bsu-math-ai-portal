@@ -32,7 +32,8 @@ import {
   Clock,
   ChevronLeft,
   ExternalLink,
-  GraduationCap
+  GraduationCap,
+  Brain
 } from 'lucide-react';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
@@ -56,7 +57,15 @@ import {
   createQuizDetector,
   createFlashcardDetector,
   trackStudyGuideRead,
+  trackQuizQuestionAnswered,
 } from '@/modules/telemetry';
+import {
+  recordPlaybackProgress,
+  recordImmediateTransition,
+  flushResumeState,
+  getLocalResumeState,
+} from '@/modules/gamification/resume';
+import { MistakeNotebookModal } from '@/modules/gamification/ui';
 
 function LectureLoadingSkeleton() {
   return (
@@ -92,6 +101,9 @@ function LectureContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const lectureIdParam = searchParams.get('id');
+  const tabParam = searchParams.get('tab') as 'audio' | 'video' | 'quiz' | 'guide' | 'flashcards' | null;
+  const timeParam = searchParams.get('t') ? parseFloat(searchParams.get('t')!) : null;
+  const initialSeekTimeRef = useRef<number | null>(timeParam);
 
   const [currentPersona, setCurrentPersona] = useState<'boys' | 'girls'>('boys');
   const [currentMode, setCurrentMode] = useState<'light' | 'dark'>('light');
@@ -124,14 +136,46 @@ function LectureContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<'audio' | 'video' | 'quiz' | 'guide' | 'flashcards'>('audio');
+  // Active Tab with immediate transition logging
+  const [activeTab, setActiveTabState] = useState<'audio' | 'video' | 'quiz' | 'guide' | 'flashcards'>('audio');
+
+  const setActiveTab = (tab: 'audio' | 'video' | 'quiz' | 'guide' | 'flashcards') => {
+    setActiveTabState(tab);
+    if (lectureBundle) {
+      recordImmediateTransition(lectureBundle.id, tab, {
+        lectureNum: lectureBundle.lecture_num,
+        subjectName,
+        lectureTitle: lectureBundle.title,
+      });
+    }
+  };
+
+  // Restore saved tab or seek time from URL or localStorage
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTabState(tabParam);
+    } else if (lectureIdParam) {
+      const saved = getLocalResumeState();
+      if (saved && saved.lectureId === parseInt(lectureIdParam, 10)) {
+        if (saved.lastTab) setActiveTabState(saved.lastTab);
+        if (initialSeekTimeRef.current === null) {
+          if (saved.lastTab === 'audio' && saved.audioSec) {
+            initialSeekTimeRef.current = saved.audioSec;
+          } else if (saved.lastTab === 'video' && saved.videoSec) {
+            initialSeekTimeRef.current = saved.videoSec;
+          }
+        }
+      }
+    }
+  }, [lectureIdParam, tabParam]);
 
   // Quiz Engine
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
   const [showHints, setShowHints] = useState<Record<number, boolean>>({});
   const [score, setScore] = useState<number | null>(null);
+  const [showMistakeNotebook, setShowMistakeNotebook] = useState(false);
+  const questionStartTimesRef = useRef<Record<number, number>>({});
 
   // Study Guide & Flashcards
   const [guideText, setGuideText] = useState<string>('');
@@ -192,15 +236,15 @@ function LectureContent() {
 
         // Initialize Telemetry Detectors
         audioDetectorRef.current = createMediaDetector({
-          lectureId: bundle.lecture_num,
+          lectureId: bundle.id,
           kind: 'audio',
         });
         videoDetectorRef.current = createMediaDetector({
-          lectureId: bundle.lecture_num,
+          lectureId: bundle.id,
           kind: 'video',
         });
-        quizDetectorRef.current = createQuizDetector(bundle.lecture_num);
-        flashcardDetectorRef.current = createFlashcardDetector(bundle.lecture_num);
+        quizDetectorRef.current = createQuizDetector(bundle.id);
+        flashcardDetectorRef.current = createFlashcardDetector(bundle.id);
 
         // Resolve subject name if not embedded
         if (bundle.subject_name) {
@@ -295,20 +339,20 @@ function LectureContent() {
   useEffect(() => {
     if (lectureBundle && quizQuestions.length > 0) {
       quizDetectorRef.current = createQuizDetector(
-        lectureBundle.lecture_num,
+        lectureBundle.id,
         quizQuestions.length
       );
     }
-  }, [lectureBundle?.lecture_num, quizQuestions.length]);
+  }, [lectureBundle?.id, quizQuestions.length]);
 
   useEffect(() => {
     if (lectureBundle && flashcards.length > 0) {
       flashcardDetectorRef.current = createFlashcardDetector(
-        lectureBundle.lecture_num,
+        lectureBundle.id,
         flashcards.length
       );
     }
-  }, [lectureBundle?.lecture_num, flashcards.length]);
+  }, [lectureBundle?.id, flashcards.length]);
 
   // Audio Controls
   const togglePlay = () => {
@@ -748,6 +792,13 @@ function LectureContent() {
                         const cur = audioRef.current.currentTime;
                         setCurrentTime(cur);
                         audioDetectorRef.current?.onTimeUpdate(cur);
+                        if (lectureBundle) {
+                          recordPlaybackProgress(lectureBundle.id, 'audio', cur, {
+                            lectureNum: lectureBundle.lecture_num,
+                            subjectName,
+                            lectureTitle: lectureBundle.title,
+                          });
+                        }
                       }
                     }}
                     onLoadedMetadata={() => {
@@ -755,11 +806,20 @@ function LectureContent() {
                         const dur = audioRef.current.duration;
                         setDuration(dur);
                         audioDetectorRef.current?.setDuration(dur);
+                        if (initialSeekTimeRef.current !== null && initialSeekTimeRef.current > 0) {
+                          audioRef.current.currentTime = Math.min(initialSeekTimeRef.current, dur);
+                          setCurrentTime(audioRef.current.currentTime);
+                          initialSeekTimeRef.current = null;
+                        }
                       }
+                    }}
+                    onPause={() => {
+                      flushResumeState();
                     }}
                     onEnded={() => {
                       setIsPlaying(false);
                       audioDetectorRef.current?.onEnded();
+                      flushResumeState();
                     }}
                     onError={(e) => console.error('Audio playback error:', e)}
                   />
@@ -934,13 +994,30 @@ function LectureContent() {
                     src={getApiUrl(videoAsset.stream_url)}
                     className="w-full max-h-[580px] bg-black"
                     onLoadedMetadata={(e) => {
-                      videoDetectorRef.current?.setDuration(e.currentTarget.duration);
+                      const dur = e.currentTarget.duration;
+                      videoDetectorRef.current?.setDuration(dur);
+                      if (initialSeekTimeRef.current !== null && initialSeekTimeRef.current > 0) {
+                        e.currentTarget.currentTime = Math.min(initialSeekTimeRef.current, dur);
+                        initialSeekTimeRef.current = null;
+                      }
                     }}
                     onTimeUpdate={(e) => {
-                      videoDetectorRef.current?.onTimeUpdate(e.currentTarget.currentTime);
+                      const cur = e.currentTarget.currentTime;
+                      videoDetectorRef.current?.onTimeUpdate(cur);
+                      if (lectureBundle) {
+                        recordPlaybackProgress(lectureBundle.id, 'video', cur, {
+                          lectureNum: lectureBundle.lecture_num,
+                          subjectName,
+                          lectureTitle: lectureBundle.title,
+                        });
+                      }
+                    }}
+                    onPause={() => {
+                      flushResumeState();
                     }}
                     onEnded={() => {
                       videoDetectorRef.current?.onEnded();
+                      flushResumeState();
                     }}
                   >
                     {content.videoTab.unsupported}
@@ -1129,6 +1206,20 @@ function LectureContent() {
                             <span>{content.quizTab.retryButton}</span>
                           </button>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() => setShowMistakeNotebook(true)}
+                          style={{
+                            backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                            borderColor: 'var(--accent-primary)',
+                            color: 'var(--accent-primary)',
+                          }}
+                          className="px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 shadow-xs"
+                        >
+                          <Brain className="w-4 h-4" />
+                          <span>كراسة الأخطاء 🧠</span>
+                        </button>
                       </div>
                     </div>
 
@@ -1405,6 +1496,39 @@ function LectureContent() {
                                   setUserAnswers(next);
                                   quizDetectorRef.current?.onAnswerSelected(qIdx, optIdx);
 
+                                  const start = questionStartTimesRef.current[qIdx] || (Date.now() - 4000);
+                                  const durationMs = Math.max(1000, Date.now() - start);
+                                  const userAnswerText = q.options[optIdx] ?? '';
+                                  const correctAnswerText = q.options[q.correctIndex] ?? '';
+                                  const isCorrect = optIdx === q.correctIndex;
+
+                                  // Deterministic question hash
+                                  let hashVal = 0;
+                                  const cleanQ = q.question.trim().toLowerCase();
+                                  for (let i = 0; i < cleanQ.length; i++) {
+                                    hashVal = (hashVal << 5) - hashVal + cleanQ.charCodeAt(i);
+                                    hashVal |= 0;
+                                  }
+                                  const questionHash = 'q_' + Math.abs(hashVal).toString(36);
+
+                                  if (lectureBundle) {
+                                    trackQuizQuestionAnswered(
+                                      lectureBundle.id,
+                                      qIdx,
+                                      questionHash,
+                                      q.question,
+                                      optIdx,
+                                      q.correctIndex,
+                                      userAnswerText,
+                                      correctAnswerText,
+                                      isCorrect,
+                                      durationMs,
+                                      'medium', // Default to medium until explicit confidence assessment UI is chosen
+                                      q.hint ?? '',
+                                      showHints[qIdx] ? 1 : 0
+                                    );
+                                  }
+
                                   let correctCount = 0;
                                   Object.entries(next).forEach(([idx, chosen]) => {
                                     if (quizQuestions[parseInt(idx)]?.correctIndex === chosen) {
@@ -1550,7 +1674,7 @@ function LectureContent() {
                   content={guideText}
                   onDwell={(dwellSec) => {
                     if (dwellSec === 60 && lectureBundle) {
-                      trackStudyGuideRead(lectureBundle.lecture_num, 60);
+                      trackStudyGuideRead(lectureBundle.id, 60);
                     }
                   }}
                 />
@@ -1573,6 +1697,14 @@ function LectureContent() {
                   cards={flashcards}
                   onCardFlipped={(cardIdx) => {
                     flashcardDetectorRef.current?.onCardFlipped(cardIdx);
+                    if (lectureBundle) {
+                      recordImmediateTransition(lectureBundle.id, 'flashcards', {
+                        lectureNum: lectureBundle.lecture_num,
+                        subjectName,
+                        lectureTitle: lectureBundle.title,
+                        cardIndex: cardIdx,
+                      });
+                    }
                   }}
                 />
               </div>
@@ -1580,6 +1712,12 @@ function LectureContent() {
           )}
         </div>
       </main>
+
+      {/* Leitner Mistake Notebook Modal */}
+      <MistakeNotebookModal
+        isOpen={showMistakeNotebook}
+        onClose={() => setShowMistakeNotebook(false)}
+      />
 
       {/* Academic Footer */}
       <footer

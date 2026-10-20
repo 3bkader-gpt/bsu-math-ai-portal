@@ -82,6 +82,8 @@ export function GamificationHost() {
       'video.streak_5min',
       'quiz.finished',
       'quiz.perfect_score',
+      'quiz.question_answered',
+      'quiz.mistake_reviewed',
       'flashcard.flipped',
       'flashcard.deck_completed',
       'flashcard.speed_run',

@@ -9,6 +9,7 @@ import {
   getCairoDate,
   evaluateDailyStreak,
   applyXpGain,
+  isCompletedActivity,
 } from '@/modules/gamification/core';
 
 describe('Gamification Engine - Phase 1 Verification', () => {
@@ -221,5 +222,150 @@ describe('Gamification Engine - Phase 1 Verification', () => {
       expect(effectTypes).toContain('badge.unlocked');
       expect(effectTypes).toContain('sound.play');
     });
+
+    it('session.* events (started, first_action, ended) produce 0 XP and do not alter streak or badges', () => {
+      const state = createInitialGamificationState('student-session');
+      const startEvt = createAppEvent('session.started', {
+        sessionId: 'sess-123',
+        deviceType: 'mobile',
+      });
+      const firstActionEvt = createAppEvent('session.first_action', {
+        sessionId: 'sess-123',
+        actionType: 'audio_play',
+        timeToFirstActionMs: 1200,
+      });
+      const endEvt = createAppEvent('session.ended', {
+        sessionId: 'sess-123',
+        durationSec: 300,
+        conceptsLearned: 2,
+        cardsReviewed: 3,
+        quizAccuracy: 100,
+      });
+
+      // Assert they are not considered completed educational milestones
+      expect(isCompletedActivity(startEvt)).toBe(false);
+      expect(isCompletedActivity(firstActionEvt)).toBe(false);
+      expect(isCompletedActivity(endEvt)).toBe(false);
+
+      // Process through gamification reducer
+      let res = processGamificationEvent(state, startEvt);
+      expect(res.state.totalXp).toBe(0);
+      expect(res.state.currentStreak).toBe(0);
+      expect(res.effects).toHaveLength(0);
+
+      res = processGamificationEvent(res.state, firstActionEvt);
+      expect(res.state.totalXp).toBe(0);
+      expect(res.state.currentStreak).toBe(0);
+      expect(res.effects).toHaveLength(0);
+
+      res = processGamificationEvent(res.state, endEvt);
+      expect(res.state.totalXp).toBe(0);
+      expect(res.state.currentStreak).toBe(0);
+      expect(res.effects).toHaveLength(0);
+    });
+
+    it('handles Phase 2 quiz.question_answered with anti-speed guard and confidence bonus', () => {
+      // User who already performed their daily activity today
+      const today = getCairoDate();
+      const state = {
+        ...createInitialGamificationState('student-phase2'),
+        lastActiveDate: today,
+        currentStreak: 2,
+      };
+
+      // 1. Fast answer (< 3000ms): no XP
+      const fastEvt = createAppEvent('quiz.question_answered', {
+        lectureId: 10,
+        questionIndex: 0,
+        questionHash: 'q_test_1',
+        questionText: 'ما هو التكامل المحدد؟',
+        selectedOption: 0,
+        correctOption: 0,
+        userAnswer: 'مساحة تحت المنحنى',
+        correctAnswer: 'مساحة تحت المنحنى',
+        isCorrect: true,
+        durationMs: 1500,
+        confidence: 'high',
+        hintLevelUsed: 0,
+      });
+      expect(isCompletedActivity(fastEvt)).toBe(false);
+      const resFast = processGamificationEvent(state, fastEvt);
+      expect(resFast.state.totalXp).toBe(0);
+
+      // 2. Deliberate correct answer (>= 3000ms) with high confidence: 5 base + 3 bonus = 8 XP
+      const deliberateEvt = createAppEvent('quiz.question_answered', {
+        lectureId: 10,
+        questionIndex: 1,
+        questionHash: 'q_test_2',
+        questionText: 'ما هي المشتقة الأولى؟',
+        selectedOption: 1,
+        correctOption: 1,
+        userAnswer: 'ميل المماس',
+        correctAnswer: 'ميل المماس',
+        isCorrect: true,
+        durationMs: 4500,
+        confidence: 'high',
+        hintLevelUsed: 0,
+      });
+      expect(isCompletedActivity(deliberateEvt)).toBe(true);
+      const resDeliberate = processGamificationEvent(state, deliberateEvt);
+      expect(resDeliberate.state.totalXp).toBe(8);
+
+      // 3. Wrong answer: 0 XP
+      const wrongEvt = createAppEvent('quiz.question_answered', {
+        lectureId: 10,
+        questionIndex: 2,
+        questionHash: 'q_test_3',
+        questionText: 'ما هو المتجه العمودي؟',
+        selectedOption: 2,
+        correctOption: 0,
+        userAnswer: 'المتجه الموازي',
+        correctAnswer: 'المتجه المتعامد',
+        isCorrect: false,
+        durationMs: 5000,
+        confidence: 'low',
+        hintLevelUsed: 0,
+      });
+      expect(isCompletedActivity(wrongEvt)).toBe(false);
+      const resWrong = processGamificationEvent(resDeliberate.state, wrongEvt);
+      expect(resWrong.state.totalXp).toBe(8);
+    });
+
+    it('handles Phase 2 quiz.mistake_reviewed (Leitner review)', () => {
+      const today = getCairoDate();
+      const state = {
+        ...createInitialGamificationState('student-phase2-review'),
+        lastActiveDate: today,
+        currentStreak: 2,
+      };
+
+      // Deliberate correct review: 15 XP
+      const reviewEvt = createAppEvent('quiz.mistake_reviewed', {
+        questionHash: 'q_mistake_1',
+        boxLevel: 2,
+        boxBefore: 1,
+        boxAfter: 2,
+        isCorrect: true,
+        durationMs: 4000,
+      });
+      expect(isCompletedActivity(reviewEvt)).toBe(true);
+      const res = processGamificationEvent(state, reviewEvt);
+      expect(res.state.totalXp).toBe(15);
+      expect(res.state.dailyXpEarned).toBe(15);
+
+      // Fast review (< 3000ms): 0 XP
+      const fastReviewEvt = createAppEvent('quiz.mistake_reviewed', {
+        questionHash: 'q_mistake_2',
+        boxLevel: 2,
+        boxBefore: 1,
+        boxAfter: 2,
+        isCorrect: true,
+        durationMs: 1200,
+      });
+      expect(isCompletedActivity(fastReviewEvt)).toBe(false);
+      const resFast = processGamificationEvent(res.state, fastReviewEvt);
+      expect(resFast.state.totalXp).toBe(15);
+    });
   });
 });
+

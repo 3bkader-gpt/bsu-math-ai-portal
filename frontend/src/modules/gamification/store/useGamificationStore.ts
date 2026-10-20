@@ -95,9 +95,12 @@ export const useGamificationStore = create<GamificationStoreState>(
         effectBus.emit(eff.type as any, eff as any);
       });
 
-      // 4. Enqueue event into persistent IndexedDB outbox ONLY for verified milestone activities
+      // 4. Enqueue event into persistent IndexedDB outbox for verified milestones and quiz question telemetry
       const shouldSyncToServer =
-        isCompletedActivity(event) || event.type === 'quiz.perfect_score';
+        isCompletedActivity(event) ||
+        event.type === 'quiz.perfect_score' ||
+        event.type === 'quiz.question_answered' ||
+        event.type === 'quiz.mistake_reviewed';
 
       if (shouldSyncToServer) {
         set({
