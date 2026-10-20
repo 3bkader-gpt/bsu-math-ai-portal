@@ -48,11 +48,24 @@ export async function flushOutboxBatch(batchLimit = 25): Promise<boolean> {
         // Reconcile state with authoritative server profile
         useGamificationStore.getState().reconcileWithServer(response);
       } else {
+        // Server returned success: false -> count as retry attempt
         await incrementRetryCount(ids);
       }
-    } catch (rpcErr) {
+    } catch (rpcErr: any) {
       console.warn('[Outbox Sync] Ingestion error, will retry later:', rpcErr);
-      await incrementRetryCount(ids);
+      // Only count retry if it was an explicit server-side error (e.g. 4xx/5xx/syntax),
+      // NEVER count network dropouts, offline state, or fetch failures!
+      const isNetworkFailure =
+        (typeof navigator !== 'undefined' && !navigator.onLine) ||
+        rpcErr?.message?.includes('Failed to fetch') ||
+        rpcErr?.message?.includes('NetworkError') ||
+        rpcErr?.message?.includes('network') ||
+        rpcErr?.message?.includes('timeout') ||
+        rpcErr?.name === 'TypeError';
+
+      if (!isNetworkFailure) {
+        await incrementRetryCount(ids);
+      }
     }
 
     return true;

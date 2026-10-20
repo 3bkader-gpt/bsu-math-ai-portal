@@ -2,18 +2,24 @@ import { AppEvent, GamificationEffect } from '@/shared/events/types';
 
 /**
  * Returns true if the event represents a verified, completed educational activity.
- * Raw heartbeats (media.progress, flashcard.flipped) must never trigger streaks or outbox spam.
+ * Raw heartbeats (media.progress, flashcard.flipped) and rushed guesses (<3s) must never trigger streaks or outbox spam.
  */
 export function isCompletedActivity(event: AppEvent): boolean {
-  return (
-    event.type === 'media.completed' ||
-    event.type === 'audio.streak_5min' ||
-    event.type === 'video.streak_5min' ||
-    event.type === 'quiz.finished' ||
-    event.type === 'flashcard.deck_completed' ||
-    event.type === 'study_guide.read' ||
-    event.type === 'lecture.completed'
-  );
+  if (event.type === 'media.completed') return true;
+  if (event.type === 'audio.streak_5min' || event.type === 'video.streak_5min') return true;
+  if (event.type === 'quiz.finished') {
+    return (event.payload.durationMs ?? 0) >= 3000 && event.payload.total >= 1;
+  }
+  if (event.type === 'flashcard.deck_completed') return true;
+  if (event.type === 'study_guide.read') return (event.payload.dwellSec ?? 0) >= 60;
+  if (event.type === 'lecture.completed') return true;
+  if (event.type === 'quiz.question_answered') {
+    return !!event.payload.isCorrect && (event.payload.durationMs ?? 0) >= 3000;
+  }
+  if (event.type === 'quiz.mistake_reviewed') {
+    return event.payload.isCorrect !== false && (event.payload.durationMs ?? 0) >= 3000;
+  }
+  return false;
 }
 
 export interface GamificationState {

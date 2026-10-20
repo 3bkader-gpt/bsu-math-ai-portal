@@ -87,3 +87,28 @@ export interface IngestRpcResponse {
   };
   newBadges: string[];
 }
+
+export interface MistakeNotebookItem {
+  id: string;
+  user_id: string;
+  lecture_id: number;
+  question_hash: string;
+  question_text: string;
+  correct_answer: string;
+  user_last_mistake: string;
+  explanation?: string | null;
+  box_level: number;
+  next_review_date: string; // YYYY-MM-DD
+  is_mastered: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubmitMistakeReviewResponse {
+  success: boolean;
+  boxLevel: number;
+  nextReviewDate: string;
+  isMastered: boolean;
+  awardedXp: number;
+}
+

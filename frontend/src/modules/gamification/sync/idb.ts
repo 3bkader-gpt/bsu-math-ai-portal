@@ -42,8 +42,12 @@ export async function enqueueOutboxEvent(
   }
 }
 
+export const MAX_OUTBOX_RETRIES = 5;
+const DEAD_LETTER_KEY = 'bsu_gamification_dead_letter';
+
 /**
  * Retrieves the oldest pending events from the queue up to the specified limit.
+ * Events exceeding MAX_OUTBOX_RETRIES are automatically quarantined to Dead Letter storage.
  */
 export async function getOutboxEvents(
   limit = 25
@@ -53,7 +57,21 @@ export async function getOutboxEvents(
 
   try {
     const queue = (await get<OutboxRecord[]>(OUTBOX_KEY, store)) || [];
-    return queue.slice(0, limit);
+    const active = queue.filter((item) => item.retryCount < MAX_OUTBOX_RETRIES);
+    const poisoned = queue.filter((item) => item.retryCount >= MAX_OUTBOX_RETRIES);
+
+    if (poisoned.length > 0) {
+      try {
+        const existingDead = (await get<OutboxRecord[]>(DEAD_LETTER_KEY, store)) || [];
+        await set(DEAD_LETTER_KEY, [...existingDead, ...poisoned], store);
+        await set(OUTBOX_KEY, active, store);
+        console.warn(`[IDB Outbox] Quarantined ${poisoned.length} poisoned events exceeding max retries.`);
+      } catch (qErr) {
+        console.error('[IDB Outbox] Failed to quarantine dead-letter events:', qErr);
+      }
+    }
+
+    return active.slice(0, limit);
   } catch (err) {
     console.error('[IDB Outbox] Error reading queue:', err);
     return [];
@@ -131,3 +149,30 @@ export async function clearOutbox(): Promise<void> {
     console.error('[IDB Outbox] Error clearing outbox:', err);
   }
 }
+
+/**
+ * Restores quarantined dead-letter events back into the active queue with reset retry counts.
+ */
+export async function replayDeadLetterEvents(): Promise<number> {
+  const store = getStore();
+  if (!store) return 0;
+
+  try {
+    const dead = (await get<OutboxRecord[]>(DEAD_LETTER_KEY, store)) || [];
+    if (dead.length === 0) return 0;
+
+    const restored = dead.map((item) => ({ ...item, retryCount: 0 }));
+    const queue = (await get<OutboxRecord[]>(OUTBOX_KEY, store)) || [];
+    const existingIds = new Set(queue.map((item) => item.id));
+    const toAdd = restored.filter((item) => !existingIds.has(item.id));
+
+    await set(OUTBOX_KEY, [...queue, ...toAdd], store);
+    await set(DEAD_LETTER_KEY, [], store);
+    console.info(`[IDB Outbox] Successfully restored ${toAdd.length} events from dead-letter.`);
+    return toAdd.length;
+  } catch (err) {
+    console.error('[IDB Outbox] Error replaying dead-letter events:', err);
+    return 0;
+  }
+}
+

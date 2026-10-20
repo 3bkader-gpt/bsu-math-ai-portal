@@ -30,6 +30,13 @@ import {
   AcademicSubject, 
   CanonicalCourse 
 } from '@/types/academic';
+import {
+  SmartResumeCard,
+  QuickMicroSessionModal,
+  EthicalWrapUpModal,
+  MistakeNotebookModal,
+} from '@/modules/gamification/ui';
+import { trackSessionStarted } from '@/modules/telemetry';
 
 type Subject = AcademicSubject;
 
@@ -501,6 +508,23 @@ export default function Home() {
   const [isLoadingLectures, setIsLoadingLectures] = useState(false);
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMicroSessionOpen, setIsMicroSessionOpen] = useState(false);
+  const [isWrapUpOpen, setIsWrapUpOpen] = useState(false);
+  const [isMistakeNotebookOpen, setIsMistakeNotebookOpen] = useState(false);
+
+  // Initialize session KPI telemetry on first visit
+  useEffect(() => {
+    try {
+      let sessId = sessionStorage.getItem('bsu_session_id');
+      if (!sessId) {
+        sessId = 'sess_' + Math.random().toString(36).substring(2, 11);
+        sessionStorage.setItem('bsu_session_id', sessId);
+        sessionStorage.setItem('bsu_session_start_ts', String(Date.now()));
+        const isMobile = window.innerWidth < 768;
+        trackSessionStarted(sessId, isMobile ? 'mobile' : 'desktop');
+      }
+    } catch {}
+  }, []);
 
   // Switch Semester and auto-select appropriate active subject
   const handleSemesterChange = (semester: 1 | 2) => {
@@ -688,6 +712,42 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <button
+              onClick={() => setIsMistakeNotebookOpen(true)}
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              title="كراسة الأخطاء الذكية وتكرار لايتنر"
+            >
+              <span>🧠 كراسة الأخطاء</span>
+            </button>
+            <button
+              onClick={() => setIsMicroSessionOpen(true)}
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              title="جلسة الـ 5 دقائق السريعة"
+            >
+              <span>⏱️ 5 دقائق</span>
+            </button>
+            <button
+              onClick={() => setIsWrapUpOpen(true)}
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              title="أنهيت مذاكرتي لليوم"
+            >
+              <span>☕ استريح</span>
+            </button>
             <StudentGamificationPill isGirls={isGirls} isDark={isDark} />
             <ThemeToggle />
           </div>
@@ -754,6 +814,9 @@ export default function Home() {
       {/* Main Content Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         
+        {/* Phase 1: Zero-Redundancy Smart Resume ("كمّل من حيث وقفت") */}
+        <SmartResumeCard />
+
         {/* Subjects Grid & Semester Selector */}
         <section>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -1305,6 +1368,20 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Phase 1 & 2 Modals */}
+      <QuickMicroSessionModal
+        isOpen={isMicroSessionOpen}
+        onClose={() => setIsMicroSessionOpen(false)}
+      />
+      <EthicalWrapUpModal
+        isOpen={isWrapUpOpen}
+        onClose={() => setIsWrapUpOpen(false)}
+      />
+      <MistakeNotebookModal
+        isOpen={isMistakeNotebookOpen}
+        onClose={() => setIsMistakeNotebookOpen(false)}
+      />
     </div>
   );
 }

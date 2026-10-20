@@ -33,6 +33,30 @@ export interface RawAppEvents {
     attempt: number;
     durationMs: number;
   };
+  'quiz.question_answered': {
+    lectureId: number;
+    questionIndex: number;
+    questionHash: string;
+    questionText: string;
+    selectedOption: number;
+    correctOption: number;
+    userAnswer: string;
+    correctAnswer: string;
+    explanation?: string;
+    isCorrect: boolean;
+    durationMs: number;
+    confidence: 'high' | 'medium' | 'low';
+    hintLevelUsed: 0 | 1 | 2 | 3;
+  };
+  'quiz.mistake_reviewed': {
+    lectureId?: number;
+    questionHash: string;
+    boxLevel: number;
+    boxBefore?: number;
+    boxAfter?: number;
+    isCorrect?: boolean;
+    durationMs: number;
+  };
   'flashcard.flipped': {
     lectureId: number;
     cardIndex: number;
@@ -47,6 +71,22 @@ export interface RawAppEvents {
   };
   'lecture.completed': {
     lectureId: number;
+  };
+  'session.started': {
+    sessionId: string;
+    deviceType: 'mobile' | 'desktop';
+  };
+  'session.first_action': {
+    sessionId: string;
+    actionType: string;
+    timeToFirstActionMs: number;
+  };
+  'session.ended': {
+    sessionId: string;
+    durationSec: number;
+    conceptsLearned: number;
+    cardsReviewed: number;
+    quizAccuracy: number;
   };
 }
 

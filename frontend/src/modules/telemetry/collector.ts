@@ -86,6 +86,45 @@ export function trackQuizFinished(
 }
 
 /**
+ * Emits individual quiz question answer metrics with full text payloads for mistake notebook ingestion.
+ */
+export function trackQuizQuestionAnswered(
+  lectureId: number,
+  questionIndex: number,
+  questionHash: string,
+  questionText: string,
+  selectedOption: number,
+  correctOption: number,
+  userAnswer: string,
+  correctAnswer: string,
+  isCorrect: boolean,
+  durationMs: number,
+  confidence: 'high' | 'medium' | 'low' = 'medium',
+  explanation?: string,
+  hintLevelUsed: 0 | 1 | 2 | 3 = 0
+) {
+  return emitTelemetryEvent(
+    'quiz.question_answered',
+    {
+      lectureId,
+      questionIndex,
+      questionHash,
+      questionText,
+      selectedOption,
+      correctOption,
+      userAnswer,
+      correctAnswer,
+      explanation,
+      isCorrect,
+      durationMs,
+      confidence,
+      hintLevelUsed,
+    },
+    lectureId
+  );
+}
+
+/**
  * Emits perfect score milestone on quiz.
  */
 export function trackQuizPerfectScore(
@@ -154,3 +193,45 @@ export function trackLectureCompleted(lectureId: number) {
     lectureId
   );
 }
+
+/**
+ * Emits session start event for KPI telemetry.
+ */
+export function trackSessionStarted(sessionId: string, deviceType: 'mobile' | 'desktop') {
+  return emitTelemetryEvent('session.started', { sessionId, deviceType });
+}
+
+/**
+ * Emits time to first action event for KPI telemetry.
+ */
+export function trackSessionFirstAction(
+  sessionId: string,
+  actionType: string,
+  timeToFirstActionMs: number
+) {
+  return emitTelemetryEvent('session.first_action', {
+    sessionId,
+    actionType,
+    timeToFirstActionMs,
+  });
+}
+
+/**
+ * Emits ethical session wrap-up event.
+ */
+export function trackSessionEnded(
+  sessionId: string,
+  durationSec: number,
+  conceptsLearned: number,
+  cardsReviewed: number,
+  quizAccuracy: number
+) {
+  return emitTelemetryEvent('session.ended', {
+    sessionId,
+    durationSec,
+    conceptsLearned,
+    cardsReviewed,
+    quizAccuracy,
+  });
+}
+

@@ -112,6 +112,34 @@ export function processGamificationEvent(
       break;
     }
 
+    case 'quiz.question_answered': {
+      const { isCorrect, durationMs, confidence } = event.payload;
+      if (isCorrect && (durationMs ?? 0) >= 3000) {
+        const bonus = confidence === 'high' ? 3 : 0;
+        const totalXp = 5 + bonus;
+        const reason = bonus > 0 ? 'إجابة سؤال كويز بثقة تامة 🎯' : 'إجابة سؤال كويز بشكل صحيح 💡';
+        const xpRes = applyXpGain(workingState, totalXp, reason, currentCairoDate);
+        workingState = xpRes.nextState;
+        allEffects.push(...xpRes.effects);
+      }
+      break;
+    }
+
+    case 'quiz.mistake_reviewed': {
+      const { durationMs, boxLevel } = event.payload;
+      if ((durationMs ?? 0) >= 3000) {
+        const xpRes = applyXpGain(
+          workingState,
+          15,
+          `مراجعة وتثبيت خطأ سابق (صندوق ${boxLevel}) 🧠`,
+          currentCairoDate
+        );
+        workingState = xpRes.nextState;
+        allEffects.push(...xpRes.effects);
+      }
+      break;
+    }
+
     case 'flashcard.flipped': {
       const xpRes = applyXpGain(
         workingState,
