@@ -92,6 +92,13 @@ export async function getOrCreateAnonymousSession(): Promise<StudentSession> {
 
       if (!loginErr && loginData.user) {
         const profile = await getStudentProfile(loginData.user.id);
+        if (profile?.nickname && profile.nickname !== 'عاشق الرياضيات' && profile.nickname !== 'عاشقة الرياضيات') {
+          try {
+            if (!localStorage.getItem('bsu_portal_student_nickname')) {
+              localStorage.setItem('bsu_portal_student_nickname', profile.nickname);
+            }
+          } catch {}
+        }
         return {
           userId: loginData.user.id,
           email: loginData.user.email || '',
@@ -108,13 +115,16 @@ export async function getOrCreateAnonymousSession(): Promise<StudentSession> {
   const deviceId = getOrCreateDeviceId();
   const persona =
     (localStorage.getItem('bsu_portal_persona') as 'boys' | 'girls') || 'boys';
+  const storedNickname =
+    (typeof localStorage !== 'undefined' && localStorage.getItem('bsu_portal_student_nickname')) ||
+    (persona === 'girls' ? 'عاشقة الرياضيات' : 'عاشق الرياضيات');
 
   const res = await fetch(`${API_BASE}/api/auth/anonymous-session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       deviceId,
-      nickname: 'عاشق الرياضيات',
+      nickname: storedNickname,
       persona,
     }),
   });
@@ -166,7 +176,15 @@ export async function updateStudentProfile(params: {
   const updates: Record<string, any> = {
     updated_at: new Date().toISOString(),
   };
-  if (params.nickname) updates.nickname = params.nickname.trim();
+  if (params.nickname) {
+    const cleanNick = params.nickname.trim();
+    updates.nickname = cleanNick;
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('bsu_portal_student_nickname', cleanNick);
+      }
+    } catch {}
+  }
   if (params.persona) updates.persona = params.persona;
 
   const { error } = await supabase
