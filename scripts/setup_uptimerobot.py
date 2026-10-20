@@ -39,12 +39,14 @@ def setup_monitor():
 
         monitors = data.get("monitors", [])
         existing = next((m for m in monitors if TARGET_URL in m.get("url", "")), None)
+        status_map = {0: "PAUSED", 1: "PENDING", 2: "UP ✅", 8: "SEEMS DOWN", 9: "DOWN ❌"}
         if existing:
+            status_text = status_map.get(existing.get('status'), str(existing.get('status')))
             print(f"✅ Monitor already active on UptimeRobot!")
             print(f"   - Name: {existing.get('friendly_name')}")
             print(f"   - URL: {existing.get('url')}")
-            print(f"   - Status: {'UP' if existing.get('status') == 2 else 'DOWN'}")
-            print(f"   - Interval: {existing.get('interval')} seconds")
+            print(f"   - Status: {status_text}")
+            print(f"   - Interval: {existing.get('interval')} seconds (every 5 mins)")
             return
 
         # Create new HTTP monitor
