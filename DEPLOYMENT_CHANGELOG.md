@@ -13,7 +13,8 @@ This changelog records all production deployments during the 7-day Soft Launch o
   - Replaced accidental service_role key fallback in `.github/workflows/ci.yml` with anon key.
   - Calibrated soft launch KPIs in `BEHAVIORAL_ARCHITECTURE_PLAN.md` to directional indicators ($N = 10\text{--}20$).
   - Frozen Flow timer and Burnout detector until Phase 3 to preserve baseline session length.
-  - Created automated daily telemetry monitor `scripts/monitor_soft_launch.py`.
+  - Activated official UptimeRobot 5-minute HTTP monitor (ID 804349204) and removed redundant keepalive_render.yml workflow.
+  - Sanitized all tracked scripts to load credentials strictly from .env and updated .gitignore.
 * **State of Database at Launch:**
   - `auth.users`: 0
   - `profiles`: 0

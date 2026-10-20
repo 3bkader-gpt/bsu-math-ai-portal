@@ -28,8 +28,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger("MediaPipeline")
 
-SUPABASE_URL = 'https://cjmlnpdtfclzcvehebsv.supabase.co'
-SUPABASE_KEY = '[REDACTED_JWT_TOKEN]'
+from dotenv import load_dotenv
+load_dotenv(ROOT_DIR / ".env")
+
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://cjmlnpdtfclzcvehebsv.supabase.co')
+SUPABASE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
 
 HEADERS = {
   'apikey': SUPABASE_KEY,

@@ -22,12 +22,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger("FinalFinishRunner")
 
-SUPABASE_URL = 'https://cjmlnpdtfclzcvehebsv.supabase.co'
-SUPABASE_KEY = '[REDACTED_JWT_TOKEN]'
-API_ID = 23966686
-API_HASH = "0ba67a50ec826a4bbb5eb6a80c369bfc"
-BOT_TOKEN = "[REDACTED_TELEGRAM_BOT_TOKEN]"
-CHANNEL_ID = -1004453609138
+from dotenv import load_dotenv
+load_dotenv()
+
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://cjmlnpdtfclzcvehebsv.supabase.co')
+SUPABASE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
+API_ID = int(os.getenv("TELEGRAM_API_ID", "23966686"))
+API_HASH = os.getenv("TELEGRAM_API_HASH", "")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+CHANNEL_ID = int(os.getenv("TELEGRAM_CHANNEL_ID", "-1004453609138"))
 TEMP_DIR = Path(r"d:\الكليه\BOT\media_storage\temp")
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
