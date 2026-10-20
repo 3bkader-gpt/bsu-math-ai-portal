@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SUPABASE_URL = 'https://cjmlnpdtfclzcvehebsv.supabase.co';
-const KEY = '[REDACTED_JWT_TOKEN]';
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 async function uploadWithRetry(localPath, remoteName, contentType, maxRetries = 3) {
   const fileBuffer = fs.readFileSync(localPath);

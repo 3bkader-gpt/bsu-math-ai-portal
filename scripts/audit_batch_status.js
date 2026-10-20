@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SUPABASE_URL = 'https://cjmlnpdtfclzcvehebsv.supabase.co';
-const KEY = '[REDACTED_JWT_TOKEN]';
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 async function check() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/media_assets?lecture_id=gte.28&lecture_id=lte.35&select=id,lecture_id,asset_type,local_file_path`, {
