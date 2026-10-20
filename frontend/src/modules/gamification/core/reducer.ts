@@ -51,7 +51,7 @@ export function processGamificationEvent(
         : GAMIFICATION_CONFIG.xp.audioCompleted;
       const reason = isVideo
         ? 'مشاهدة فيديو الشرح التفاعلي بالكامل'
-        : 'الاستماع لبودكاست المحاضرة الصوتي بالكامل';
+        : 'الاستماع لريكورد المحاضرة الصوتي بالكامل';
 
       workingState = {
         ...workingState,
@@ -73,7 +73,7 @@ export function processGamificationEvent(
       const xpRes = applyXpGain(
         workingState,
         GAMIFICATION_CONFIG.xp.audioMilestone5Min,
-        'استماع متواصل 5 دقائق للبودكاست',
+        'استماع متواصل 5 دقائق للريكورد',
         currentCairoDate
       );
       workingState = xpRes.nextState;

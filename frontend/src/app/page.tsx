@@ -1278,10 +1278,10 @@ export default function Home() {
                             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
                               <span 
                                 className={`flex items-center gap-1 transition-opacity ${lec.has_audio ? 'text-cyan-500 dark:text-cyan-400 font-bold opacity-100' : 'opacity-30'}`}
-                                title={lec.has_audio ? 'بودكاست صوتي متاح' : 'البودكاست قيد التجهيز'}
+                                title={lec.has_audio ? 'ريكورد صوتي متاح' : 'الريكورد قيد التجهيز'}
                               >
                                 <Headphones className="w-4 h-4" />
-                                <span className="hidden sm:inline">{isGirls ? 'بودكاست 🌸' : 'بودكاست'}</span>
+                                <span className="hidden sm:inline">{isGirls ? 'ريكورد 🌸' : 'ريكورد'}</span>
                               </span>
 
                               <span 

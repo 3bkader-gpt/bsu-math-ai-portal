@@ -88,7 +88,7 @@ export const GAMIFICATION_CONFIG = {
     {
       id: 'podcast_master',
       title: 'سمّيع الزتونة 🎧',
-      description: 'سمعت 3 بودكاستات صوتية للمحاضرات كاملة للآخر!',
+      description: 'سمعت 3 ريكوردات صوتية للمحاضرات كاملة للآخر!',
       icon: 'Headphones',
       category: 'media',
       rarity: 'silver',
