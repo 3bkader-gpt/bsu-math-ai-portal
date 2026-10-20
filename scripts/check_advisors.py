@@ -46,4 +46,26 @@ print("\n=== Routine Privileges ===")
 for row in cur.fetchall():
     print(f"Function: {row[0]}, Grantee: {row[1]}, Privilege: {row[2]}")
 
+# 5. Check KPI Views Permissions & Security Invoker
+cur.execute("""
+SELECT table_name, grantee, privilege_type
+FROM information_schema.table_privileges
+WHERE table_schema = 'public' AND table_name LIKE 'v_kpi_%'
+ORDER BY table_name, grantee;
+""")
+print("\n=== KPI Views Privileges (Should only have service_role & postgres) ===")
+for row in cur.fetchall():
+    print(f"View: {row[0]}, Grantee: {row[1]}, Privilege: {row[2]}")
+
+# Check security_invoker on views
+cur.execute("""
+SELECT c.relname, c.reloptions
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relname LIKE 'v_kpi_%';
+""")
+print("\n=== KPI Views Options (security_invoker) ===")
+for row in cur.fetchall():
+    print(f"View: {row[0]}, Options: {row[1]}")
+
 conn.close()
