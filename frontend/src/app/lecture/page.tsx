@@ -33,8 +33,10 @@ import {
   ChevronLeft,
   ExternalLink,
   GraduationCap,
-  Brain
+  Brain,
+  Menu
 } from 'lucide-react';
+import MobileNavDrawer from '@/components/MobileNavDrawer';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
 import { AcademicLectureBundle, AcademicMediaAsset } from '@/types/academic';
@@ -135,6 +137,7 @@ function LectureContent() {
   const [subjectName, setSubjectName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // Active Tab with immediate transition logging
   const [activeTab, setActiveTabState] = useState<'audio' | 'video' | 'quiz' | 'guide' | 'flashcards'>('audio');
@@ -524,7 +527,23 @@ function LectureContent() {
           {/* Theme & Persona Switcher */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <StudentGamificationPill isGirls={currentPersona === 'girls'} isDark={currentMode === 'dark'} />
-            <ThemeToggle />
+            <div className="hidden md:inline-flex">
+              <ThemeToggle />
+            </div>
+            {/* Mobile Hamburger Drawer Trigger */}
+            <button
+              onClick={() => setIsMobileNavOpen(true)}
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+              className="md:hidden p-2 rounded-xl border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              title="القائمة والإعدادات"
+              aria-label="القائمة والإعدادات"
+            >
+              <Menu className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+            </button>
           </div>
         </div>
       </header>
@@ -1741,6 +1760,14 @@ function LectureContent() {
           </Link>
         </div>
       </footer>
+
+      {/* Mobile Drawer Navigation with Background Scroll Lock */}
+      <MobileNavDrawer
+        isOpen={isMobileNavOpen}
+        onClose={() => setIsMobileNavOpen(false)}
+        isGirls={isGirls}
+        isDark={isDark}
+      />
     </div>
   );
 }

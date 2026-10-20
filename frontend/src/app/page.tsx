@@ -19,8 +19,10 @@ import {
   GraduationCap, 
   Clock,
   ChevronLeft,
-  Lock
+  Lock,
+  Menu
 } from 'lucide-react';
+import MobileNavDrawer from '@/components/MobileNavDrawer';
 import { getApiUrl } from '@/lib/api';
 import { 
   getDirectSupabaseSubjects, 
@@ -511,6 +513,7 @@ export default function Home() {
   const [isMicroSessionOpen, setIsMicroSessionOpen] = useState(false);
   const [isWrapUpOpen, setIsWrapUpOpen] = useState(false);
   const [isMistakeNotebookOpen, setIsMistakeNotebookOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // Initialize session KPI telemetry on first visit
   useEffect(() => {
@@ -703,7 +706,7 @@ export default function Home() {
                   {isGirls ? "🎀 You're Just A Baby Girl" : 'نسخة الشباب'}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-sm font-medium mt-0.5 leading-snug whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-[11px] sm:text-sm font-medium mt-0.5 leading-snug whitespace-nowrap truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none" style={{ color: 'var(--text-muted)' }}>
                 <span className="xs:hidden">تربية بني سويف • رياضيات</span>
                 <span className="hidden xs:inline sm:hidden">تربية بني سويف • تانية رياضيات</span>
                 <span className="hidden sm:inline">{isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}</span>
@@ -749,7 +752,23 @@ export default function Home() {
               <span>☕ استريح</span>
             </button>
             <StudentGamificationPill isGirls={isGirls} isDark={isDark} />
-            <ThemeToggle />
+            <div className="hidden md:inline-flex">
+              <ThemeToggle />
+            </div>
+            {/* Mobile Hamburger Drawer Trigger */}
+            <button
+              onClick={() => setIsMobileNavOpen(true)}
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+              className="md:hidden p-2 rounded-xl border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              title="القائمة والإعدادات"
+              aria-label="القائمة والإعدادات"
+            >
+              <Menu className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+            </button>
           </div>
         </div>
       </header>
@@ -1381,6 +1400,17 @@ export default function Home() {
       <MistakeNotebookModal
         isOpen={isMistakeNotebookOpen}
         onClose={() => setIsMistakeNotebookOpen(false)}
+      />
+
+      {/* Mobile Drawer Navigation with Background Scroll Lock */}
+      <MobileNavDrawer
+        isOpen={isMobileNavOpen}
+        onClose={() => setIsMobileNavOpen(false)}
+        isGirls={isGirls}
+        isDark={isDark}
+        onOpenMistakeNotebook={() => setIsMistakeNotebookOpen(true)}
+        onOpenMicroSession={() => setIsMicroSessionOpen(true)}
+        onOpenWrapUp={() => setIsWrapUpOpen(true)}
       />
     </div>
   );
