@@ -21,15 +21,15 @@ def cleanup_test_data():
     print("🧹 AUDITING & PURGING TEST USERS FROM PRODUCTION")
     print("=" * 60)
     
-    # 1. Identify test users
+    # 1. Identify test users (strictly automated test accounts, NEVER real student guests)
     cur.execute("""
         SELECT id, email, created_at 
         FROM auth.users 
-        WHERE email LIKE '%@bsu-math.internal' 
-           OR email LIKE '%test%' 
-           OR email LIKE '%concurrent%' 
-           OR email LIKE '%playwright%'
-           OR email LIKE '%student.%';
+        WHERE email LIKE 'test.%' 
+           OR email LIKE 'concurrent.%' 
+           OR email LIKE 'playwright.%'
+           OR email LIKE 'student.%'
+           OR email LIKE '%@test.%';
     """)
     test_users = cur.fetchall()
     print(f"Found {len(test_users)} test users in auth.users:")

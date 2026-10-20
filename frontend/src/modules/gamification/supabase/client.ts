@@ -13,12 +13,6 @@ let supabaseInstance: SupabaseClient | null = null;
 export function getSupabase(): SupabaseClient {
   if (supabaseInstance) return supabaseInstance;
 
-  // Polyfill WebSocket in Node.js test environments if missing
-  if (typeof globalThis !== 'undefined' && !globalThis.WebSocket) {
-    try {
-      globalThis.WebSocket = class DummyWebSocket {} as any;
-    } catch (_) {}
-  }
 
   supabaseInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
