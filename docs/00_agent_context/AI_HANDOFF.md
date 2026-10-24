@@ -1,6 +1,6 @@
 # 🤖 AI_HANDOFF.md — Agent Context & Onboarding Document
 > **READ THIS FIRST.** This is the single most important file for any AI agent working on this project.
-> Last Updated: 2026-10-24 | Version: v1.4.0
+> Last Updated: 2026-10-25 | Version: v1.4.1
 
 ---
 
@@ -40,7 +40,7 @@
 The NotebookLM Google session **never lives in CI** (datacenter IP churn kills it). See `BLUEPRINT.md`.
 - **Control Plane — home server `abkader@192.168.1.5`:** `lecture-worker.service` (systemd user unit, linger enabled, `Restart=always`) runs `home_worker.py`: polls `lectures WHERE status='queued'` every 15s, drives NotebookLM, auto re-mints dead cookies by driving **system Chrome against `/home/abkader/.notebooklm-profile`** (L3 `browser="chrome"`), generates texts, waits for Google-side media readiness by status (ZERO media bytes at home), writes `media_handoffs` + dispatches the cloud plane. **Ops:** `ssh abkader@192.168.1.5`, logs `journalctl --user -u lecture-worker -f`, updates `cd ~/bsu-math-ai-portal && git pull && systemctl --user restart lecture-worker`.
 - **Data Plane — GitHub Actions `media_transfer.yml` + `media_transfer_worker.py`:** pulls media straight from Google (one-shot cookie jar from the handoff row) → uploads to Telegram via **Telethon MTProto (2GB cap; Bot API is 50MB-capped and fails 401/413 on large files)** → registers assets → `status='completed'` → purges the credential-bearing handoff row.
-- **Dashboard upload flow (uploader needs ZERO setup):** PDF → Supabase Storage → `admin_upsert_lecture` (8-arg, with `p_source_pdf_url`) → daemon claims within 15s. No GitHub PAT in any browser.
+- **Dashboard upload flow (uploader needs ZERO setup, v1.4.1):** PDF → Supabase Storage → `POST /api/lectures/register` (JWT-protected; authorizes with her admin login — no keys in any browser; the master-key RPC remains as a server-side API path) → daemon claims within 15s. No GitHub PAT in any browser.
 - **Known session facts:** the legacy `TELETHON_SESSION_STRING` user session is DEAD (`AuthKeyDuplicated`) — do not use it; the GitHub repo secrets `TELEGRAM_*` were refreshed 2026-10-24 to match the live `.env` values.
 
 ### Key Infrastructure Files

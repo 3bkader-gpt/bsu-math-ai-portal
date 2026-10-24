@@ -1,10 +1,16 @@
 # ✅ TASKING.md — Current Backlog & Execution Queue
 > Living task tracker. Update after every session.
-> Last Updated: 2026-10-24 | Current Version: v1.4.0
+> Last Updated: 2026-10-25 | Current Version: v1.4.1
 
 ---
 
 ## 🔴 Active Sprint (Now)
+
+### v1.4.1 — Keyless uploader (2026-10-25) — ✅ DONE, LIVE-VERIFIED & CLEANED
+- [x] New JWT-protected `POST /api/lectures/register` replaces the browser-side master-key RPC: the uploader's authorization is simply her admin login — zero keys, zero ⚙️, zero setup of any kind
+- [x] `lectures.source_pdf_url` added to the SQLAlchemy model (was DB-only; crashed the new endpoint until fixed)
+- [x] E2E live-verified from a fresh browser session: login → subject → PDF → one click → lecture queued → daemon claimed within seconds → artifacts cleaned (29 lectures intact)
+- Note: live E2E also caught + fixed a sticky-header click-swallowing bug and added client-side PDF magic-byte/size validation, duplicate-number warning, single-file honesty
 
 ### v1.4.0 — Split-Plane Pipeline (2026-10-24) — ✅ DONE, E2E-VERIFIED & CLEANED
 - [x] Home Control-Plane daemon (`lecture-worker.service` on 192.168.1.5, linger, auto L3 reauth via system Chrome profile)
