@@ -7,6 +7,8 @@
 # Cloudflare & temporary
 .wrangler/
 *.png
+!docs/03_testing/evidence/**
+
 
 
 # Telegram Telethon sessions & SQLite credentials

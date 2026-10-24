@@ -177,10 +177,10 @@ export function StudentGamificationPill({
             ? 'rgba(45, 212, 191, 0.35)'
             : '#B2DFDB',
         }}
-        className="group relative flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full border shadow-xs hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer text-[13px] font-bold"
+        className="group relative flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full border shadow-xs hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer text-xs sm:text-[13px] font-bold shrink"
       >
         {/* Streak Flame */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 shrink-0">
           <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 animate-pulse" />
           <span
             style={{ color: isDark ? '#FCD34D' : '#D97706' }}
@@ -188,16 +188,16 @@ export function StudentGamificationPill({
           >{streak}</span>
         </div>
 
-        <span style={{ color: isDark ? '#6B7280' : '#9CA3AF' }} className="font-light">•</span>
+        <span style={{ color: isDark ? '#6B7280' : '#9CA3AF' }} className="font-light hidden xs:inline">•</span>
 
         {/* Total XP */}
         <div
           style={{ color: isGirls ? (isDark ? '#FB7185' : '#E11D48') : (isDark ? '#5EEAD4' : '#0D9488') }}
-          className="flex items-center gap-0.5"
+          className="flex items-center gap-0.5 shrink-0"
         >
           <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
           <span className="font-black font-mono">{totalXp}</span>
-          <span className="text-[10px] opacity-80">XP</span>
+          <span className="text-[10px] opacity-80 hidden xs:inline">XP</span>
         </div>
 
         {/* Level Tag - always visible */}
@@ -210,7 +210,7 @@ export function StudentGamificationPill({
               ? (isDark ? '#FB7185' : '#BE185D')
               : (isDark ? '#5EEAD4' : '#0D9488'),
           }}
-          className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold"
+          className="flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold shrink-0"
         >
           <span>Lv.{level}</span>
         </div>
