@@ -6,16 +6,19 @@
 
 ## 🔴 Active Sprint (Now)
 
-### v1.3.1 — Security Hardening (2026-10-24) — ✅ DONE (pending deploy of frontend)
+### v1.3.1 — Security Hardening (2026-10-24) — ✅ DONE & DEPLOYED (frontend + backend + DB verified live)
 - [x] Purge hardcoded admin password, autofill helper, and on-screen hint from `/admin` login (server-verified login only, 45s cold-start window)
 - [x] Remove chunked GitHub PAT from dashboard bundle → provisioned server-side on login, stored per-device in localStorage (`gh_dispatch_token`)
-- [x] Harden `admin_upsert_lecture` RPC with SHA-256 secret digest (`20261024_admin_rpc_sha256_secret.sql`), deployed & verified live (wrong secret → 42501)
+- [x] Harden `admin_upsert_lecture` RPC with SHA-256 secret digest (`20261024_admin_rpc_sha256_secret.sql`) — **verified live via PostgREST**: garbage secret → `42501`, real key → success
 - [x] Remove insecure `SECRET_KEY` / `ADMIN_PASSWORD` defaults in `auth_service.py` (fail closed)
-- [x] Rotate live admin password hash + new `ADMIN_MASTER_KEY` in `.env` / `render.yaml`
-- [x] Split lectures storage `FOR ALL public` policy → public SELECT+INSERT, service-role ALL (`20261024_lectures_storage_least_privilege.sql`), deployed live
-- [ ] **USER ACTION: revoke the leaked GitHub PAT at github.com/settings/tokens** (still valid at discovery) and paste the new fine-grained PAT into Render env + dashboard settings
-- [ ] **USER ACTION: set `ADMIN_PASSWORD`, `ADMIN_MASTER_KEY`, `GITHUB_DISPATCH_TOKEN` (and confirm `SECRET_KEY`) on Render env, then redeploy backend**
-- [ ] Deploy frontend (Cloudflare Pages) so the purged bundle goes live
+- [x] Rotate live admin password hash (old compromised default now returns 401) + new `ADMIN_MASTER_KEY` in `.env`
+- [x] Split lectures storage `FOR ALL public` policy → public SELECT+INSERT, service-role ALL — deployed live
+- [x] Restore leitner-parity `ingest_events` (400 cap, speed guard, idempotency, notebook auto-ingestion) — deployed live
+- [x] Frontend deployed to Cloudflare Pages (bundle verified clean); backend deployed to Render (commit `5f63c9c` live)
+- [x] Sanitize 3 deploy scripts that carried the Render API token in-repo → `RENDER_API_KEY` from `.env`
+- [x] **Deployment lesson recorded:** the first hardening attempt was silently rolled back by a same-transaction error-handling rollback; re-applied with autocommit and verified from an external connection. Always verify security changes through a fresh session.
+
+**Owner decisions (2026-10-24):** the leaked GitHub PAT stays active and Render env vars stay unchanged (accepted risk). Consequence: `ops_key`/`gh_dispatch_token` are NOT auto-provisioned at login — paste `ADMIN_MASTER_KEY` (from local `.env`) and a GitHub dispatch token into the dashboard ⚙️ settings modal once per device to enable the autonomous cloud pipeline.
 
 ---
 
