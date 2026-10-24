@@ -1,6 +1,6 @@
 # 🤖 AI_HANDOFF.md — Agent Context & Onboarding Document
 > **READ THIS FIRST.** This is the single most important file for any AI agent working on this project.
-> Last Updated: 2026-10-24 | Version: v1.3.1
+> Last Updated: 2026-10-24 | Version: v1.4.0
 
 ---
 
@@ -35,6 +35,13 @@
 - **Storage:** Telegram Cloud (MTProto via Telethon) — free unlimited CDN
 - **Database:** Supabase PostgreSQL 17 (via Supavisor pooler for IPv6 compat)
 - **Hosting:** Render.com (free tier with keepalive GitHub Action)
+
+### Production Pipeline — Split-Plane Architecture (v1.4.0, 2026-10-24)
+The NotebookLM Google session **never lives in CI** (datacenter IP churn kills it). See `BLUEPRINT.md`.
+- **Control Plane — home server `abkader@192.168.1.5`:** `lecture-worker.service` (systemd user unit, linger enabled, `Restart=always`) runs `home_worker.py`: polls `lectures WHERE status='queued'` every 15s, drives NotebookLM, auto re-mints dead cookies by driving **system Chrome against `/home/abkader/.notebooklm-profile`** (L3 `browser="chrome"`), generates texts, waits for Google-side media readiness by status (ZERO media bytes at home), writes `media_handoffs` + dispatches the cloud plane. **Ops:** `ssh abkader@192.168.1.5`, logs `journalctl --user -u lecture-worker -f`, updates `cd ~/bsu-math-ai-portal && git pull && systemctl --user restart lecture-worker`.
+- **Data Plane — GitHub Actions `media_transfer.yml` + `media_transfer_worker.py`:** pulls media straight from Google (one-shot cookie jar from the handoff row) → uploads to Telegram via **Telethon MTProto (2GB cap; Bot API is 50MB-capped and fails 401/413 on large files)** → registers assets → `status='completed'` → purges the credential-bearing handoff row.
+- **Dashboard upload flow (uploader needs ZERO setup):** PDF → Supabase Storage → `admin_upsert_lecture` (8-arg, with `p_source_pdf_url`) → daemon claims within 15s. No GitHub PAT in any browser.
+- **Known session facts:** the legacy `TELETHON_SESSION_STRING` user session is DEAD (`AuthKeyDuplicated`) — do not use it; the GitHub repo secrets `TELEGRAM_*` were refreshed 2026-10-24 to match the live `.env` values.
 
 ### Key Infrastructure Files
 ```
@@ -92,6 +99,7 @@ The live `ingest_events` had silently regressed to the older Phase-2-core body (
 11. `20261024_admin_rpc_sha256_secret.sql` — **LIVE-DEPLOYED** SHA-256 secret gate
 12. `20261024_fix_ingest_events_leitner_parity.sql` — **LIVE-DEPLOYED** behavioral parity restore
 13. `20261024_lectures_storage_least_privilege.sql` — **LIVE-DEPLOYED** storage policy split
+14. `20261024_split_plane_handoffs.sql` — **LIVE-DEPLOYED** `lectures.source_pdf_url` + `media_handoffs` (service-role only) + 8-arg RPC
 
 ---
 

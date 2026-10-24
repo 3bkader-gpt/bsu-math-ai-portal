@@ -63,6 +63,21 @@ This changelog records all production deployments during the 7-day Soft Launch o
 * `3b77c13` — docs: Phase 2 (Leitner Mistake Notebook) marked COMPLETED & DEPLOYED.
 * `9532834` — feat(security): enable RLS across all remaining tables, add `admin_upsert_lecture` RPC, and update content.
 
+### [2026-10-24 Cairo] — Release `v1.4.0` (Split-Plane Pipeline Architecture)
+* **Blueprint:** `BLUEPRINT.md` (rev 1). Owner decision: retire the CI-held NotebookLM session (`NOTEBOOKLM_STORAGE_STATE_B64`) — datacenter IP churn made Google kill it every ~2 days.
+* **Control Plane (home server `abkader@192.168.1.5`, Debian 13):** `home_worker.py` as `lecture-worker.service` (systemd user unit, `Restart=always`, linger enabled) — polls `lectures WHERE status='queued'` every 15s, drives NotebookLM via notebooklm-py, re-mints dead cookies automatically by driving **system Chrome against the owner's persistent profile** (`/home/abkader/.notebooklm-profile`, L3 `browser="chrome"`, SingletonLock cleanup) from the residential IP. Generates texts (KB-scale Telegram uploads only), then waits for Google-side artifact readiness **by status polling (zero media bytes at home)**, writes a `media_handoffs` row and dispatches the cloud plane. Resume support: an existing notebook with all four text assets skips regeneration.
+* **Data Plane (GitHub Actions `media_transfer.yml` + `media_transfer_worker.py`):** fetches the handoff row (RLS service-role only), downloads `.m4a`/`.mp4` from Google via notebooklm CLI with the one-shot fresh cookie jar, uploads to Telegram via **Telethon MTProto (2GB cap)**, registers `media_assets`, marks the lecture `completed`, then **purges the credential-bearing handoff row**. Strict validation: non-telegram storage modes fail loudly.
+* **Dashboard simplification:** browser no longer dispatches GitHub at all (no PAT in the browser — the PAT lives only in the home server env). Upload flow = PDF → Supabase Storage → `admin_upsert_lecture` (now 8-arg with `p_source_pdf_url`) → done; the daemon picks it up within 15s.
+* **Bugs discovered during live E2E and fixed:**
+  1. Dashboard hit Render `/api/upload` which accepted the file then died (`notebooklm` CLI not installed on Render), stranding lectures as `failed` and skipping the cloud path — fixed in `361b9af` (skip non-processing backend).
+  2. `artifact list` JSON exposes no download URLs — readiness detection switched to artifact status + CLI-based cloud download (owner-approved fallback).
+  3. Bot API upload cap: `sendAudio` 73MB → **413**; and the repo secret `TELEGRAM_BOT_TOKEN` was **stale** → `sendVideo` 401 / MTProto `ACCESS_TOKEN_EXPIRED`. Fixed by routing all audio/video through Telethon MTProto + refreshing all four Telegram repo secrets. Silent local-fallback now raises instead of marking lectures complete.
+* **E2E proof (test lecture, fully cleaned afterwards):** dashboard upload (isolated fresh browser session) → daemon claim in 15s → notebook + texts + 73MB podcast + 34MB video → handoff → Action `success` → `telegram_message_id` 203/204 → student streaming verified live (**HTTP 206** `audio/mp4` + `video/mp4`). Home-bandwidth usage: <1MB (PDF + API calls) — zero media bytes.
+* **Cleanup verified:** lectures 39/40 + 7 assets + handoffs deleted (29 lectures remain), Storage test PDF deleted, Telegram test messages 197–204 deleted, Google test notebook deleted, runner/home/local temp files removed.
+* **Ops runbook:** daemon logs via `journalctl --user -u lecture-worker -f` on the home server; code updates via `git pull` + `systemctl --user restart lecture-worker`; the Google session self-heals through the persistent Chrome profile — no manual login expected.
+
+---
+
 ### [2026-10-24 Cairo] — Release `v1.3.1` (Security Hardening & Behavioral Parity Restoration)
 * **Scope:** Critical security remediation + production behavioral-parity restoration. Cosmetic-only soft-launch rule suspended for this release under the critical-bugfix exception.
 * **Security fixes:**
