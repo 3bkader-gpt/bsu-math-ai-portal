@@ -831,7 +831,7 @@ export default function Home() {
       </section>
 
       {/* Main Content Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-7 sm:space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-5 sm:space-y-8">
         
         {/* Phase 1: Zero-Redundancy Smart Resume ("كمّل من حيث وقفت") */}
         <SmartResumeCard />
@@ -1095,7 +1095,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 boxShadow: 'var(--card-shadow)',
               }}
-              className="p-6 sm:p-8 rounded-3xl border transition-colors"
+              className="p-3.5 sm:p-8 rounded-2xl sm:rounded-3xl border transition-colors"
             >
               <div
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b"
@@ -1200,7 +1200,7 @@ export default function Home() {
                   <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{content.lecturesSection.emptySubtitle}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-4 sm:gap-5">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3 sm:gap-5">
                   {displayedLectures.map((lec) => {
                     const isReady = lec.is_ready !== undefined ? lec.is_ready : (lec.status === 'completed' && (lec.study_resources_count || lec.assets_count) > 0);
                     const resourceCount = lec.study_resources_count !== undefined ? lec.study_resources_count : lec.assets_count;
@@ -1212,14 +1212,14 @@ export default function Home() {
                             backgroundColor: 'var(--bg-surface-elevated)',
                             borderColor: isReady ? 'var(--border-subtle)' : 'var(--border-prominent)',
                           }}
-                          className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between shadow-sm ${
+                          className={`lecture-card p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between shadow-sm ${
                             isReady 
                               ? 'cursor-pointer group hover:border-cyan-500 hover:shadow-md' 
                               : 'opacity-85 select-none'
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-3 sm:gap-4 mb-4">
-                            <div className="flex items-start gap-2.5 sm:gap-4 min-w-0 flex-1">
+                          <div className="mb-4">
+                            <div className="lecture-card-header-inner gap-2.5 sm:gap-4">
                               <div
                                 style={{
                                   backgroundColor: isReady 
@@ -1242,7 +1242,7 @@ export default function Home() {
                               >
                                 {isGirls ? `🌸 ${lec.lecture_num}` : lec.lecture_num}
                               </div>
-                              <div className="min-w-0 flex-1 space-y-1">
+                              <div className="min-w-0 flex-1 w-full space-y-1">
                                 {lec.doctor && (
                                   <div className="mb-1">
                                     <span
@@ -1260,7 +1260,7 @@ export default function Home() {
                                 <h4 className="font-extrabold text-sm sm:text-xl transition-colors group-hover:text-cyan-500 dark:group-hover:text-cyan-400 break-words leading-snug" style={{ color: 'var(--text-primary)' }}>
                                   {lec.title}
                                 </h4>
-                                <p className="text-[11px] sm:text-sm font-medium mt-1 break-words" style={{ color: 'var(--text-muted)' }}>
+                                <p className="text-[11px] sm:text-sm font-medium mt-1 break-words leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                                   {isReady 
                                     ? (resourceCount >= 5 
                                         ? (isGirls ? 'المحاضرة مكتملة بجميع المصادر 🎀✨' : 'المحاضرة مكتملة بجميع مصادر المذاكرة (5/5)')
