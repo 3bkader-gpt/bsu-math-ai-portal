@@ -36,7 +36,7 @@ import {
   Server,
   Settings as SettingsIcon
 } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
+import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import ThemeToggle from '@/components/ThemeToggle';
 import { 
   getDirectSupabaseSubjects, 
@@ -409,36 +409,47 @@ export default function AdminDashboardPage() {
 
     setIsUploading(true);
 
-    // 1. Try local FastAPI upload if running
+    // 1. Try the FastAPI upload ONLY for backends that can actually run the
+    // NotebookLM pipeline (local dev server / explicit tunnel override).
+    // The default production Render URL must be skipped: it accepts the file
+    // and then fails in the background ('notebooklm' CLI is not installed
+    // there), which strands the lecture as 'failed' and silently skips the
+    // autonomous cloud dispatch below.
+    const PRODUCTION_RENDER_API = 'https://bsu-math-api.onrender.com';
+    const apiBase = getApiBaseUrl();
+    const canBackendProcess = apiBase !== PRODUCTION_RENDER_API;
+
     let uploadDone = false;
-    try {
-      const formData = new FormData();
-      formData.append('subject_id', selectedSubjectId.toString());
-      formData.append('lecture_num', lectureNum.toString());
-      if (selectedDoctor) formData.append('doctor', selectedDoctor);
-      if (lectureTitle) formData.append('title', lectureTitle);
-      selectedFiles.forEach((file) => formData.append('files', file));
+    if (canBackendProcess) {
+      try {
+        const formData = new FormData();
+        formData.append('subject_id', selectedSubjectId.toString());
+        formData.append('lecture_num', lectureNum.toString());
+        if (selectedDoctor) formData.append('doctor', selectedDoctor);
+        if (lectureTitle) formData.append('title', lectureTitle);
+        selectedFiles.forEach((file) => formData.append('files', file));
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for large lecture PDFs
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for large lecture PDFs
 
-      const res = await fetch(getApiUrl('/api/upload'), {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData,
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+        const res = await fetch(getApiUrl('/api/upload'), {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
-      if (res.ok) {
-        const data = await res.json();
-        setActiveTrackingId(data.lecture_id);
-        setSelectedFiles([]);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        uploadDone = true;
+        if (res.ok) {
+          const data = await res.json();
+          setActiveTrackingId(data.lecture_id);
+          setSelectedFiles([]);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          uploadDone = true;
+        }
+      } catch {
+        // Local backend offline -> proceed autonomously with pure cloud pipeline
       }
-    } catch {
-      // Local backend offline -> proceed autonomously with pure cloud pipeline
     }
 
     if (uploadDone) {
