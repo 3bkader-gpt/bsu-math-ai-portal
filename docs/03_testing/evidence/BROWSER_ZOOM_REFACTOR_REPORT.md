@@ -165,3 +165,36 @@ All screenshots are stored under [`docs/03_testing/evidence/screenshots/zoom_ref
 
 - **Physical iOS Zoom:** CDP zoom emulation accurately verifies browser zoom rendering on Chromium engine. Real-device physical iPhone Safari pinch-to-zoom is not tested via CDP and remains labeled as NOT TESTED on real hardware.
 - **Academic Identity:** All colors, gamification rules, personas, sound effects, and academic content were fully preserved without alteration.
+
+---
+
+## 8. Extreme Browser Zoom Refactor (100% to 300% Zoom)
+
+### Observed Bug at 300% Zoom
+When users on narrow windows (e.g. 480px) zoomed to 300% (Effective CSS Width = 160px):
+- Excessive ancestor paddings (`<main>` `px-4`, `<section>` `p-6`, card `p-4`) consumed 112px of the 160px.
+- The lecture number icon was locked in a horizontal flex row side-by-side with the title, consuming another 46px.
+- **Result:** Available title width dropped to **9px**, breaking the Arabic title into **28 single-letter/word vertical lines**.
+
+### Container Query & Fluid Vertical Reflow Solution
+1. **Container Query Structure:** Card assigned `lecture-card` (`container-type: inline-size`).
+2. **Fluid Header Reflow:** `.lecture-card-header-inner` defaults to `flex-direction: column` and expands to `flex-direction: row` when `@container (min-width: 300px)` or `@media (min-width: 640px)`.
+3. **Paddings Tuned:** `<main>` padding set to `px-2.5 sm:px-6`, active subject `<section>` to `p-3.5 sm:p-8`, and card padding to `p-3.5 sm:p-6`.
+4. **Grid Fluidity:** Grid `minmax` relaxed to `minmax(min(100%, 280px), 1fr)`.
+
+### Empirical Test Matrix (480px Window Width)
+
+| Zoom Level | Effective CSS Width | Before Title Width | After Title Width | Before Lines | After Lines | Layout Reflow State |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **100%** | 480px | 329px | **362px** | 1 line | **1 line** | Horizontal (Side-by-Side) |
+| **200%** | 240px | 89px | **167px** | 4 lines | **2 lines** | **Vertical Reflow (Icon Above)** |
+| **250%** | 192px | 41px | **119px** | 9 lines | **3 lines** | **Vertical Reflow (Icon Above)** |
+| **300%** | 160px | 9px | **87px** (10x wider!) | 28 lines (Broken) | **4 lines** (Natural Arabic) |
+
+### Evidence Screenshots
+Screenshots stored in [`docs/03_testing/evidence/screenshots/lecture_card_zoom/`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/):
+- **100% Zoom (Normal):** [`before_window480_zoom_100.png`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/before_window480_zoom_100.png) vs [`after_window480_zoom_100.png`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/after_window480_zoom_100.png)
+- **200% Zoom:** [`before_window480_zoom_200.png`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/before_window480_zoom_200.png) vs [`after_window480_zoom_200.png`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/after_window480_zoom_200.png)
+- **250% Zoom:** [`before_window480_zoom_250.png`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/before_window480_zoom_250.png) vs [`after_window480_zoom_250.png`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/after_window480_zoom_250.png)
+- **300% Zoom (Extreme):** [`before_window480_zoom_300.png`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/before_window480_zoom_300.png) vs [`after_window480_zoom_300.png`](file:///d:/%D8%A7%D9%84%D9%83%D9%84%D9%8A%D9%87/BOT/docs/03_testing/evidence/screenshots/lecture_card_zoom/after_window480_zoom_300.png)
+

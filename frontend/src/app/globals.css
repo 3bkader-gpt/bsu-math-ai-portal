@@ -368,4 +368,31 @@ html.modal-open {
   transform-origin: center bottom;
 }
 
+/* Lecture Card Container Query & Fluid Vertical Reflow */
+.lecture-card {
+  container-type: inline-size;
+}
+
+.lecture-card-header-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  flex: 1 1 0%;
+  width: 100%;
+}
+
+@container (min-width: 300px) {
+  .lecture-card-header-inner {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 640px) {
+  .lecture-card-header-inner {
+    flex-direction: row;
+  }
+}
+
+
 
