@@ -789,7 +789,7 @@ export default function Home() {
               className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-sm font-bold shadow-sm max-w-full flex-wrap justify-center"
             >
               <span className="text-sm">🎀</span>
-              <span>مساحتك الرايقة وكل الدلع ليكي • You&apos;re Just A Baby Girl ✨</span>
+              <span>مساحتك الهادية للمذاكرة • You&apos;re Just A Baby Girl ✨</span>
             </div>
           )}
 
@@ -798,8 +798,8 @@ export default function Home() {
             style={{ color: 'var(--text-primary)' }}
           >
             {isGirls
-              ? 'محاضرات الرياضة مشروحة بروقان.. كويزات ونوتس كيوت تظبطلك المذاكرة 🌸'
-              : 'محاضرات الرياضة مشروحة باحتراف.. ريكوردات وفيديوهات وشرح لكل تفصيلة'}
+              ? content.personas.girls.heroTitle
+              : content.personas.boys.heroTitle}
           </h2>
 
           <p
@@ -807,8 +807,8 @@ export default function Home() {
             style={{ color: 'var(--text-secondary)' }}
           >
             {isGirls
-              ? 'شرح هادي ومبسط يفهمك كل مسألة خطوة بخطوة، مع كويزات كيوت وكروت ونوتس تلملك المنهج وإنتي رايقة ومرتاحة خالص 🎀✨'
-              : 'شرح هندسي عميق يفهمك أصل القوانين خطوة بخطوة، مع كويزات وكروت مراجعة وزتونة تلملك المنهج في وقت قياسي'}
+              ? content.personas.girls.heroSubtitle
+              : content.personas.boys.heroSubtitle}
           </p>
 
           <div className="max-w-md mx-auto relative pt-1 sm:pt-2">
@@ -816,7 +816,7 @@ export default function Home() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isGirls ? 'ابحثي عن أي مادة أو دكتور... 🌸 (مثلاً: د/ سيد، هندسة تفاضلية، د/ مروة...)' : 'ابحث عن أي مادة أو دكتور... (مثلاً: د/ سيد، هندسة تفاضلية، د/ حسين...)'}
+              placeholder={isGirls ? content.personas.girls.searchPlaceholder : content.personas.boys.searchPlaceholder}
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F2CBD5') : 'var(--border-prominent)',
@@ -929,17 +929,17 @@ export default function Home() {
               </div>
               <h4 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                 {searchQuery 
-                  ? 'لم يتم العثور على مقررات مطابقة للبحث'
+                  ? content.semesters.searchEmpty.title
                   : selectedSemester === 2 
-                    ? 'مقررات الترم الثاني قيد الإعداد والتجهيز'
-                    : 'لا توجد مقررات دراسية متاحة حالياً'}
+                    ? content.semesters.semester2.emptyTitle
+                    : content.semesters.semester1.emptyTitle}
               </h4>
               <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                 {searchQuery
-                  ? 'يرجى تجربة كلمات بحث أخرى أو التأكد من اختيار الترم الصحيح أعلاه.'
+                  ? content.semesters.searchEmpty.subtitle
                   : selectedSemester === 2
-                    ? 'سيتم إدراج المحاضرات والملخصات ومصادر الذكاء الاصطناعي للفصل الدراسي الثاني قريباً فور اعتمادها.'
-                    : 'يرجى مراجعة لوحة الإدارة لإضافة المقررات الدراسية.'}
+                    ? content.semesters.semester2.emptySubtitle
+                    : content.semesters.semester1.emptySubtitle}
               </p>
             </div>
           ) : (
@@ -947,7 +947,7 @@ export default function Home() {
               {/* Mobile Swipe Hint */}
               <div className="flex md:hidden items-center justify-between text-xs font-semibold px-1 mb-2.5" style={{ color: 'var(--text-muted)' }}>
                 <span className="flex items-center gap-1.5">
-                  <span>اسحب المقررات أفقياً</span>
+                  <span>{content.semesters.mobileSwipeHint}</span>
                   <span className="text-[11px] opacity-75">↔</span>
                 </span>
                 <span className="text-[11px] opacity-80">{filteredSubjects.length} مادة</span>

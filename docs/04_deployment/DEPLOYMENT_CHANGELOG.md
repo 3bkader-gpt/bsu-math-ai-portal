@@ -1,10 +1,10 @@
-# 🚀 Soft Launch Deployment & Changelog Log
+# ≡ƒÜÇ Soft Launch Deployment & Changelog Log
 
 This changelog records all production deployments during the 7-day Soft Launch observation period. To ensure scientific integrity of telemetry and retention measurements, **only critical bugfixes are permitted** during this window. All behavioral mechanics (XP, streaks, caps) are frozen.
 
 ---
 
-### [2026-10-20 14:20 Cairo] — Release `v1.2.1` (Production Baseline)
+### [2026-10-20 14:20 Cairo] ΓÇö Release `v1.2.1` (Production Baseline)
 * **Git Commit:** `5466cc3` / `v1.2.1`
 * **Cloudflare Pages:** `https://bsu-math-ai-portal.pages.dev`
 * **Changes:**
@@ -22,7 +22,7 @@ This changelog records all production deployments during the 7-day Soft Launch o
   - `mistake_notebook`: 0
   - `ingestion_errors`: 0
 
-### [2026-10-20 22:15 Cairo] — Release `v1.2.2` (Freeze & Soft Launch Baseline)
+### [2026-10-20 22:15 Cairo] ΓÇö Release `v1.2.2` (Freeze & Soft Launch Baseline)
 * **Git Commit / Tag:** `v1.2.2`
 * **Cloudflare Pages:** `https://bsu-math-ai-portal.pages.dev`
 * **Changes & Calibrations:**
