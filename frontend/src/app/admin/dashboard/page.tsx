@@ -34,7 +34,6 @@ import {
   Trash2,
   Terminal,
   Server,
-  Settings as SettingsIcon
 } from 'lucide-react';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -92,37 +91,15 @@ export default function AdminDashboardPage() {
   const [matrixSearch, setMatrixSearch] = useState<string>('');
   const [copiedReport, setCopiedReport] = useState(false);
 
-  // Cloud Ops Settings State (per-device credentials)
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [settingsMasterKey, setSettingsMasterKey] = useState<string>('');
-  const [settingsSaved, setSettingsSaved] = useState(false);
-
-  const openSettingsModal = () => {
-    setSettingsMasterKey(localStorage.getItem('bsu_admin_master_key') || '');
-    setSettingsSaved(false);
-    setShowSettingsModal(true);
-  };
-
-  const handleSaveSettings = () => {
-    try {
-      if (settingsMasterKey.trim()) localStorage.setItem('bsu_admin_master_key', settingsMasterKey.trim());
-      else localStorage.removeItem('bsu_admin_master_key');
-      setSettingsSaved(true);
-      setTimeout(() => setShowSettingsModal(false), 900);
-    } catch (e) {
-      console.error('Failed to persist cloud ops settings:', e);
-    }
-  };
-
   // Freeze background page scroll completely when a modal is open
   useEffect(() => {
-    if (showDiagnosticsModal || showSettingsModal) {
+    if (showDiagnosticsModal) {
       lockBodyScroll();
       return () => {
         unlockBodyScroll();
       };
     }
-  }, [showDiagnosticsModal, showSettingsModal]);
+  }, [showDiagnosticsModal]);
 
   const fetchDiagnostics = async () => {
     setIsLoadingDiagnostics(true);
@@ -508,40 +485,31 @@ export default function AdminDashboardPage() {
 
       const publicPdfUrl = `${SUPABASE_URL}/storage/v1/object/public/lectures/${storageKey}`;
 
-      // B. Create/Update Lecture record via Secure Supabase RPC (Works seamlessly with RLS)
-      // SECURITY: the master key is provisioned server-side on login and stored
-      // per-device in localStorage — it is never hardcoded in the client bundle.
-      // The persistent home worker daemon polls the DB for 'queued' lectures —
-      // no GitHub dispatch (and no dispatch token) is needed from the browser.
-      const adminSecret = typeof window !== 'undefined' ? localStorage.getItem('bsu_admin_master_key') : null;
-      if (!adminSecret) {
-        throw new Error('مفتاح التشغيل السحابي غير مُهيأ على هذا الجهاز. سجّل خروج ثم سجّل دخول من جديد لتحميله تلقائياً (أو أدخله يدوياً من إعدادات لوحة التحكم ⚙️).');
-      }
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_upsert_lecture`, {
+      // B. Register the lecture via the JWT-protected backend endpoint.
+      // The uploader's authorization is simply her admin login — no shared
+      // keys on her device, no manual setup of any kind. The persistent home
+      // daemon polls the DB for 'queued' lectures within seconds.
+      const registerRes = await fetch(getApiUrl('/api/lectures/register'), {
         method: 'POST',
         headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          p_subject_id: selectedSubjectId,
-          p_lecture_num: lectureNum,
-          p_title: lectureTitle || `المحاضرة ${lectureNum}`,
-          p_doctor: selectedDoctor || null,
-          p_status: 'queued',
-          p_stage_info: 'تم الرفع بنجاح، محرك المعالجة المنزلي هيلتقطها خلال ثوانٍ 🚀',
-          p_admin_secret: adminSecret,
-          p_source_pdf_url: publicPdfUrl
+          subject_id: selectedSubjectId,
+          lecture_num: lectureNum,
+          title: lectureTitle || `المحاضرة ${lectureNum}`,
+          doctor: selectedDoctor || null,
+          source_pdf_url: publicPdfUrl
         })
       });
 
-      if (!rpcRes.ok) {
-        const errJson = await rpcRes.json().catch(() => ({}));
-        throw new Error(errJson.message || 'فشل تسجيل المحاضرة في قاعدة البيانات السحابية');
+      if (!registerRes.ok) {
+        const errJson = await registerRes.json().catch(() => ({}));
+        throw new Error(errJson.detail || 'فشل تسجيل المحاضرة في قاعدة البيانات السحابية');
       }
 
-      const upsertResult = await rpcRes.json();
+      const upsertResult = await registerRes.json();
       const lectureId: number = upsertResult.id;
 
       setActiveTrackingId(lectureId);
@@ -598,19 +566,6 @@ export default function AdminDashboardPage() {
           {/* Top Action Buttons & Theme Switcher */}
           <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             <ThemeToggle />
-
-            <button
-              onClick={openSettingsModal}
-              title="إعدادات مفاتيح التشغيل السحابي"
-              className="p-1.5 sm:p-2.5 rounded-xl border transition-all hover:text-amber-500 hover:border-amber-400 cursor-pointer shadow-sm shrink-0"
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--text-secondary)'
-              }}
-            >
-              <SettingsIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
 
             <Link
               href="/"
@@ -1377,113 +1332,6 @@ export default function AdminDashboardPage() {
       {/* COMPREHENSIVE CLOUD DIAGNOSTICS & SYSTEM LOGS MODAL                       */}
       {/* ========================================================================= */}
       {/* Cloud Ops Settings Modal */}
-      {showSettingsModal && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowSettingsModal(false);
-          }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xl max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden transition-all overscroll-contain"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-prominent)',
-              boxShadow: 'var(--card-shadow-hover)'
-            }}
-          >
-            {/* Modal Header */}
-            <div
-              className="p-4 sm:p-6 border-b flex items-center justify-between gap-3 shrink-0"
-              style={{
-                borderColor: 'var(--border-subtle)',
-                backgroundColor: 'var(--bg-surface-elevated)'
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center border shrink-0 text-white shadow-sm"
-                  style={{ backgroundColor: 'var(--accent-primary)', borderColor: 'var(--accent-primary)' }}
-                >
-                  <SettingsIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-black text-base sm:text-lg" style={{ color: 'var(--text-primary)' }}>
-                    إعدادات مفاتيح التشغيل السحابي
-                  </h3>
-                  <p className="text-xs font-bold mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                    تُحمَّل تلقائياً عند تسجيل الدخول — هنا للتعديل اليدوي فقط (تُحفظ على هذا الجهاز)
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="p-2 rounded-xl border transition-all hover:bg-rose-500/10 hover:border-rose-400 hover:text-rose-500 cursor-pointer shadow-xs shrink-0"
-                style={{
-                  backgroundColor: 'var(--bg-surface)',
-                  borderColor: 'var(--border-subtle)',
-                  color: 'var(--text-secondary)'
-                }}
-                title="إغلاق"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-4 sm:p-6 space-y-5 overflow-y-auto">
-              <div>
-                <label className="block text-sm font-black mb-2" style={{ color: 'var(--text-primary)' }}>
-                  مفتاح التشغيل السحابي (Admin Master Key)
-                </label>
-                <input
-                  type="password"
-                  value={settingsMasterKey}
-                  onChange={(e) => setSettingsMasterKey(e.target.value)}
-                  placeholder="يُستخدم لتسجيل المحاضرات في قاعدة البيانات عند الرفع"
-                  dir="ltr"
-                  className="w-full px-4 py-3 rounded-2xl border text-sm font-bold focus:outline-none transition-all"
-                  style={{
-                    backgroundColor: 'var(--bg-surface-elevated)',
-                    borderColor: 'var(--border-prominent)',
-                    color: 'var(--text-primary)'
-                  }}
-                />
-              </div>
-
-              <div
-                className="p-3 rounded-2xl border text-xs font-bold leading-relaxed"
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderColor: 'var(--border-subtle)',
-                  color: 'var(--text-secondary)'
-                }}
-              >
-                🔒 الأمان أولاً: المفتاح يُخزَّن محلياً في متصفحك فقط ولا يُشحن أبداً داخل كود الموقع المنشور.
-                محرك المعالجة بيلتقط المحاضرات المرفوعة تلقائياً — لا يحتاج أي توكن من المتصفح.
-                لتدوير المفتاح، حدّثه في متغيرات بيئة السيرفر ثم سجّل دخول من جديد.
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                className="w-full py-3.5 px-5 rounded-2xl font-black text-base transition-all flex items-center justify-center gap-2.5 shadow-lg hover:opacity-95 active:scale-[0.98] cursor-pointer"
-                style={{ backgroundColor: 'var(--accent-primary)', color: '#ffffff' }}
-              >
-                {settingsSaved ? (
-                  <>
-                    <Check className="w-5 h-5" />
-                    <span>تم الحفظ!</span>
-                  </>
-                ) : (
-                  <span>حفظ المفاتيح على هذا الجهاز</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {showDiagnosticsModal && (
         <div 
           onClick={(e) => {

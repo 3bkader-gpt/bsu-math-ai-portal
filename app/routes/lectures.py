@@ -83,6 +83,101 @@ def list_subject_lectures(
 
 from app.routes.stream import is_safe_path
 
+class _RegisterBody:
+    """Validated payload for the JWT-protected cloud lecture registration."""
+
+    def __init__(self, payload: dict):
+        from pydantic import BaseModel, Field, field_validator
+        from app.config import settings
+
+        class _Model(BaseModel):
+            subject_id: int = Field(gt=0)
+            lecture_num: int = Field(gt=0)
+            title: str | None = None
+            doctor: str | None = None
+            source_pdf_url: str
+
+            @field_validator("source_pdf_url")
+            @classmethod
+            def validate_pdf_url(cls, value: str) -> str:
+                allowed_prefix = f"{settings.SUPABASE_URL}/storage/v1/object/public/lectures/"
+                if not value.startswith(allowed_prefix):
+                    raise ValueError("يجب أن يكون رابط الملف من مخزن المحاضرات الخاص بالمنصة")
+                return value
+
+        self._model = _Model(**payload)
+
+    @property
+    def subject_id(self): return self._model.subject_id
+    @property
+    def lecture_num(self): return self._model.lecture_num
+    @property
+    def title(self): return self._model.title
+    @property
+    def doctor(self): return self._model.doctor
+    @property
+    def source_pdf_url(self): return self._model.source_pdf_url
+
+
+@router.post("/lectures/register")
+def register_cloud_lecture(
+    payload: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """JWT-protected lecture registration for the autonomous cloud pipeline.
+
+    The dashboard uploads the PDF to Supabase Storage directly (browser ->
+    Storage, no backend bandwidth) and then calls this endpoint with the
+    public PDF URL. The persistent home daemon polls for status='queued' and
+    picks the lecture up. This replaces browser-side admin-master-key RPC
+    calls entirely: the uploader's authorization is simply her admin login.
+    """
+    try:
+        body = _RegisterBody(payload)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"بيانات المحاضرة غير صالحة: {exc}")
+
+    subject = db.query(Subject).filter(Subject.id == body.subject_id).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail="المادة غير موجودة")
+
+    clean_doctor = body.doctor.strip() if body.doctor and body.doctor.strip() else None
+    clean_title = body.title.strip() if body.title and body.title.strip() else None
+
+    query = db.query(Lecture).filter(
+        Lecture.subject_id == subject.id, Lecture.lecture_num == body.lecture_num
+    )
+    query = query.filter(Lecture.doctor == clean_doctor) if clean_doctor else query.filter(Lecture.doctor.is_(None))
+    lecture = query.first()
+
+    if lecture:
+        lecture.title = clean_title or f"المحاضرة {body.lecture_num}"
+        lecture.doctor = clean_doctor
+        lecture.status = "queued"
+        lecture.stage_info = "تم الرفع بنجاح، محرك المعالجة المنزلي هيلتقطها خلال ثوانٍ 🚀"
+        lecture.source_pdf_url = body.source_pdf_url
+        lecture.error_message = None
+        for old_asset in lecture.assets:
+            db.delete(old_asset)
+    else:
+        lecture = Lecture(
+            subject_id=subject.id,
+            lecture_num=body.lecture_num,
+            title=clean_title or f"المحاضرة {body.lecture_num}",
+            doctor=clean_doctor,
+            status="queued",
+            stage_info="تم الرفع بنجاح، محرك المعالجة المنزلي هيلتقطها خلال ثوانٍ 🚀",
+            source_pdf_url=body.source_pdf_url,
+        )
+        db.add(lecture)
+
+    db.commit()
+    db.refresh(lecture)
+    return {"ok": True, "id": lecture.id, "lecture_num": lecture.lecture_num,
+            "title": lecture.title, "status": lecture.status}
+
+
 @router.get("/lectures/{lecture_id}")
 def get_lecture_bundle(lecture_id: int, db: Session = Depends(get_db)):
     """Returns full lecture details and its media assets for student view."""
