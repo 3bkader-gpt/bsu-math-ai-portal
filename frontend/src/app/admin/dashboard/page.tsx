@@ -95,12 +95,10 @@ export default function AdminDashboardPage() {
   // Cloud Ops Settings State (per-device credentials)
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [settingsMasterKey, setSettingsMasterKey] = useState<string>('');
-  const [settingsGhToken, setSettingsGhToken] = useState<string>('');
   const [settingsSaved, setSettingsSaved] = useState(false);
 
   const openSettingsModal = () => {
     setSettingsMasterKey(localStorage.getItem('bsu_admin_master_key') || '');
-    setSettingsGhToken(localStorage.getItem('gh_dispatch_token') || '');
     setSettingsSaved(false);
     setShowSettingsModal(true);
   };
@@ -109,8 +107,6 @@ export default function AdminDashboardPage() {
     try {
       if (settingsMasterKey.trim()) localStorage.setItem('bsu_admin_master_key', settingsMasterKey.trim());
       else localStorage.removeItem('bsu_admin_master_key');
-      if (settingsGhToken.trim()) localStorage.setItem('gh_dispatch_token', settingsGhToken.trim());
-      else localStorage.removeItem('gh_dispatch_token');
       setSettingsSaved(true);
       setTimeout(() => setShowSettingsModal(false), 900);
     } catch (e) {
@@ -484,6 +480,8 @@ export default function AdminDashboardPage() {
       // B. Create/Update Lecture record via Secure Supabase RPC (Works seamlessly with RLS)
       // SECURITY: the master key is provisioned server-side on login and stored
       // per-device in localStorage — it is never hardcoded in the client bundle.
+      // The persistent home worker daemon polls the DB for 'queued' lectures —
+      // no GitHub dispatch (and no dispatch token) is needed from the browser.
       const adminSecret = typeof window !== 'undefined' ? localStorage.getItem('bsu_admin_master_key') : null;
       if (!adminSecret) {
         throw new Error('مفتاح التشغيل السحابي غير مُهيأ على هذا الجهاز. سجّل خروج ثم سجّل دخول من جديد لتحميله تلقائياً (أو أدخله يدوياً من إعدادات لوحة التحكم ⚙️).');
@@ -501,8 +499,9 @@ export default function AdminDashboardPage() {
           p_title: lectureTitle || `المحاضرة ${lectureNum}`,
           p_doctor: selectedDoctor || null,
           p_status: 'queued',
-          p_stage_info: 'تم الرفع سحابياً بنجاح، جاري بدء المعالجة بالذكاء الاصطناعي 🚀',
-          p_admin_secret: adminSecret
+          p_stage_info: 'تم الرفع بنجاح، محرك المعالجة المنزلي هيلتقطها خلال ثوانٍ 🚀',
+          p_admin_secret: adminSecret,
+          p_source_pdf_url: publicPdfUrl
         })
       });
 
@@ -513,33 +512,6 @@ export default function AdminDashboardPage() {
 
       const upsertResult = await rpcRes.json();
       const lectureId: number = upsertResult.id;
-
-      // C. Trigger Cloud GitHub Actions Pipeline Dispatch
-      // SECURITY: the dispatch token is provisioned server-side on login and
-      // stored per-device in localStorage — never hardcoded in the client bundle.
-      const GITHUB_DISPATCH_TOKEN = typeof window !== 'undefined' ? localStorage.getItem('gh_dispatch_token') : null;
-      if (!GITHUB_DISPATCH_TOKEN) {
-        throw new Error('توكن تفعيل خط الإنتاج السحابي (GitHub) غير مُهيأ على هذا الجهاز. سجّل خروج ثم سجّل دخول من جديد لتحميله تلقائياً (أو أدخله يدوياً من إعدادات لوحة التحكم ⚙️).');
-      }
-      await fetch('https://api.github.com/repos/3bkader-gpt/bsu-math-ai-portal/dispatches', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${GITHUB_DISPATCH_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          event_type: 'process_lecture',
-          client_payload: {
-            subject: currentSub.name,
-            lecture_num: lectureNum,
-            title: lectureTitle || `المحاضرة ${lectureNum}`,
-            doctor: selectedDoctor || '',
-            pdf_url: publicPdfUrl,
-            notify_chat_id: ''
-          }
-        })
-      });
 
       setActiveTrackingId(lectureId);
       setSelectedFiles([]);
@@ -1432,26 +1404,7 @@ export default function AdminDashboardPage() {
                   type="password"
                   value={settingsMasterKey}
                   onChange={(e) => setSettingsMasterKey(e.target.value)}
-                  placeholder="يُستخدم لتسجيل المحاضرات في قاعدة البيانات عند عمل خط الإنتاج السحابي"
-                  dir="ltr"
-                  className="w-full px-4 py-3 rounded-2xl border text-sm font-bold focus:outline-none transition-all"
-                  style={{
-                    backgroundColor: 'var(--bg-surface-elevated)',
-                    borderColor: 'var(--border-prominent)',
-                    color: 'var(--text-primary)'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-black mb-2" style={{ color: 'var(--text-primary)' }}>
-                  توكن تفعيل خط الإنتاج (GitHub Dispatch Token)
-                </label>
-                <input
-                  type="password"
-                  value={settingsGhToken}
-                  onChange={(e) => setSettingsGhToken(e.target.value)}
-                  placeholder="ghp_... أو github_pat_... بصلاحية repo dispatch فقط"
+                  placeholder="يُستخدم لتسجيل المحاضرات في قاعدة البيانات عند الرفع"
                   dir="ltr"
                   className="w-full px-4 py-3 rounded-2xl border text-sm font-bold focus:outline-none transition-all"
                   style={{
@@ -1470,7 +1423,8 @@ export default function AdminDashboardPage() {
                   color: 'var(--text-secondary)'
                 }}
               >
-                🔒 الأمان أولاً: المفاتيح تُخزَّن محلياً في متصفحك فقط ولا تُشحن أبداً داخل كود الموقع المنشور.
+                🔒 الأمان أولاً: المفتاح يُخزَّن محلياً في متصفحك فقط ولا يُشحن أبداً داخل كود الموقع المنشور.
+                محرك المعالجة بيلتقط المحاضرات المرفوعة تلقائياً — لا يحتاج أي توكن من المتصفح.
                 لتدوير المفتاح، حدّثه في متغيرات بيئة السيرفر ثم سجّل دخول من جديد.
               </div>
 
