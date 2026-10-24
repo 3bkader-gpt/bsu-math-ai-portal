@@ -6,7 +6,16 @@
 
 ## 🔴 Active Sprint (Now)
 
-> Nothing currently in progress. Ready to start next task.
+### v1.3.1 — Security Hardening (2026-10-24) — ✅ DONE (pending deploy of frontend)
+- [x] Purge hardcoded admin password, autofill helper, and on-screen hint from `/admin` login (server-verified login only, 45s cold-start window)
+- [x] Remove chunked GitHub PAT from dashboard bundle → provisioned server-side on login, stored per-device in localStorage (`gh_dispatch_token`)
+- [x] Harden `admin_upsert_lecture` RPC with SHA-256 secret digest (`20261024_admin_rpc_sha256_secret.sql`), deployed & verified live (wrong secret → 42501)
+- [x] Remove insecure `SECRET_KEY` / `ADMIN_PASSWORD` defaults in `auth_service.py` (fail closed)
+- [x] Rotate live admin password hash + new `ADMIN_MASTER_KEY` in `.env` / `render.yaml`
+- [x] Split lectures storage `FOR ALL public` policy → public SELECT+INSERT, service-role ALL (`20261024_lectures_storage_least_privilege.sql`), deployed live
+- [ ] **USER ACTION: revoke the leaked GitHub PAT at github.com/settings/tokens** (still valid at discovery) and paste the new fine-grained PAT into Render env + dashboard settings
+- [ ] **USER ACTION: set `ADMIN_PASSWORD`, `ADMIN_MASTER_KEY`, `GITHUB_DISPATCH_TOKEN` (and confirm `SECRET_KEY`) on Render env, then redeploy backend**
+- [ ] Deploy frontend (Cloudflare Pages) so the purged bundle goes live
 
 ---
 
@@ -83,12 +92,13 @@
 
 | Item | Priority | Notes |
 |---|---|---|
+| ~~`mistake_notebook` auto-ingest from quiz wrong answers~~ | ✅ Resolved 2026-10-24 | This row was CORRECT (plan docs were optimistic): the live `ingest_events` had regressed to the old Phase-2-core body with no notebook ingestion. Restored via `20261024_fix_ingest_events_leitner_parity.sql` and verified live (400 cap, 3s speed guard, per-question idempotency, notebook auto-ingestion). |
 | Hint Ladder `hintLevelUsed` field not wired in quiz events | High | Needed for Phase 3 |
-| `mistake_notebook` auto-ingest from quiz wrong answers | High | Currently requires manual trigger |
 | Neighborhood leaderboard (10-peer) | Medium | Planned Phase 5 |
 | PWA / offline support | Low | Future consideration |
 | Push notifications (1/day, student-chosen time) | Low | Requires service worker |
 | Admin dashboard gamification analytics | Low | KPI views exist in DB |
+| Git history still contains the old leaked PAT + admin password | Low | Harmless AFTER revocation/rotation (both done); optional `git filter-repo` rewrite if desired |
 
 ---
 
