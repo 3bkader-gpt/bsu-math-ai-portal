@@ -480,20 +480,21 @@ function LectureContent() {
         }}
         className="sticky top-0 z-40 border-b backdrop-blur-md transition-colors"
       >
-        <div className="max-w-6xl mx-auto px-3 sm:px-6 h-13 sm:h-15 py-1.5 flex items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 min-h-[3.25rem] sm:min-h-[3.75rem] py-1.5 flex items-center justify-between gap-2 sm:gap-3">
           
           {/* Back to Courses Link */}
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs hover:scale-[1.02] active:scale-[0.98] group shrink-0"
+            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold transition-all shadow-xs hover:scale-[1.02] active:scale-[0.98] group shrink-0"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
               color: 'var(--text-primary)',
             }}
           >
-            <ArrowRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
-            <span>رجوع للمقررات</span>
+            <ArrowRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:-translate-x-0.5 transition-transform shrink-0" />
+            <span className="hidden xs:inline">رجوع للمقررات</span>
+            <span className="xs:hidden">رجوع</span>
           </Link>
 
           {/* Subject & Doctor Badge in Center (Visible on md+ where space is ample, eliminating ugly 'هـ...' clipping on mobile) */}
@@ -525,7 +526,7 @@ function LectureContent() {
           </div>
 
           {/* Theme & Persona Switcher */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <StudentGamificationPill isGirls={currentPersona === 'girls'} isDark={currentMode === 'dark'} />
             <div className="hidden md:inline-flex">
               <ThemeToggle />
@@ -538,7 +539,7 @@ function LectureContent() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="md:hidden p-1.5 rounded-lg border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              className="md:hidden p-1.5 rounded-lg border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer shrink-0"
               title="القائمة والإعدادات"
               aria-label="القائمة والإعدادات"
             >
@@ -558,21 +559,21 @@ function LectureContent() {
             borderColor: 'var(--border-subtle)',
             boxShadow: 'var(--card-shadow)',
           }}
-          className="p-4 sm:p-7 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 transition-all"
+          className="p-3.5 sm:p-7 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 transition-all"
         >
-          <div className="flex items-start sm:items-center gap-3.5 sm:gap-5 min-w-0">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-5 min-w-0 flex-1">
             {/* Big Lecture Number */}
             <div
               style={{
                 backgroundColor: 'var(--accent-primary)',
                 color: isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff'),
               }}
-              className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-lg sm:text-2xl shadow-xs shrink-0"
+              className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-base sm:text-2xl shadow-xs shrink-0"
             >
               {isGirls ? `🌸 ${lectureBundle.lecture_num}` : lectureBundle.lecture_num}
             </div>
 
-            <div className="min-w-0 space-y-0.5 sm:space-y-1">
+            <div className="min-w-0 flex-1 space-y-1">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span
                   className="text-xs font-bold"
@@ -595,13 +596,13 @@ function LectureContent() {
               </div>
 
               <h1
-                className="text-lg sm:text-2xl font-black leading-snug sm:leading-tight"
+                className="text-base sm:text-2xl font-black leading-snug sm:leading-tight break-words"
                 style={{ color: 'var(--text-primary)' }}
               >
                 {lectureBundle.title}
               </h1>
 
-              <p className="text-[11px] sm:text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-[11px] sm:text-xs font-medium break-words" style={{ color: 'var(--text-muted)' }}>
                 {isGirls 
                   ? 'كل المصادر مشروحة ومترتبة عشان تذاكري بروقان وتركيز 🌸' 
                   : 'جميع المصادر الأكاديمية مشروحة ومفصلة للمذاكرة الذكية'}
@@ -1641,9 +1642,9 @@ function LectureContent() {
                                   }
                                 }}
                                 style={optStyle}
-                                className="w-full min-h-[56px] sm:min-h-[66px] p-4 sm:p-5 rounded-2xl border text-right transition-all flex items-center justify-between gap-4 text-sm sm:text-lg leading-relaxed cursor-pointer shadow-xs hover:border-blue-400 active:scale-[0.99]"
+                                className="w-full min-h-[52px] sm:min-h-[66px] p-3.5 sm:p-5 rounded-2xl border text-right transition-all flex items-start sm:items-center justify-between gap-3 sm:gap-4 text-sm sm:text-lg leading-relaxed cursor-pointer shadow-xs hover:border-blue-400 active:scale-[0.99]"
                               >
-                                <div className="flex items-center gap-3 sm:gap-4 flex-1 overflow-x-auto no-scrollbar py-0.5">
+                                <div className="flex items-start sm:items-center gap-2.5 sm:gap-4 flex-1 min-w-0 py-0.5">
                                   <span
                                     style={{
                                       backgroundColor:
@@ -1658,11 +1659,11 @@ function LectureContent() {
                                           ? '#ffffff'
                                           : 'var(--text-primary)',
                                     }}
-                                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center shrink-0 border shadow-xs"
+                                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center shrink-0 border shadow-xs mt-0.5 sm:mt-0"
                                   >
                                     {optionLabels[optIdx] || optIdx + 1}
                                   </span>
-                                  <div className="flex-1 text-right font-bold text-sm sm:text-lg">
+                                  <div className="flex-1 min-w-0 text-right font-bold text-sm sm:text-lg overflow-x-auto no-scrollbar">
                                     <MathRenderer text={opt} />
                                   </div>
                                 </div>

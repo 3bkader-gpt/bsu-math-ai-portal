@@ -670,9 +670,9 @@ export default function Home() {
         }}
         className="sticky top-0 z-40 border-b backdrop-blur-md transition-colors"
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 py-1.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 min-h-[3.5rem] sm:min-h-[4rem] py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-4">
           
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <div
               style={{
                 backgroundColor: isGirls 
@@ -690,9 +690,9 @@ export default function Home() {
                 <GraduationCap className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" style={{ color: 'var(--accent-primary)' }} />
               )}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="font-extrabold text-sm sm:text-base tracking-tight whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                <h1 className="font-extrabold text-xs xs:text-sm sm:text-base tracking-tight truncate" style={{ color: 'var(--text-primary)' }}>
                   {isGirls ? 'منصة المنهج 🎀' : 'منصة المنهج'}
                 </h1>
                 <span
@@ -706,8 +706,9 @@ export default function Home() {
                   {isGirls ? "🎀 You're Just A Baby Girl" : 'نسخة الشباب'}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs font-medium mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
-                <span className="sm:hidden">تربية بني سويف • تانية رياضيات</span>
+              <p className="text-[10px] sm:text-xs font-medium mt-0.5 leading-snug truncate" style={{ color: 'var(--text-muted)' }}>
+                <span className="xs:hidden">تربية بني سويف</span>
+                <span className="hidden xs:inline sm:hidden">تربية بني سويف • تانية رياضيات</span>
                 <span className="hidden sm:inline">{isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}</span>
               </p>
             </div>
@@ -762,7 +763,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="md:hidden p-1.5 rounded-lg border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+              className="md:hidden p-1.5 rounded-lg border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer shrink-0"
               title="القائمة والإعدادات"
               aria-label="القائمة والإعدادات"
             >
@@ -953,7 +954,7 @@ export default function Home() {
                 <span className="text-[11px] opacity-80">{filteredSubjects.length} مادة</span>
               </div>
 
-              <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] overflow-x-auto md:overflow-x-visible overscroll-x-contain touch-pan-x snap-x snap-mandatory gap-2.5 pb-2.5 pt-1 md:py-0 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rail-courses-mobile">
+              <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] overflow-x-auto md:overflow-x-visible overscroll-x-contain touch-pan-x snap-x snap-mandatory gap-2.5 pb-2.5 pt-3 md:py-0 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rail-courses-mobile">
                 {filteredSubjects.map((sub) => {
                   const isActive = sub.id === activeSubjectId;
                   const styleConfig = SUBJECT_THEME_STYLES[sub.name] || {
@@ -990,7 +991,7 @@ export default function Home() {
                           ? (isDark ? `0 0 20px ${activeGlowColor}33, var(--card-shadow-hover)` : `0 0 16px ${activeGlowColor}22, var(--card-shadow-hover)`)
                           : 'var(--card-shadow)',
                       }}
-                      className={`relative p-3 sm:p-4 rounded-xl sm:rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer group w-[138px] xs:w-[150px] sm:w-[165px] md:w-auto shrink-0 snap-start ${
+                      className={`relative p-3 sm:p-4 rounded-xl sm:rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer group min-w-[130px] w-[138px] xs:w-[150px] sm:w-[165px] md:w-auto shrink-0 snap-start ${
                         isActive 
                           ? 'ring-2 ring-cyan-500/40' 
                           : 'sm:hover:scale-[1.01]'
@@ -1035,7 +1036,7 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <h4 className="font-bold text-xs sm:text-sm line-clamp-2 leading-tight" style={{ color: 'var(--text-primary)' }}>
+                        <h4 className="font-bold text-xs sm:text-sm line-clamp-2 leading-tight break-words" style={{ color: 'var(--text-primary)' }}>
                           {sub.name}
                         </h4>
                         {sub.canonicalDoctor && (
@@ -1100,7 +1101,7 @@ export default function Home() {
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b"
                 style={{ borderColor: 'var(--border-subtle)' }}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="relative w-12 h-12 shrink-0">
                     <div
                       className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm select-none leading-none ${
@@ -1121,14 +1122,14 @@ export default function Home() {
                       </div>
                     )}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <span className="text-xs font-bold uppercase tracking-wider" style={{ color: activeSubjectGlow }}>
                         {isGirls ? '🌸 المادة اللي اخترتيها يا شطورة' : 'المقرر المختار'}
                       </span>
                       {activeSubject?.canonicalDoctor && (
                         <span
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border whitespace-nowrap shrink-0"
                           style={{
                             backgroundColor: isDark ? `${activeSubjectGlow}20` : `${activeSubjectGlow}15`,
                             borderColor: `${activeSubjectGlow}45`,
@@ -1139,13 +1140,13 @@ export default function Home() {
                         </span>
                       )}
                     </div>
-                    <h3 className="text-2xl sm:text-3xl font-black mt-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <h3 className="text-xl sm:text-3xl font-black mt-1 flex items-center gap-2 flex-wrap break-words" style={{ color: 'var(--text-primary)' }}>
                       <span>{activeSubject?.name || content.lecturesSection.defaultPrompt}</span>
                       {isGirls && <span className="text-xl">✨</span>}
                     </h3>
                   </div>
                 </div>
-                <div className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+                <div className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 shrink-0 self-start sm:self-auto" style={{ color: 'var(--text-muted)' }}>
                   {isGirls && <span>☕</span>}
                   <span>متاح {displayedLectures.length} محاضرات</span>
                   {isGirls && <span>بروقان</span>}
@@ -1211,14 +1212,14 @@ export default function Home() {
                             backgroundColor: 'var(--bg-surface-elevated)',
                             borderColor: isReady ? 'var(--border-subtle)' : 'var(--border-prominent)',
                           }}
-                          className={`p-6 rounded-3xl border transition-all flex flex-col justify-between shadow-sm ${
+                          className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between shadow-sm ${
                             isReady 
                               ? 'cursor-pointer group hover:border-cyan-500 hover:shadow-md' 
                               : 'opacity-85 select-none'
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-4 mb-4">
-                            <div className="flex items-start gap-4">
+                          <div className="flex items-start justify-between gap-3 sm:gap-4 mb-4">
+                            <div className="flex items-start gap-2.5 sm:gap-4 min-w-0 flex-1">
                               <div
                                 style={{
                                   backgroundColor: isReady 
@@ -1237,15 +1238,15 @@ export default function Home() {
                                         : `${activeSubjectGlow}50`) 
                                     : 'var(--border-subtle)',
                                 }}
-                                className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shrink-0 border shadow-md"
+                                className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-base sm:text-xl shrink-0 border shadow-md"
                               >
                                 {isGirls ? `🌸 ${lec.lecture_num}` : lec.lecture_num}
                               </div>
-                              <div>
+                              <div className="min-w-0 flex-1 space-y-1">
                                 {lec.doctor && (
-                                  <div className="mb-1.5">
+                                  <div className="mb-1">
                                     <span
-                                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold border"
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-bold border whitespace-nowrap"
                                       style={{
                                         backgroundColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.12)' : 'rgba(59, 130, 246, 0.12)',
                                         borderColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.3)' : 'rgba(59, 130, 246, 0.3)',
@@ -1256,10 +1257,10 @@ export default function Home() {
                                     </span>
                                   </div>
                                 )}
-                                <h4 className="font-extrabold text-lg sm:text-xl transition-colors group-hover:text-cyan-500 dark:group-hover:text-cyan-400" style={{ color: 'var(--text-primary)' }}>
+                                <h4 className="font-extrabold text-sm sm:text-xl transition-colors group-hover:text-cyan-500 dark:group-hover:text-cyan-400 break-words leading-snug" style={{ color: 'var(--text-primary)' }}>
                                   {lec.title}
                                 </h4>
-                                <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
+                                <p className="text-[11px] sm:text-sm font-medium mt-1 break-words" style={{ color: 'var(--text-muted)' }}>
                                   {isReady 
                                     ? (resourceCount >= 5 
                                         ? (isGirls ? 'المحاضرة مكتملة بجميع المصادر 🎀✨' : 'المحاضرة مكتملة بجميع مصادر المذاكرة (5/5)')
