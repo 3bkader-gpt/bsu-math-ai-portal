@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
     SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+
+    # Admin Cloud Ops Secrets — returned to the admin dashboard ONLY after a
+    # successful server-verified login, then stored in the admin's localStorage.
+    # Never hardcode these in the frontend bundle.
+    ADMIN_MASTER_KEY: str = os.getenv("ADMIN_MASTER_KEY", "")
+    GITHUB_DISPATCH_TOKEN: str = os.getenv("GITHUB_DISPATCH_TOKEN", "")
     
     # NotebookLM Settings
     NOTEBOOKLM_DEFAULT_LANG: str = "ar_eg"

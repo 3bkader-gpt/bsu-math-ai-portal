@@ -20,6 +20,10 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     username: str
     role: str
+    # Cloud-ops credentials provisioned ONLY on successful login. The dashboard
+    # persists them in localStorage for the autonomous (backend-asleep) pipeline.
+    ops_key: str = ""
+    gh_dispatch_token: str = ""
 
 class AnonymousSessionRequest(BaseModel):
     deviceId: str | None = None
@@ -47,7 +51,9 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         ok=True,
         access_token=token,
         username=user.username,
-        role=user.role
+        role=user.role,
+        ops_key=settings.ADMIN_MASTER_KEY,
+        gh_dispatch_token=settings.GITHUB_DISPATCH_TOKEN
     )
 
 @router.get("/me")
