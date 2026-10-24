@@ -6,7 +6,10 @@ sys.path.append(str(ROOT_DIR))
 import httpx
 from app.config import settings
 
-API_TOKEN = "rnd_mNIZQDcLvNEbwc6XjdrmUdm3e6Nd"
+import os
+API_TOKEN = os.getenv("RENDER_API_KEY", "")
+if not API_TOKEN:
+    raise SystemExit("Set RENDER_API_KEY in .env (Render Account Settings > API Keys)")
 SERVICE_ID = "srv-db8e6geq1p3s73ah7kh0"
 
 env_vars = [
