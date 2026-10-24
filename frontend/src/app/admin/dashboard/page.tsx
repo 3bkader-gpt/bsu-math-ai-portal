@@ -364,20 +364,51 @@ export default function AdminDashboardPage() {
   };
 
   // File selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-      setSelectedFiles(filesArray);
+  const MAX_PDF_BYTES = 45 * 1024 * 1024; // matches the pipeline's storage cap
+
+  const validatePdf = async (file: File): Promise<string | null> => {
+    if (file.size > MAX_PDF_BYTES) {
+      return `الملف '${file.name}' كبير جداً (${(file.size / (1024*1024)).toFixed(1)} ميجا) — الحد الأقصى 45 ميجابايت`;
+    }
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      return `الملف '${file.name}' ليس PDF — يُقبل ملف المحاضرة بصيغة PDF فقط`;
+    }
+    // Magic-byte check: catches files renamed to .pdf (real PDFs start with %PDF-)
+    const head = new Uint8Array(await file.slice(0, 5).arrayBuffer());
+    const signature = String.fromCharCode(...head);
+    if (signature !== '%PDF-') {
+      return `الملف '${file.name}' ليس PDF حقيقياً (المحتوى لا يطابق صيغة PDF)`;
+    }
+    return null;
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const error = await validatePdf(file);
+      if (error) {
+        setUploadError(error);
+        setSelectedFiles([]);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      setSelectedFiles([file]);
       setUploadError('');
     }
   };
 
   // Handle Drag & Drop
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
-    if (e.dataTransfer.files) {
-      const filesArray = Array.from(e.dataTransfer.files);
-      setSelectedFiles(filesArray);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      const error = await validatePdf(file);
+      if (error) {
+        setUploadError(error);
+        setSelectedFiles([]);
+        return;
+      }
+      setSelectedFiles([file]);
       setUploadError('');
     }
   };
@@ -1047,11 +1078,18 @@ export default function AdminDashboardPage() {
                     className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border text-sm sm:text-base font-bold focus:outline-none transition-all"
                     style={{
                       backgroundColor: 'var(--bg-surface-elevated)',
-                      borderColor: 'var(--border-prominent)',
+                      borderColor: subjectLectures.some((l: Lecture) => l.lecture_num === lectureNum)
+                        ? 'var(--accent-warning, #f59e0b)'
+                        : 'var(--border-prominent)',
                       color: 'var(--text-primary)'
                     }}
                     required
                   />
+                  {subjectLectures.some((l: Lecture) => l.lecture_num === lectureNum) && (
+                    <p className="text-[11px] sm:text-xs font-black mt-1.5 text-amber-600 dark:text-amber-400 leading-relaxed">
+                      ⚠️ محاضرة بهذا الرقم موجودة — الرفع هيستبدل ملفاتها ويعيد معالجتها من الصفر
+                    </p>
+                  )}
                 </div>
                 
                 <div className="sm:col-span-2">
@@ -1092,13 +1130,12 @@ export default function AdminDashboardPage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".pdf"
-                    multiple
+                    accept=".pdf,application/pdf"
                     onChange={handleFileChange}
                     className="hidden"
                   />
 
-                  <div 
+                  <div
                     className="w-12 h-12 mx-auto mb-2.5 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-xs"
                     style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--accent-primary)' }}
                   >
@@ -1109,7 +1146,7 @@ export default function AdminDashboardPage() {
                     اسحب ملف الـ PDF وأفلته هنا، أو <span style={{ color: 'var(--accent-primary)' }} className="underline font-bold">تصفح ملفاتك</span>
                   </p>
                   <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    يمكنك رفع ملف المحاضرة الأساسي ومراجع إضافية ملحقة معاً
+                    ملف PDF واحد لكل محاضرة (حتى 45 ميجابايت) — ملف المحاضرة المعتمد فقط
                   </p>
 
                   {/* Selected files preview badge */}

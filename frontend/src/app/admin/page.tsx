@@ -64,7 +64,8 @@ export default function AdminLoginPage() {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000);
+      // Render free-tier cold starts can exceed 45s — give it a full minute
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       const res = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
