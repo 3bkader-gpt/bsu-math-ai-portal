@@ -171,7 +171,7 @@ def download_pdf(url: str, dest: Path) -> Path:
     return dest
 
 
-def _extract_urls(node) -> list[str]:
+def _extract_urls(node) -> list[str]:  # retained for future direct-URL handoff
     """Recursively collect http(s) URLs from an arbitrary JSON structure."""
     found: list[str] = []
     if isinstance(node, str):
@@ -186,50 +186,40 @@ def _extract_urls(node) -> list[str]:
     return found
 
 
-async def artifact_download_url(nb_id: str, kind: str) -> str | None:
-    """Return a direct download URL for the audio/video artifact, if ready.
-    Never downloads media bytes — URL extraction only (Zero-Download)."""
+async def artifact_ready(nb_id: str, kind: str) -> bool:
+    """True when the audio/video artifact reports status completed in Google.
+    Never downloads media bytes — status polling only (Zero-Download)."""
     code, out = await run_cmd_async(
         ["notebooklm", "artifact", "list", "--type", kind, "--json", "-n", nb_id]
     )
     if code != 0 or not out:
-        return None
+        return False
     try:
         data = json.loads(out)
     except json.JSONDecodeError:
-        return None
-    entries = data if isinstance(data, list) else data.get("artifacts", data.get("items", []))
-    if isinstance(entries, dict):
-        entries = [entries]
+        return False
+    entries = data.get("artifacts", []) if isinstance(data, dict) else data
     for entry in entries:
-        if not isinstance(entry, dict):
-            continue
-        status = str(entry.get("status", "")).upper()
-        if status and status not in ("COMPLETED", "COMPLETE", "READY", "DONE"):
-            continue
-        for url in _extract_urls(entry):
-            if any(host in url for host in ("googleusercontent", "google.com", "blob.core")):
-                return url
-    return None
+        if str(entry.get("status", "")).lower() == "completed":
+            return True
+    return False
 
 
-async def wait_for_media_urls(nb_id: str) -> tuple[str | None, str | None]:
+async def wait_for_media_ready(nb_id: str) -> tuple[bool, bool]:
     deadline = time.monotonic() + MEDIA_POLL_TIMEOUT
-    audio_url: str | None = None
-    video_url: str | None = None
-    while time.monotonic() < deadline and not (audio_url and video_url):
-        if not audio_url:
-            audio_url = await artifact_download_url(nb_id, "audio")
-            if audio_url:
-                logger.info("Audio artifact ready (URL captured, zero-download)")
-        if not video_url:
-            video_url = await artifact_download_url(nb_id, "video")
-            if video_url:
-                logger.info("Video artifact ready (URL captured, zero-download)")
-        if audio_url and video_url:
+    audio_ready = False
+    video_ready = False
+    while time.monotonic() < deadline and not (audio_ready and video_ready):
+        if not audio_ready and await artifact_ready(nb_id, "audio"):
+            audio_ready = True
+            logger.info("Audio artifact COMPLETED in Google (zero-download)")
+        if not video_ready and await artifact_ready(nb_id, "video"):
+            video_ready = True
+            logger.info("Video artifact COMPLETED in Google (zero-download)")
+        if audio_ready and video_ready:
             break
         await asyncio.sleep(POLL_STEP)
-    return audio_url, video_url
+    return audio_ready, video_ready
 
 
 def create_handoff(lecture: dict, nb_id: str, audio_url: str | None, video_url: str | None,
@@ -304,108 +294,127 @@ async def process_lecture(lecture: dict):
 
     temp_dir = Path(tempfile.mkdtemp(prefix=f"lec_{lecture_id}_"))
     try:
-        if not lecture["source_pdf_url"]:
-            raise RuntimeError("Lecture has no source_pdf_url")
-        pdf = download_pdf(lecture["source_pdf_url"], temp_dir / f"lecture_{lecture['lecture_num']}.pdf")
-
         await ensure_session()
 
-        # 1. Notebook + source + original PDF asset (small Telegram upload)
-        nb_id = await NotebookLMPipeline.create_notebook(
-            f"{subject_name} - المحاضرة {lecture['lecture_num']}"
-        )
+        # Resume support: if a notebook already exists for this lecture, skip
+        # regeneration of notebook/source/texts and go straight to media wait.
+        TEXT_ASSET_TYPES = ("quiz_md", "study_guide_md", "flashcards_md", "mind_map_json")
         with SessionLocal() as db:
             lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
-            lec.notebook_id = nb_id
-            db.commit()
+            nb_id = lec.notebook_id if lec else None
+            existing_types = {
+                row[0] for row in db.query(MediaAsset.asset_type).filter(
+                    MediaAsset.lecture_id == lecture_id
+                ).all()
+            }
 
-        await NotebookLMPipeline.add_source(nb_id, pdf)
-        cap = make_telegram_caption(subject_name, lecture["lecture_num"], lecture["title"],
-                                    lecture["doctor"], "📄 ملف المحاضرة المعتمد", pdf.name)
-        upload_res = await telegram_storage.upload_asset(pdf, "pdf", cap)
-        with SessionLocal() as db:
-            db.add(MediaAsset(
-                lecture_id=lecture_id, asset_type="original_pdf", title=pdf.name,
-                local_file_path=upload_res.get("local_file_path"),
-                telegram_file_id=upload_res.get("telegram_file_id"),
-                telegram_message_id=upload_res.get("telegram_message_id"),
-                file_size_bytes=upload_res.get("file_size"),
-            ))
-            db.commit()
+        texts_complete = all(t in existing_types for t in TEXT_ASSET_TYPES)
+        if nb_id and texts_complete:
+            logger.info("Lecture %s already has notebook %s with all text assets — resuming at media wait",
+                        lecture_id, nb_id)
+        elif nb_id and not lecture["source_pdf_url"]:
+            raise RuntimeError("Lecture has neither a notebook nor source_pdf_url")
+        else:
+            if not lecture["source_pdf_url"]:
+                raise RuntimeError("Lecture has no source_pdf_url")
+            pdf = download_pdf(lecture["source_pdf_url"], temp_dir / f"lecture_{lecture['lecture_num']}.pdf")
 
-        # 2. Launch media generation in Google's cloud (no local bytes)
-        set_stage(lecture_id, "processing",
-                  "جاري توليد البودكاست والفيديو على سيرفرات جوجل + الكويز والملخص ☁️")
-        prompt_file = PROMPTS_DIR / f"{subject_name}.txt"
-        prompt_path = str(prompt_file) if prompt_file.exists() else None
-
-        audio_cmd = ["notebooklm", "generate", "audio", "--length", "long", "-n", nb_id]
-        video_cmd = ["notebooklm", "generate", "video", "--format", "explainer", "-n", nb_id]
-        for cmd in (audio_cmd, video_cmd):
-            if prompt_path:
-                cmd.extend(["--prompt-file", prompt_path])
-        await asyncio.gather(run_cmd_async(audio_cmd), run_cmd_async(video_cmd))
-
-        # 3. Text artifacts (quiz / guide / flashcards / mind-map) — KB scale
-        set_stage(lecture_id, "processing", "جاري توليد الكويز والملخص والبطاقات الذكية ✍️")
-        quiz_cmd = ["notebooklm", "generate", "quiz",
-                    "اختبار شامل مع تلميحات وشرح الإجابات", "--quantity", "more",
-                    "--wait", "--retry", "3", "-n", nb_id]
-        report_cmd = ["notebooklm", "generate", "report", "--format", "study-guide",
-                      "--wait", "--retry", "3", "-n", nb_id]
-        cards_cmd = ["notebooklm", "generate", "flashcards",
-                     "أهم المفاهيم والقوانين والتعريفات", "--quantity", "more",
-                     "--retry", "3", "-n", nb_id]
-        map_cmd = ["notebooklm", "generate", "mind-map", "--kind", "note-backed", "-n", nb_id]
-        await asyncio.gather(run_cmd_async(quiz_cmd), run_cmd_async(report_cmd),
-                             run_cmd_async(cards_cmd), run_cmd_async(map_cmd))
-
-        for kind, filename, asset_type, title, label in [
-            ("quiz", "quiz.md", "quiz_md", "كويز المحاضرة", "📝 كويز تفاعلي وبنك الأسئلة الكامل"),
-            ("report", "study_guide.md", "study_guide_md", "دليل دراسي وملخص", "📚 دليل دراسي وملخص شامل"),
-            ("flashcards", "flashcards.md", "flashcards_md", "بطاقات تعليمية", "🃏 بطاقات استذكار تعليمية"),
-            ("mind-map", "mind_map.json", "mind_map_json", "خريطة ذهنية", "🧠 خريطة ذهنية ومفاهيمية"),
-        ]:
-            dest = temp_dir / filename
-            cmd = ["notebooklm", "download", kind, str(dest), "--force", "-n", nb_id]
-            if kind == "quiz":
-                cmd[3:3] = ["--format", "markdown"]
-            await run_cmd_async(cmd)
-            if not dest.exists():
-                logger.warning("%s download missing for lec %s", kind, lecture_id)
-                continue
-            content = dest.read_text(encoding="utf-8", errors="replace")
+            # 1. Notebook + source + original PDF asset (small Telegram upload)
+            nb_id = await NotebookLMPipeline.create_notebook(
+                f"{subject_name} - المحاضرة {lecture['lecture_num']}"
+            )
             with SessionLocal() as db:
-                existing = db.query(MediaAsset).filter(
-                    MediaAsset.lecture_id == lecture_id,
-                    MediaAsset.asset_type == asset_type,
-                ).first()
-                if existing:
-                    existing.content_text = content
-                    db.commit()
-                    continue
-                up = await telegram_storage.upload_asset(
-                    dest, asset_type,
-                    make_telegram_caption(subject_name, lecture["lecture_num"], lecture["title"],
-                                          lecture["doctor"], label))
+                lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
+                lec.notebook_id = nb_id
+                db.commit()
+
+            await NotebookLMPipeline.add_source(nb_id, pdf)
+            cap = make_telegram_caption(subject_name, lecture["lecture_num"], lecture["title"],
+                                        lecture["doctor"], "📄 ملف المحاضرة المعتمد", pdf.name)
+            upload_res = await telegram_storage.upload_asset(pdf, "pdf", cap)
+            with SessionLocal() as db:
                 db.add(MediaAsset(
-                    lecture_id=lecture_id, asset_type=asset_type, title=title,
-                    content_text=content,
-                    local_file_path=up.get("local_file_path"),
-                    telegram_file_id=up.get("telegram_file_id"),
-                    telegram_message_id=up.get("telegram_message_id"),
-                    file_size_bytes=up.get("file_size"),
+                    lecture_id=lecture_id, asset_type="original_pdf", title=pdf.name,
+                    local_file_path=upload_res.get("local_file_path"),
+                    telegram_file_id=upload_res.get("telegram_file_id"),
+                    telegram_message_id=upload_res.get("telegram_message_id"),
+                    file_size_bytes=upload_res.get("file_size"),
                 ))
                 db.commit()
 
-        # 4. Zero-Download handover: capture URLs only, wait for readiness
+            # 2. Launch media generation in Google's cloud (no local bytes)
+            set_stage(lecture_id, "processing",
+                      "جاري توليد البودكاست والفيديو على سيرفرات جوجل + الكويز والملخص ☁️")
+            prompt_file = PROMPTS_DIR / f"{subject_name}.txt"
+            prompt_path = str(prompt_file) if prompt_file.exists() else None
+
+            audio_cmd = ["notebooklm", "generate", "audio", "--length", "long", "-n", nb_id]
+            video_cmd = ["notebooklm", "generate", "video", "--format", "explainer", "-n", nb_id]
+            for cmd in (audio_cmd, video_cmd):
+                if prompt_path:
+                    cmd.extend(["--prompt-file", prompt_path])
+            await asyncio.gather(run_cmd_async(audio_cmd), run_cmd_async(video_cmd))
+
+            # 3. Text artifacts (quiz / guide / flashcards / mind-map) — KB scale
+            set_stage(lecture_id, "processing", "جاري توليد الكويز والملخص والبطاقات الذكية ✍️")
+            quiz_cmd = ["notebooklm", "generate", "quiz",
+                        "اختبار شامل مع تلميحات وشرح الإجابات", "--quantity", "more",
+                        "--wait", "--retry", "3", "-n", nb_id]
+            report_cmd = ["notebooklm", "generate", "report", "--format", "study-guide",
+                          "--wait", "--retry", "3", "-n", nb_id]
+            cards_cmd = ["notebooklm", "generate", "flashcards",
+                         "أهم المفاهيم والقوانين والتعريفات", "--quantity", "more",
+                         "--retry", "3", "-n", nb_id]
+            map_cmd = ["notebooklm", "generate", "mind-map", "--kind", "note-backed", "-n", nb_id]
+            await asyncio.gather(run_cmd_async(quiz_cmd), run_cmd_async(report_cmd),
+                                 run_cmd_async(cards_cmd), run_cmd_async(map_cmd))
+
+            for kind, filename, asset_type, title, label in [
+                ("quiz", "quiz.md", "quiz_md", "كويز المحاضرة", "📝 كويز تفاعلي وبنك الأسئلة الكامل"),
+                ("report", "study_guide.md", "study_guide_md", "دليل دراسي وملخص", "📚 دليل دراسي وملخص شامل"),
+                ("flashcards", "flashcards.md", "flashcards_md", "بطاقات تعليمية", "🃏 بطاقات استذكار تعليمية"),
+                ("mind-map", "mind_map.json", "mind_map_json", "خريطة ذهنية", "🧠 خريطة ذهنية ومفاهيمية"),
+            ]:
+                dest = temp_dir / filename
+                cmd = ["notebooklm", "download", kind, str(dest), "--force", "-n", nb_id]
+                if kind == "quiz":
+                    cmd[3:3] = ["--format", "markdown"]
+                await run_cmd_async(cmd)
+                if not dest.exists():
+                    logger.warning("%s download missing for lec %s", kind, lecture_id)
+                    continue
+                content = dest.read_text(encoding="utf-8", errors="replace")
+                with SessionLocal() as db:
+                    existing = db.query(MediaAsset).filter(
+                        MediaAsset.lecture_id == lecture_id,
+                        MediaAsset.asset_type == asset_type,
+                    ).first()
+                    if existing:
+                        existing.content_text = content
+                        db.commit()
+                        continue
+                    up = await telegram_storage.upload_asset(
+                        dest, asset_type,
+                        make_telegram_caption(subject_name, lecture["lecture_num"], lecture["title"],
+                                              lecture["doctor"], label))
+                    db.add(MediaAsset(
+                        lecture_id=lecture_id, asset_type=asset_type, title=title,
+                        content_text=content,
+                        local_file_path=up.get("local_file_path"),
+                        telegram_file_id=up.get("telegram_file_id"),
+                        telegram_message_id=up.get("telegram_message_id"),
+                        file_size_bytes=up.get("file_size"),
+                    ))
+                    db.commit()
+
+        # 4. Zero-Download handover: wait for Google-side readiness only
         set_stage(lecture_id, "processing",
                   "النصوص جاهزة ✅ — جاري انتظار اكتمال البودكاست والفيديو على جوجل ثم التسليم للسحابة ☁️")
-        audio_url, video_url = await wait_for_media_urls(nb_id)
-        if not audio_url and not video_url:
+        audio_ready, video_ready = await wait_for_media_ready(nb_id)
+        if not audio_ready and not video_ready:
             raise RuntimeError("Media artifacts never became ready within timeout")
 
-        handoff_id = create_handoff(lecture, nb_id, audio_url, video_url, subject_name)
+        handoff_id = create_handoff(lecture, nb_id, None, None, subject_name)
         set_stage(lecture_id, "media_pending",
                   "تم تسليم الميديا لخط النقل السحابي — جاري رفعها لتليجرام من الداتا سنتر 🚀")
         if not dispatch_data_plane(handoff_id):

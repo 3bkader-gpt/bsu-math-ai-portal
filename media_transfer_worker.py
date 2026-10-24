@@ -17,6 +17,7 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -45,27 +46,25 @@ MIN_MEDIA_BYTES = 50_000  # a real m4a/mp4 is far larger; guards HTML error page
 
 
 def fetch_handoff(handoff_id: str | None) -> dict | None:
+    cols = ("id, lecture_id, notebook_id, subject_name, lecture_num, lecture_title, doctor,"
+            "       audio_url, video_url, cookie_jar, attempts")
     with SessionLocal() as db:
         if handoff_id:
             row = db.execute(text(
-                "SELECT id, lecture_id, subject_name, lecture_num, lecture_title, doctor,"
-                "       audio_url, video_url, cookie_jar, attempts"
-                " FROM public.media_handoffs WHERE id = :hid"
+                f"SELECT {cols} FROM public.media_handoffs WHERE id = :hid"
             ), {"hid": handoff_id}).fetchone()
         else:
             row = db.execute(text(
-                "SELECT id, lecture_id, subject_name, lecture_num, lecture_title, doctor,"
-                "       audio_url, video_url, cookie_jar, attempts"
-                " FROM public.media_handoffs WHERE status = 'pending'"
+                f"SELECT {cols} FROM public.media_handoffs WHERE status = 'pending'"
                 " ORDER BY created_at ASC LIMIT 1"
             )).fetchone()
         if not row:
             return None
         return {
-            "id": str(row[0]), "lecture_id": row[1], "subject_name": row[2],
-            "lecture_num": row[3], "lecture_title": row[4], "doctor": row[5],
-            "audio_url": row[6], "video_url": row[7], "cookie_jar": row[8],
-            "attempts": row[9],
+            "id": str(row[0]), "lecture_id": row[1], "notebook_id": row[2],
+            "subject_name": row[3], "lecture_num": row[4], "lecture_title": row[5],
+            "doctor": row[6], "audio_url": row[7], "video_url": row[8],
+            "cookie_jar": row[9], "attempts": row[10],
         }
 
 
@@ -85,7 +84,7 @@ def purge_handoff(handoff_id: str):
         db.commit()
 
 
-def google_cookie_header(jar: dict | None) -> str:
+def google_cookie_header(jar: dict | None) -> str:  # retained for URL-mode handoffs
     if not jar:
         return ""
     pairs = []
@@ -98,27 +97,43 @@ def google_cookie_header(jar: dict | None) -> str:
     return "; ".join(pairs)
 
 
-def download_media(url: str, dest: Path, jar: dict | None) -> Path:
-    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
-    cookie_header = google_cookie_header(jar)
-    if cookie_header:
-        headers["Cookie"] = cookie_header
-    with httpx.Client(timeout=DOWNLOAD_TIMEOUT, follow_redirects=True) as client:
-        resp = client.get(url, headers=headers)
-        resp.raise_for_status()
-        body = resp.content
-    if len(body) < MIN_MEDIA_BYTES:
+def _cli_download(kind: str, dest: Path, nb_id: str, state_file: Path) -> Path:
+    """Download a media artifact via the notebooklm CLI using the one-shot
+    cookie jar (fresh from the home plane, used within minutes). The CLI
+    resolves Google's artifact URLs internally; nothing is stored locally
+    beyond this disposable VM."""
+    cmd = [
+        "notebooklm", "--storage", str(state_file),
+        "download", kind, str(dest), "--force", "-n", nb_id,
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=DOWNLOAD_TIMEOUT)
+    if proc.returncode != 0 or not dest.exists():
         raise RuntimeError(
-            f"Downloaded artifact too small ({len(body)} bytes) — likely an auth page, not media"
+            f"{kind} download failed (rc={proc.returncode}): {(proc.stdout or '')[-300:]}"
         )
-    dest.write_bytes(body)
-    logger.info("Downloaded %s -> %s bytes (datacenter bandwidth)", dest.name, len(body))
+    size = dest.stat().st_size
+    if size < MIN_MEDIA_BYTES:
+        raise RuntimeError(
+            f"Downloaded {kind} too small ({size} bytes) — likely an auth page, not media"
+        )
+    logger.info("Downloaded %s -> %s bytes via CLI (datacenter bandwidth)", kind, size)
     return dest
 
 
 async def transfer(handoff: dict):
     lecture_id = handoff["lecture_id"]
+    nb_id = handoff.get("notebook_id")
+    if not nb_id:
+        raise RuntimeError("Handoff has no notebook_id")
     temp_dir = Path(tempfile.mkdtemp(prefix=f"transfer_{lecture_id}_"))
+    state_file = temp_dir / "state.json"
+    jar = handoff.get("cookie_jar")
+    if isinstance(jar, str):
+        jar = json.loads(jar)
+    if jar:
+        state_file.write_text(json.dumps(jar), encoding="utf-8")
+    else:
+        raise RuntimeError("Handoff cookie jar is empty — cannot download from Google")
     try:
         cap_base = dict(
             subject_name=handoff["subject_name"] or "",
@@ -127,21 +142,17 @@ async def transfer(handoff: dict):
             doctor=handoff["doctor"],
         )
         uploads = []
-        if handoff["audio_url"]:
-            audio = download_media(handoff["audio_url"], temp_dir / "audio_overview.m4a", handoff["cookie_jar"])
-            cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
-                                        cap_base["title"], cap_base["doctor"],
-                                        "🎧 بودكاست الشرح الصوتي بالمصرية")
-            uploads.append((audio, "audio", "بودكاست الشرح الصوتي", cap))
-        if handoff["video_url"]:
-            video = download_media(handoff["video_url"], temp_dir / "video_overview.mp4", handoff["cookie_jar"])
-            cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
-                                        cap_base["title"], cap_base["doctor"],
-                                        "🎬 فيديو الشرح المرئي التفاعلي")
-            uploads.append((video, "video", "فيديو الشرح التفاعلي", cap))
+        audio = _cli_download("audio", temp_dir / "audio_overview.m4a", nb_id, state_file)
+        cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
+                                    cap_base["title"], cap_base["doctor"],
+                                    "🎧 بودكاست الشرح الصوتي بالمصرية")
+        uploads.append((audio, "audio", "بودكاست الشرح الصوتي", cap))
 
-        if not uploads:
-            raise RuntimeError("Handoff has neither audio nor video URL")
+        video = _cli_download("video", temp_dir / "video_overview.mp4", nb_id, state_file)
+        cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
+                                    cap_base["title"], cap_base["doctor"],
+                                    "🎬 فيديو الشرح المرئي التفاعلي")
+        uploads.append((video, "video", "فيديو الشرح التفاعلي", cap))
 
         for file_path, asset_type, title, caption in uploads:
             up = await telegram_storage.upload_asset(file_path, asset_type, caption)
