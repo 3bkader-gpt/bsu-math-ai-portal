@@ -370,8 +370,6 @@ async def process_lecture(lecture: dict):
             cmd = ["notebooklm", "download", kind, str(dest), "--force", "-n", nb_id]
             if kind == "quiz":
                 cmd[3:3] = ["--format", "markdown"]
-            elif kind == "report":
-                cmd[3:3] = ["--format", "study-guide"]
             await run_cmd_async(cmd)
             if not dest.exists():
                 logger.warning("%s download missing for lec %s", kind, lecture_id)
