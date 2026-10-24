@@ -722,7 +722,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
               title="كراسة الأخطاء الذكية وتكرار لايتنر"
             >
               <span>🧠 كراسة الأخطاء</span>
@@ -734,7 +734,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
               title="جلسة الـ 5 دقائق السريعة"
             >
               <span>⏱️ 5 دقائق</span>
@@ -746,7 +746,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
               title="أنهيت مذاكرتي لليوم"
             >
               <span>☕ استريح</span>
@@ -842,8 +842,11 @@ export default function Home() {
             <div>
               <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
                 {isGirls && <span className="text-2xl">🌸</span>}
-                <span>
-                  {selectedSemester === 1 ? 'مواد الترم الأول' : 'مواد الترم الثاني'} ({filteredSubjects.length} {filteredSubjects.length === 1 ? 'مادة' : 'مواد'})
+                <span className="inline-flex items-center gap-2 flex-wrap">
+                  <span>{selectedSemester === 1 ? 'مواد الترم الأول' : 'مواد الترم الثاني'}</span>
+                  <span className="inline-flex items-center justify-center text-xs font-bold px-2.5 py-0.5 rounded-full font-mono bg-black/5 dark:bg-white/10 text-[var(--text-secondary)] border border-[var(--border-subtle)] shrink-0">
+                    {filteredSubjects.length} {filteredSubjects.length === 1 ? 'مادة' : 'مواد'}
+                  </span>
                 </span>
               </h3>
               <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
@@ -1164,16 +1167,28 @@ export default function Home() {
                         key={doc}
                         type="button"
                         onClick={() => setSelectedDoctor(doc)}
-                        className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shadow-sm"
+                        className="shrink-0 min-w-fit px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-sm"
                         style={{
                           backgroundColor: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
                           borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
                           color: isSelected ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)'
                         }}
                       >
-                        <span>{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
-                        <span>{doc}</span>
-                        <span className="opacity-70 text-xs font-mono">({count})</span>
+                        <span className="shrink-0">{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
+                        <span className="shrink-0">{doc}</span>
+                        <span
+                          className="inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-1.5 py-0.5 rounded-full shrink-0 font-mono shadow-2xs"
+                          style={{
+                            backgroundColor: isSelected
+                              ? 'rgba(255, 255, 255, 0.25)'
+                              : 'var(--bg-surface)',
+                            borderColor: 'var(--border-subtle)',
+                            color: isSelected ? 'inherit' : 'var(--text-muted)',
+                            borderWidth: '1px',
+                          }}
+                        >
+                          {count}
+                        </span>
                       </button>
                     );
                   })}

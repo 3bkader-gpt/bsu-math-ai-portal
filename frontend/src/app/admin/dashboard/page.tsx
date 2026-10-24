@@ -1648,33 +1648,42 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setMatrixFilter('ALL')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        className={`shrink-0 min-w-fit px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
                           matrixFilter === 'ALL'
-                            ? 'bg-cyan-500 text-white border-cyan-500'
-                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
+                            ? 'bg-cyan-500 text-white border-cyan-500 shadow-xs'
+                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70 hover:opacity-100'
                         }`}
                       >
-                        الكل ({diagnosticsData?.summary?.total_lectures || 29})
+                        <span>الكل</span>
+                        <span className="inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.2 rounded-full font-mono bg-black/10 dark:bg-white/15">
+                          {diagnosticsData?.summary?.total_lectures || 29}
+                        </span>
                       </button>
                       <button
                         onClick={() => setMatrixFilter('COMPLETE')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        className={`shrink-0 min-w-fit px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
                           matrixFilter === 'COMPLETE'
-                            ? 'bg-emerald-500 text-white border-emerald-500'
-                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
+                            ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
+                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70 hover:opacity-100'
                         }`}
                       >
-                        مكتملة 5/5 ({diagnosticsData?.summary?.complete_5_of_5 || 21})
+                        <span>مكتملة 5/5</span>
+                        <span className="inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.2 rounded-full font-mono bg-black/10 dark:bg-white/15">
+                          {diagnosticsData?.summary?.complete_5_of_5 || 21}
+                        </span>
                       </button>
                       <button
                         onClick={() => setMatrixFilter('INCOMPLETE')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        className={`shrink-0 min-w-fit px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
                           matrixFilter === 'INCOMPLETE'
-                            ? 'bg-amber-500 text-white border-amber-500'
-                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70'
+                            ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                            : 'bg-transparent border-gray-300 dark:border-gray-700 opacity-70 hover:opacity-100'
                         }`}
                       >
-                        تحتاج ملفات إضافية ({diagnosticsData?.summary?.partial_modality || 8})
+                        <span>تحتاج ملفات إضافية</span>
+                        <span className="inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.2 rounded-full font-mono bg-black/10 dark:bg-white/15">
+                          {diagnosticsData?.summary?.partial_modality || 8}
+                        </span>
                       </button>
                     </div>
                   </div>

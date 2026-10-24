@@ -136,9 +136,9 @@ export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerPr
                 borderColor: isFlipped ? 'var(--accent-emerald)' : 'var(--border-prominent)',
                 color: isFlipped ? 'var(--accent-emerald)' : 'var(--accent-primary)',
               }}
-              className="px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full font-bold border flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs"
+              className="px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full font-bold border flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs shrink-0 whitespace-nowrap"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
               <span>{isFlipped ? contentData.flashcardsTab.answerBadge : contentData.flashcardsTab.questionBadge}</span>
             </span>
 
@@ -184,9 +184,9 @@ export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerPr
             borderColor: 'var(--border-subtle)',
             color: 'var(--text-primary)',
           }}
-          className="flex-1 py-3.5 px-5 rounded-2xl border font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 active:scale-98 shadow-sm cursor-pointer hover:border-blue-400"
+          className="flex-1 min-w-fit py-3.5 px-5 rounded-2xl border font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 active:scale-98 shadow-sm cursor-pointer hover:border-blue-400 whitespace-nowrap"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5 shrink-0" />
           <span>{contentData.flashcardsTab.prevButton}</span>
         </button>
 
@@ -199,10 +199,10 @@ export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerPr
             backgroundColor: 'var(--accent-primary)',
             color: '#ffffff',
           }}
-          className="flex-1 py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 shadow-md active:scale-98 cursor-pointer hover:opacity-95"
+          className="flex-1 min-w-fit py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 shadow-md active:scale-98 cursor-pointer hover:opacity-95 whitespace-nowrap"
         >
           <span>{contentData.flashcardsTab.nextButton}</span>
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5 shrink-0" />
         </button>
       </div>
     </div>
