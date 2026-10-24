@@ -1,9 +1,16 @@
 import asyncio
+import logging
 import os
 import shutil
 from pathlib import Path
 import httpx
 from app.config import settings
+
+logger = logging.getLogger("telegram_storage")
+
+# Bot API HTTP uploads are hard-capped at 50MB; files above this threshold
+# must go through Telethon MTProto (up to 2GB). 45MB keeps a safety margin.
+BOT_API_SAFE_LIMIT = 45 * 1024 * 1024
 
 class TelegramStorageService:
     def __init__(self):
@@ -15,6 +22,8 @@ class TelegramStorageService:
     async def upload_asset(self, file_path: Path, asset_type: str, caption: str = "") -> dict:
         """
         Uploads a generated asset to the Telegram storage channel.
+        Large files (audio/video over the Bot API cap) go through Telethon
+        MTProto; everything else uses the Bot API HTTP endpoints.
         Falls back to local file storage if Telegram credentials are not yet set.
         """
         if not file_path.exists():
@@ -35,6 +44,23 @@ class TelegramStorageService:
                 "telegram_message_id": None,
                 "file_size": file_size,
             }
+
+        # Media assets (audio/video) go through Telethon MTProto first:
+        # the Bot API HTTP path hard-fails above 50MB (413) and has proved
+        # unreliable for large multipart uploads from CI (401 mid-stream).
+        # MTProto carries up to 2GB with proper streaming attributes.
+        if asset_type in ("audio", "video"):
+            from app.services.telethon_service import telethon_streamer
+            mtproto_result = await telethon_streamer.upload_to_channel(file_path, caption)
+            if mtproto_result:
+                return mtproto_result
+            logger.warning("MTProto upload failed for %s; trying Bot API fallback", file_path.name)
+        # Documents larger than the Bot API cap cannot be carried at all
+        elif file_size > BOT_API_SAFE_LIMIT:
+            from app.services.telethon_service import telethon_streamer
+            mtproto_result = await telethon_streamer.upload_to_channel(file_path, caption)
+            if mtproto_result:
+                return mtproto_result
 
         # Telegram upload via Bot API
         endpoint_map = {

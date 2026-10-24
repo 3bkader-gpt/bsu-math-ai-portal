@@ -128,5 +128,37 @@ class TelethonStreamService:
                 except Exception:
                     pass
 
+    async def upload_to_channel(self, file_path: Path, caption: str = "") -> dict | None:
+        """Uploads a file to the storage channel via MTProto (up to 2GB).
+
+        The Bot API HTTP endpoint rejects uploads above 50MB, so large audio
+        overviews / videos must go through Telethon (bot-token client).
+        Returns a telegram_storage-style result dict, or None on failure so
+        the caller can fall back to the Bot API for smaller files.
+        """
+        if not self.channel_id:
+            return None
+        try:
+            client = await self.get_client()
+            entity = await client.get_entity(self.channel_id)
+            is_video = file_path.suffix.lower() in (".mp4",)
+            msg = await client.send_file(
+                entity,
+                str(file_path),
+                caption=caption[:1024] or None,
+                supports_streaming=is_video,
+            )
+            logger.info(f"MTProto upload complete: {file_path.name} -> message #{msg.id}")
+            return {
+                "storage_mode": "telegram_mtproto",
+                "local_file_path": str(file_path),
+                "telegram_file_id": None,
+                "telegram_message_id": msg.id,
+                "file_size": file_path.stat().st_size,
+            }
+        except Exception as e:
+            logger.error(f"MTProto upload failed for {file_path.name}: {e}", exc_info=True)
+            return None
+
 telethon_streamer = TelethonStreamService()
 
