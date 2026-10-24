@@ -1007,7 +1007,7 @@ export default function AdminDashboardPage() {
                         type="button"
                         key={sub.id}
                         onClick={() => setSelectedSubjectId(sub.id)}
-                        className={`p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[72px] sm:min-h-[75px] w-[138px] xs:w-[150px] md:w-auto shrink-0 snap-start ${
+                        className={`p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[72px] sm:min-h-[75px] w-[138px] xs:w-[150px] md:w-auto shrink-0 snap-start scroll-mt-24 ${
                           isSelected ? 'ring-2 ring-cyan-500/50 shadow-md sm:scale-[1.02]' : 'sm:hover:scale-[1.01]'
                         }`}
                         style={{

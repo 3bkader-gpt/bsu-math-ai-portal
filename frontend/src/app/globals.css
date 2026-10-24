@@ -64,6 +64,9 @@ html {
   overflow-x: clip;
   max-width: 100vw;
   scroll-behavior: smooth;
+  /* Sticky headers (z-50) must not swallow clicks on content scrolled
+     beneath them: any scrollIntoView / focus-scroll lands below the bar. */
+  scroll-padding-top: 5.5rem;
 }
 
 @media (min-width: 640px) {
