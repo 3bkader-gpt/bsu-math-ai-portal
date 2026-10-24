@@ -1,6 +1,7 @@
 import os
 import hashlib
 import hmac
+import secrets as _secrets
 from datetime import datetime, timedelta, timezone
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -11,7 +12,13 @@ from app.db.database import get_db
 from app.db.models import User
 
 # Secret key & token expiration
-SECRET_KEY = os.getenv("SECRET_KEY", "academic_super_secret_jwt_key_2026")
+# Fail-closed: never fall back to a public constant. If SECRET_KEY is missing,
+# an ephemeral random key is generated so forged tokens remain impossible;
+# all sessions are invalidated on restart until the env var is configured.
+SECRET_KEY = os.getenv("SECRET_KEY") or _secrets.token_urlsafe(48)
+if not os.getenv("SECRET_KEY"):
+    print("⚠️ SECURITY: SECRET_KEY env var is not set — using an ephemeral JWT secret. "
+          "All sessions invalidate on restart. Set SECRET_KEY in the deployment environment.")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 30
 
@@ -52,7 +59,13 @@ def decode_access_token(token: str) -> dict | None:
 def init_admin_user(db: Session):
     """Ensures default admin user exists from environment configuration."""
     admin_user = os.getenv("ADMIN_USERNAME", "admin")
-    admin_pass = os.getenv("ADMIN_PASSWORD", "admin_academic_2026")
+    admin_pass = os.getenv("ADMIN_PASSWORD")
+    if not admin_pass:
+        # Fail-closed: a random unguessable password instead of a public constant.
+        admin_pass = _secrets.token_urlsafe(18)
+        print("⚠️ SECURITY: ADMIN_PASSWORD env var is not set — an ephemeral random admin "
+              "password was generated (login via the known default is impossible). "
+              "Set ADMIN_PASSWORD in the deployment environment.")
 
     user = db.query(User).filter(User.username == admin_user).first()
     if not user:
