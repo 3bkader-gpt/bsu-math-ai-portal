@@ -32,6 +32,7 @@ class Lecture(Base):
     stage_info: Mapped[str] = mapped_column(String(200), default="في الانتظار")
     notebook_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    source_pdf_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # public Storage URL of the uploaded source PDF (split-plane pipeline)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now)
 
