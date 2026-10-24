@@ -1,0 +1,113 @@
+================================================================================
+1. RESPONSIVE AUDIT: 8 VIEWPORT SIZES (PAGES & KEY ELEMENTS VERIFICATION)
+================================================================================
+
+>>> Viewport: Small Mobile (320x568) [320x568]
+  [Home] scrollWidth=320, clientWidth=320, overflow=False
+  [Home] Header=True, Cards=0, XP Pill=True -> Screenshot: 320px_small_mobile_home.png
+  [Lecture] scrollWidth=320, clientWidth=320, overflow=False
+  [Lecture] Title=True, Tabs=2, Player=True -> Screenshot: 320px_small_mobile_lecture.png
+  [Quiz] scrollWidth=320, clientWidth=320, overflow=False
+  [Quiz] Question=True, Options=30, KaTeX formulas=46 -> Screenshot: 320px_small_mobile_quiz.png
+  [Guide] scrollWidth=320, clientWidth=320, overflow=False
+  [Guide] Content Visible=True, Direction=rtl -> Screenshot: 320px_small_mobile_guide.png
+
+>>> Viewport: Mid Mobile (360x800) [360x800]
+  [Home] scrollWidth=360, clientWidth=360, overflow=False
+  [Home] Header=True, Cards=0, XP Pill=True -> Screenshot: 360px_mid_mobile_home.png
+  [Lecture] scrollWidth=360, clientWidth=360, overflow=False
+  [Lecture] Title=True, Tabs=2, Player=True -> Screenshot: 360px_mid_mobile_lecture.png
+  [Quiz] scrollWidth=360, clientWidth=360, overflow=False
+  [Quiz] Question=True, Options=30, KaTeX formulas=46 -> Screenshot: 360px_mid_mobile_quiz.png
+  [Guide] scrollWidth=360, clientWidth=360, overflow=False
+  [Guide] Content Visible=True, Direction=rtl -> Screenshot: 360px_mid_mobile_guide.png
+
+>>> Viewport: Common Mobile (iPhone SE - 375x667) [375x667]
+  [Home] scrollWidth=375, clientWidth=375, overflow=False
+  [Home] Header=True, Cards=0, XP Pill=True -> Screenshot: 375px_common_mobile_home.png
+  [Lecture] scrollWidth=375, clientWidth=375, overflow=False
+  [Lecture] Title=True, Tabs=2, Player=True -> Screenshot: 375px_common_mobile_lecture.png
+  [Quiz] scrollWidth=375, clientWidth=375, overflow=False
+  [Quiz] Question=True, Options=30, KaTeX formulas=46 -> Screenshot: 375px_common_mobile_quiz.png
+  [Guide] scrollWidth=375, clientWidth=375, overflow=False
+  [Guide] Content Visible=True, Direction=rtl -> Screenshot: 375px_common_mobile_guide.png
+
+>>> Viewport: Modern Mobile (iPhone 14 - 390x844) [390x844]
+  [Home] scrollWidth=390, clientWidth=390, overflow=False
+  [Home] Header=True, Cards=0, XP Pill=True -> Screenshot: 390px_modern_mobile_home.png
+  [Lecture] scrollWidth=390, clientWidth=390, overflow=False
+  [Lecture] Title=True, Tabs=2, Player=True -> Screenshot: 390px_modern_mobile_lecture.png
+  [Quiz] scrollWidth=390, clientWidth=390, overflow=False
+  [Quiz] Question=True, Options=31, KaTeX formulas=46 -> Screenshot: 390px_modern_mobile_quiz.png
+  [Guide] scrollWidth=390, clientWidth=390, overflow=False
+  [Guide] Content Visible=True, Direction=rtl -> Screenshot: 390px_modern_mobile_guide.png
+
+>>> Viewport: Wide Mobile (iPhone Pro Max - 430x932) [430x932]
+  [Home] scrollWidth=430, clientWidth=430, overflow=False
+  [Home] Header=True, Cards=0, XP Pill=True -> Screenshot: 430px_wide_mobile_home.png
+  [Lecture] scrollWidth=430, clientWidth=430, overflow=False
+  [Lecture] Title=True, Tabs=2, Player=True -> Screenshot: 430px_wide_mobile_lecture.png
+  [Quiz] scrollWidth=430, clientWidth=430, overflow=False
+  [Quiz] Question=True, Options=31, KaTeX formulas=46 -> Screenshot: 430px_wide_mobile_quiz.png
+  [Guide] scrollWidth=430, clientWidth=430, overflow=False
+  [Guide] Content Visible=True, Direction=rtl -> Screenshot: 430px_wide_mobile_guide.png
+
+>>> Viewport: Tablet (iPad Mini - 768x1024) [768x1024]
+  [Home] scrollWidth=768, clientWidth=768, overflow=False
+  [Home] Header=True, Cards=0, XP Pill=True -> Screenshot: 768px_tablet_home.png
+  [Lecture] scrollWidth=768, clientWidth=768, overflow=False
+  [Lecture] Title=True, Tabs=2, Player=True -> Screenshot: 768px_tablet_lecture.png
+  [Quiz] scrollWidth=768, clientWidth=768, overflow=False
+  [Quiz] Question=True, Options=30, KaTeX formulas=46 -> Screenshot: 768px_tablet_quiz.png
+  [Guide] scrollWidth=768, clientWidth=768, overflow=False
+  [Guide] Content Visible=True, Direction=rtl -> Screenshot: 768px_tablet_guide.png
+
+>>> Viewport: Wide Tablet (iPad Pro - 1024x1366) [1024x1366]
+  [Home] scrollWidth=1024, clientWidth=1024, overflow=False
+  [Home] Header=True, Cards=0, XP Pill=True -> Screenshot: 1024px_wide_tablet_home.png
+  [Lecture] scrollWidth=1024, clientWidth=1024, overflow=False
+  [Lecture] Title=True, Tabs=2, Player=True -> Screenshot: 1024px_wide_tablet_lecture.png
+  [Quiz] scrollWidth=1024, clientWidth=1024, overflow=False
+  [Quiz] Question=True, Options=30, KaTeX formulas=46 -> Screenshot: 1024px_wide_tablet_quiz.png
+  [Guide] scrollWidth=1024, clientWidth=1024, overflow=False
+  [Guide] Content Visible=True, Direction=rtl -> Screenshot: 1024px_wide_tablet_guide.png
+
+>>> Viewport: Laptop/Desktop (1440x900) [1440x900]
+  [Home] scrollWidth=1440, clientWidth=1440, overflow=False
+  [Home] Header=True, Cards=0, XP Pill=True -> Screenshot: 1440px_laptop_desktop_home.png
+  [Lecture] scrollWidth=1440, clientWidth=1440, overflow=False
+  [Lecture] Title=True, Tabs=2, Player=True -> Screenshot: 1440px_laptop_desktop_lecture.png
+  [Quiz] scrollWidth=1440, clientWidth=1440, overflow=False
+  [Quiz] Question=True, Options=30, KaTeX formulas=46 -> Screenshot: 1440px_laptop_desktop_quiz.png
+  [Guide] scrollWidth=1440, clientWidth=1440, overflow=False
+  [Guide] Content Visible=True, Direction=rtl -> Screenshot: 1440px_laptop_desktop_guide.png
+
+================================================================================
+2. ORIENTATION AUDIT: PORTRAIT (390x844) VS LANDSCAPE (844x390)
+================================================================================
+  [Portrait 390x844] scrollWidth=390, clientWidth=390, overflow=False -> Screenshot: orientation_portrait_390x844.png
+  [Landscape 844x390] scrollWidth=844, clientWidth=844, overflow=False -> Screenshot: orientation_landscape_844x390.png
+
+================================================================================
+3. THROTTLING AUDIT (SLOW 3G + 4x CPU): DOM LOAD vs EVENT LOOP vs UI LATENCY
+================================================================================
+  [A. DOM Completion] DOMContentLoaded: 2.552 seconds
+  [B. Main-Thread Health] 60-frame avg: 16.5ms, max frame delay: 16.8ms (Main thread unblocked)
+  [C. UI Interaction Latency] Tab click-to-render: 9675.9ms
+  -> Screenshot: slow3g_4x_throttled_quiz.png
+
+================================================================================
+4. WEBKIT MOBILE EMULATION: PLAYWRIGHT WEBKIT 26.4 (WINDOWS)
+================================================================================
+  NOTE: Executed via Playwright WebKit on Windows with iPhone 14 user agent & viewport.
+  CLASSIFICATION: WebKit Mobile Emulation (PASS for layout/KaTeX). NOT REAL IPHONE SAFARI.
+  [WebKit] Engine: Playwright WebKit 26.4 (Windows Build)
+  [WebKit] Profile: iPhone 14 (390x844, DPR=3)
+  [WebKit] User Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.4 Mobile/15E148 Safari/604.1
+  [WebKit] Overflow: False (scrollWidth=390, clientWidth=390)
+  [WebKit] KaTeX formulas rendered: 46
+  [WebKit] HTML5 Audio supported: True
+  [WebKit] Web Audio API supported: False
+  -> Screenshot: webkit_emulation_iphone14.png
+
+Saved structured manifest to: D:\الكليه\BOT\docs\docs\03_testing\evidence\reports\responsive_audit_manifest.json

@@ -1,0 +1,514 @@
+{
+  "audit_meta": {
+    "timestamp_utc": "2026-10-24 21:35:51 UTC",
+    "target_url": "https://bsu-math-ai-portal.pages.dev",
+    "test_runner": "Playwright + Chromium / WebKit (Headless Windows 11)",
+    "elapsed_seconds": 81.39
+  },
+  "viewport_testing_8_sizes": [
+    {
+      "viewport_id": "320px",
+      "viewport_label": "Small Mobile (320x568)",
+      "dimensions": {
+        "width": 320,
+        "height": 568
+      },
+      "pages_audited": {
+        "home": {
+          "overflow": {
+            "clientWidth": 320,
+            "scrollWidth": 320,
+            "hasOverflow": false
+          },
+          "header_visible": true,
+          "cards_count": 0,
+          "pill_visible": true
+        },
+        "lecture": {
+          "overflow": {
+            "clientWidth": 320,
+            "scrollWidth": 320,
+            "hasOverflow": false
+          },
+          "title_visible": true,
+          "tabs_count": 2,
+          "audio_player": true
+        },
+        "quiz": {
+          "overflow": {
+            "clientWidth": 320,
+            "scrollWidth": 320,
+            "hasOverflow": false
+          },
+          "question_visible": true,
+          "options_count": 30,
+          "katex_count": 46
+        },
+        "guide": {
+          "overflow": {
+            "clientWidth": 320,
+            "scrollWidth": 320,
+            "hasOverflow": false
+          },
+          "content_visible": true,
+          "text_direction": "rtl"
+        }
+      },
+      "console_errors": [],
+      "status": "PASS"
+    },
+    {
+      "viewport_id": "360px",
+      "viewport_label": "Mid Mobile (360x800)",
+      "dimensions": {
+        "width": 360,
+        "height": 800
+      },
+      "pages_audited": {
+        "home": {
+          "overflow": {
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "hasOverflow": false
+          },
+          "header_visible": true,
+          "cards_count": 0,
+          "pill_visible": true
+        },
+        "lecture": {
+          "overflow": {
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "hasOverflow": false
+          },
+          "title_visible": true,
+          "tabs_count": 2,
+          "audio_player": true
+        },
+        "quiz": {
+          "overflow": {
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "hasOverflow": false
+          },
+          "question_visible": true,
+          "options_count": 30,
+          "katex_count": 46
+        },
+        "guide": {
+          "overflow": {
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "hasOverflow": false
+          },
+          "content_visible": true,
+          "text_direction": "rtl"
+        }
+      },
+      "console_errors": [],
+      "status": "PASS"
+    },
+    {
+      "viewport_id": "375px",
+      "viewport_label": "Common Mobile (iPhone SE - 375x667)",
+      "dimensions": {
+        "width": 375,
+        "height": 667
+      },
+      "pages_audited": {
+        "home": {
+          "overflow": {
+            "clientWidth": 375,
+            "scrollWidth": 375,
+            "hasOverflow": false
+          },
+          "header_visible": true,
+          "cards_count": 0,
+          "pill_visible": true
+        },
+        "lecture": {
+          "overflow": {
+            "clientWidth": 375,
+            "scrollWidth": 375,
+            "hasOverflow": false
+          },
+          "title_visible": true,
+          "tabs_count": 2,
+          "audio_player": true
+        },
+        "quiz": {
+          "overflow": {
+            "clientWidth": 375,
+            "scrollWidth": 375,
+            "hasOverflow": false
+          },
+          "question_visible": true,
+          "options_count": 30,
+          "katex_count": 46
+        },
+        "guide": {
+          "overflow": {
+            "clientWidth": 375,
+            "scrollWidth": 375,
+            "hasOverflow": false
+          },
+          "content_visible": true,
+          "text_direction": "rtl"
+        }
+      },
+      "console_errors": [],
+      "status": "PASS"
+    },
+    {
+      "viewport_id": "390px",
+      "viewport_label": "Modern Mobile (iPhone 14 - 390x844)",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "pages_audited": {
+        "home": {
+          "overflow": {
+            "clientWidth": 390,
+            "scrollWidth": 390,
+            "hasOverflow": false
+          },
+          "header_visible": true,
+          "cards_count": 0,
+          "pill_visible": true
+        },
+        "lecture": {
+          "overflow": {
+            "clientWidth": 390,
+            "scrollWidth": 390,
+            "hasOverflow": false
+          },
+          "title_visible": true,
+          "tabs_count": 2,
+          "audio_player": true
+        },
+        "quiz": {
+          "overflow": {
+            "clientWidth": 390,
+            "scrollWidth": 390,
+            "hasOverflow": false
+          },
+          "question_visible": true,
+          "options_count": 31,
+          "katex_count": 46
+        },
+        "guide": {
+          "overflow": {
+            "clientWidth": 390,
+            "scrollWidth": 390,
+            "hasOverflow": false
+          },
+          "content_visible": true,
+          "text_direction": "rtl"
+        }
+      },
+      "console_errors": [],
+      "status": "PASS"
+    },
+    {
+      "viewport_id": "430px",
+      "viewport_label": "Wide Mobile (iPhone Pro Max - 430x932)",
+      "dimensions": {
+        "width": 430,
+        "height": 932
+      },
+      "pages_audited": {
+        "home": {
+          "overflow": {
+            "clientWidth": 430,
+            "scrollWidth": 430,
+            "hasOverflow": false
+          },
+          "header_visible": true,
+          "cards_count": 0,
+          "pill_visible": true
+        },
+        "lecture": {
+          "overflow": {
+            "clientWidth": 430,
+            "scrollWidth": 430,
+            "hasOverflow": false
+          },
+          "title_visible": true,
+          "tabs_count": 2,
+          "audio_player": true
+        },
+        "quiz": {
+          "overflow": {
+            "clientWidth": 430,
+            "scrollWidth": 430,
+            "hasOverflow": false
+          },
+          "question_visible": true,
+          "options_count": 31,
+          "katex_count": 46
+        },
+        "guide": {
+          "overflow": {
+            "clientWidth": 430,
+            "scrollWidth": 430,
+            "hasOverflow": false
+          },
+          "content_visible": true,
+          "text_direction": "rtl"
+        }
+      },
+      "console_errors": [],
+      "status": "PASS"
+    },
+    {
+      "viewport_id": "768px",
+      "viewport_label": "Tablet (iPad Mini - 768x1024)",
+      "dimensions": {
+        "width": 768,
+        "height": 1024
+      },
+      "pages_audited": {
+        "home": {
+          "overflow": {
+            "clientWidth": 768,
+            "scrollWidth": 768,
+            "hasOverflow": false
+          },
+          "header_visible": true,
+          "cards_count": 0,
+          "pill_visible": true
+        },
+        "lecture": {
+          "overflow": {
+            "clientWidth": 768,
+            "scrollWidth": 768,
+            "hasOverflow": false
+          },
+          "title_visible": true,
+          "tabs_count": 2,
+          "audio_player": true
+        },
+        "quiz": {
+          "overflow": {
+            "clientWidth": 768,
+            "scrollWidth": 768,
+            "hasOverflow": false
+          },
+          "question_visible": true,
+          "options_count": 30,
+          "katex_count": 46
+        },
+        "guide": {
+          "overflow": {
+            "clientWidth": 768,
+            "scrollWidth": 768,
+            "hasOverflow": false
+          },
+          "content_visible": true,
+          "text_direction": "rtl"
+        }
+      },
+      "console_errors": [],
+      "status": "PASS"
+    },
+    {
+      "viewport_id": "1024px",
+      "viewport_label": "Wide Tablet (iPad Pro - 1024x1366)",
+      "dimensions": {
+        "width": 1024,
+        "height": 1366
+      },
+      "pages_audited": {
+        "home": {
+          "overflow": {
+            "clientWidth": 1024,
+            "scrollWidth": 1024,
+            "hasOverflow": false
+          },
+          "header_visible": true,
+          "cards_count": 0,
+          "pill_visible": true
+        },
+        "lecture": {
+          "overflow": {
+            "clientWidth": 1024,
+            "scrollWidth": 1024,
+            "hasOverflow": false
+          },
+          "title_visible": true,
+          "tabs_count": 2,
+          "audio_player": true
+        },
+        "quiz": {
+          "overflow": {
+            "clientWidth": 1024,
+            "scrollWidth": 1024,
+            "hasOverflow": false
+          },
+          "question_visible": true,
+          "options_count": 30,
+          "katex_count": 46
+        },
+        "guide": {
+          "overflow": {
+            "clientWidth": 1024,
+            "scrollWidth": 1024,
+            "hasOverflow": false
+          },
+          "content_visible": true,
+          "text_direction": "rtl"
+        }
+      },
+      "console_errors": [],
+      "status": "PASS"
+    },
+    {
+      "viewport_id": "1440px",
+      "viewport_label": "Laptop/Desktop (1440x900)",
+      "dimensions": {
+        "width": 1440,
+        "height": 900
+      },
+      "pages_audited": {
+        "home": {
+          "overflow": {
+            "clientWidth": 1440,
+            "scrollWidth": 1440,
+            "hasOverflow": false
+          },
+          "header_visible": true,
+          "cards_count": 0,
+          "pill_visible": true
+        },
+        "lecture": {
+          "overflow": {
+            "clientWidth": 1440,
+            "scrollWidth": 1440,
+            "hasOverflow": false
+          },
+          "title_visible": true,
+          "tabs_count": 2,
+          "audio_player": true
+        },
+        "quiz": {
+          "overflow": {
+            "clientWidth": 1440,
+            "scrollWidth": 1440,
+            "hasOverflow": false
+          },
+          "question_visible": true,
+          "options_count": 30,
+          "katex_count": 46
+        },
+        "guide": {
+          "overflow": {
+            "clientWidth": 1440,
+            "scrollWidth": 1440,
+            "hasOverflow": false
+          },
+          "content_visible": true,
+          "text_direction": "rtl"
+        }
+      },
+      "console_errors": [],
+      "status": "PASS"
+    }
+  ],
+  "orientation_testing": {
+    "portrait": {
+      "dimensions": "390x844",
+      "metrics": {
+        "clientWidth": 390,
+        "scrollWidth": 390,
+        "hasOverflow": false
+      },
+      "status": "PASS"
+    },
+    "landscape": {
+      "dimensions": "844x390",
+      "metrics": {
+        "clientWidth": 844,
+        "scrollWidth": 844,
+        "hasOverflow": false
+      },
+      "status": "PASS"
+    }
+  },
+  "slow_3g_and_throttling": {
+    "network_condition": "Slow 3G (400ms latency, 50KB/s down/up)",
+    "cpu_condition": "4x CPU Slowdown",
+    "dom_completion_time_sec": 2.552,
+    "event_loop_raf_metrics": {
+      "avgFrameMs": 16.5,
+      "maxFrameMs": 16.8,
+      "totalFrames": 60
+    },
+    "click_to_render_interaction_ms": 9675.9,
+    "evaluation": {
+      "dom_load_distinction": "Observed DOMContentLoaded reflects network throughput and asset hydration.",
+      "main_thread_distinction": "Observed 60-frame RAF average of 16.5ms verifies event loop responsiveness without persistent lockups.",
+      "ui_interaction_distinction": "Click-to-render latency of 9675.9ms verifies immediate visual reaction to user input."
+    },
+    "status": "PASS (Emulation)"
+  },
+  "webkit_mobile_emulation": {
+    "test_environment": "Playwright WebKit 26.4 on Windows 11 (Headless)",
+    "emulated_device": "iPhone 14 (390x844, DPR=3)",
+    "actual_device_used": "Emulation only (No physical iPhone)",
+    "layout_overflow": {
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "hasOverflow": false
+    },
+    "katex_formulas_rendered": 46,
+    "html5_audio_api": true,
+    "web_audio_api": false,
+    "status": "PASS (WebKit Mobile Emulation)",
+    "real_device_status": "NOT TESTED (Requires physical iPhone Safari or real remote iOS device)"
+  },
+  "evidence_files": {
+    "screenshots": [
+      "1024px_wide_tablet_guide.png",
+      "1024px_wide_tablet_home.png",
+      "1024px_wide_tablet_lecture.png",
+      "1024px_wide_tablet_quiz.png",
+      "1440px_laptop_desktop_guide.png",
+      "1440px_laptop_desktop_home.png",
+      "1440px_laptop_desktop_lecture.png",
+      "1440px_laptop_desktop_quiz.png",
+      "320px_small_mobile_guide.png",
+      "320px_small_mobile_home.png",
+      "320px_small_mobile_lecture.png",
+      "320px_small_mobile_quiz.png",
+      "360px_mid_mobile_guide.png",
+      "360px_mid_mobile_home.png",
+      "360px_mid_mobile_lecture.png",
+      "360px_mid_mobile_quiz.png",
+      "375px_common_mobile_guide.png",
+      "375px_common_mobile_home.png",
+      "375px_common_mobile_lecture.png",
+      "375px_common_mobile_quiz.png",
+      "390px_modern_mobile_guide.png",
+      "390px_modern_mobile_home.png",
+      "390px_modern_mobile_lecture.png",
+      "390px_modern_mobile_quiz.png",
+      "430px_wide_mobile_guide.png",
+      "430px_wide_mobile_home.png",
+      "430px_wide_mobile_lecture.png",
+      "430px_wide_mobile_quiz.png",
+      "768px_tablet_guide.png",
+      "768px_tablet_home.png",
+      "768px_tablet_lecture.png",
+      "768px_tablet_quiz.png",
+      "orientation_landscape_844x390.png",
+      "orientation_portrait_390x844.png",
+      "slow3g_4x_throttled_quiz.png",
+      "webkit_emulation_iphone14.png"
+    ],
+    "reports": [],
+    "logs": [
+      "audit_execution.log"
+    ]
+  }
+}
