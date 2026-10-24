@@ -156,6 +156,14 @@ async def transfer(handoff: dict):
 
         for file_path, asset_type, title, caption in uploads:
             up = await telegram_storage.upload_asset(file_path, asset_type, caption)
+            if not str(up.get("storage_mode", "")).startswith("telegram"):
+                # Media bytes live on this disposable VM — a non-telegram
+                # storage mode means the upload failed and the bytes are
+                # unrecoverable after the runner dies. Fail loudly.
+                raise RuntimeError(
+                    f"{asset_type} upload fell back to {up.get('storage_mode')} "
+                    f"(warning: {up.get('warning')}) — refusing to mark complete"
+                )
             with SessionLocal() as db:
                 existing = db.query(MediaAsset).filter(
                     MediaAsset.lecture_id == lecture_id,
