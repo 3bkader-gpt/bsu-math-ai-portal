@@ -3,7 +3,10 @@ import sys
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
-API_TOKEN = "rnd_mNIZQDcLvNEbwc6XjdrmUdm3e6Nd"
+import os
+API_TOKEN = os.getenv("RENDER_API_KEY", "")
+if not API_TOKEN:
+    raise SystemExit("Set RENDER_API_KEY in .env (Render Account Settings > API Keys)")
 SERVICE_ID = "srv-db8e6geq1p3s73ah7kh0"
 
 headers = {
