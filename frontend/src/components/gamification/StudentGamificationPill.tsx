@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   useTotalXp,
   useLevel,
@@ -176,39 +177,40 @@ export function StudentGamificationPill({
             ? 'rgba(45, 212, 191, 0.35)'
             : '#B2DFDB',
         }}
-        className="group relative flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full border shadow-xs hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer text-xs font-bold"
+        className="group relative flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full border shadow-xs hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer text-[13px] font-bold"
       >
         {/* Streak Flame */}
-        <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
-          <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-500 animate-pulse" />
-          <span className="font-extrabold">{streak}</span>
+        <div className="flex items-center gap-0.5">
+          <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 animate-pulse" />
+          <span
+            style={{ color: isDark ? '#FCD34D' : '#D97706' }}
+            className="font-extrabold"
+          >{streak}</span>
         </div>
 
-        <span className="text-gray-300 dark:text-gray-700 font-light">•</span>
+        <span style={{ color: isDark ? '#6B7280' : '#9CA3AF' }} className="font-light">•</span>
 
         {/* Total XP */}
         <div
-          style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}
-          className="flex items-center gap-1"
+          style={{ color: isGirls ? (isDark ? '#FB7185' : '#E11D48') : (isDark ? '#5EEAD4' : '#0D9488') }}
+          className="flex items-center gap-0.5"
         >
           <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
           <span className="font-black font-mono">{totalXp}</span>
-          <span className="text-[10px] opacity-75">XP</span>
+          <span className="text-[10px] opacity-80">XP</span>
         </div>
 
-        <span className="text-gray-400 dark:text-gray-600 font-light hidden xs:inline">•</span>
-
-        {/* Level Tag */}
+        {/* Level Tag - always visible */}
         <div
           style={{
             backgroundColor: isGirls
-              ? (isDark ? 'rgba(244, 114, 182, 0.25)' : 'rgba(244, 114, 182, 0.2)')
-              : (isDark ? 'rgba(45, 212, 191, 0.25)' : 'rgba(20, 184, 166, 0.2)'),
+              ? (isDark ? 'rgba(244, 114, 182, 0.3)' : 'rgba(244, 114, 182, 0.2)')
+              : (isDark ? 'rgba(45, 212, 191, 0.3)' : 'rgba(20, 184, 166, 0.2)'),
             color: isGirls
-              ? (isDark ? '#F472B6' : '#BE185D')
+              ? (isDark ? '#FB7185' : '#BE185D')
               : (isDark ? '#5EEAD4' : '#0D9488'),
           }}
-          className="hidden xs:flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold"
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold"
         >
           <span>Lv.{level}</span>
         </div>
@@ -222,15 +224,16 @@ export function StudentGamificationPill({
         )}
       </button>
 
-      {/* Gamification Modal / Drawer */}
-      {isOpen && (
+      {/* Gamification Modal — rendered via portal to escape sticky header stacking context */}
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <div
           role="dialog"
           aria-modal="true"
-          className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 ${
+          className={`fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 ${
             isDark ? 'dark' : ''
           }`}
           dir="rtl"
+          onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
         >
           <div
             style={{
@@ -238,7 +241,7 @@ export function StudentGamificationPill({
               borderColor: isDark ? '#1E2B3A' : '#E3D7C1',
               color: isDark ? '#F1F5F9' : '#162828',
             }}
-            className="w-full max-w-lg rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+            className="w-full max-w-lg rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden flex flex-col max-h-[90svh] animate-in zoom-in-95 duration-200"
           >
             {/* Modal Header */}
             <div
@@ -851,7 +854,8 @@ export function StudentGamificationPill({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

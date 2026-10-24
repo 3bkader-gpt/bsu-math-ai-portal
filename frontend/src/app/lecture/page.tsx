@@ -799,7 +799,7 @@ function LectureContent() {
               }`}
             >
               <Headphones className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'audio' ? (isGirls ? 'text-pink-500' : 'text-cyan-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? '🌸 ريكورد روقان' : 'ريكورد الشرح'}</span>
+              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.audio : content.personas.boys.tabs.audio}</span>
             </button>
 
             {/* TAB 2: VIDEO */}
@@ -815,7 +815,7 @@ function LectureContent() {
               }`}
             >
               <Video className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'video' ? (isGirls ? 'text-pink-500' : 'text-purple-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? '🎬 فيديو الشرح' : 'فيديو الشرح'}</span>
+              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.video : content.personas.boys.tabs.video}</span>
             </button>
 
             {/* TAB 3: QUIZ */}
@@ -831,7 +831,7 @@ function LectureContent() {
               }`}
             >
               <HelpCircle className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'quiz' ? (isGirls ? 'text-pink-500' : 'text-amber-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? '🧁 اختبري شطارتك' : 'كويز المحاضرة'} {quizQuestions.length > 0 ? `(${quizQuestions.length})` : ''}</span>
+              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.quiz : content.personas.boys.tabs.quiz} {quizQuestions.length > 0 ? `(${quizQuestions.length})` : ''}</span>
             </button>
 
             {/* TAB 4: STUDY GUIDE */}
@@ -847,7 +847,7 @@ function LectureContent() {
               }`}
             >
               <FileText className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'guide' ? (isGirls ? 'text-pink-500' : 'text-emerald-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? '🎀 النوتس والزتونة' : 'الدليل والزتونة'}</span>
+              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.guide : content.personas.boys.tabs.guide}</span>
             </button>
 
             {/* TAB 5: FLASHCARDS */}
@@ -863,7 +863,7 @@ function LectureContent() {
               }`}
             >
               <Layers className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'flashcards' ? (isGirls ? 'text-pink-500' : 'text-indigo-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? '🪞 كروت المراجعة' : 'كروت المراجعة'} {flashcards.length > 0 ? `(${flashcards.length})` : ''}</span>
+              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.flashcards : content.personas.boys.tabs.flashcards} {flashcards.length > 0 ? `(${flashcards.length})` : ''}</span>
             </button>
           </div>
         </nav>
@@ -1047,7 +1047,7 @@ function LectureContent() {
                   </div>
                   <div className="space-y-1.5">
                     <h3 className="font-black text-lg" style={{ color: 'var(--text-primary)' }}>
-                      ريكورد الشرح قيد المعالجة السحابية ⏳
+                      {content.audioTab.processing}
                     </h3>
                     <p className="text-xs sm:text-sm font-semibold leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                       يتم تسجيل ومزامنة الصوت لهذه المحاضرة على السحابة. يمكنك حالياً دراسة محتوى المحاضرة كاملاً عبر الكويز التفاعلي والدليل والزتونة.

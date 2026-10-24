@@ -436,58 +436,33 @@ export default function AdminDashboardPage() {
 
       const publicPdfUrl = `${SUPABASE_URL}/storage/v1/object/public/lectures/${storageKey}`;
 
-      // B. Create/Update Lecture record in Supabase Database
-      let checkUrl = `${SUPABASE_URL}/rest/v1/lectures?subject_id=eq.${selectedSubjectId}&lecture_num=eq.${lectureNum}&select=id`;
-      if (selectedDoctor) {
-        checkUrl += `&doctor=eq.${encodeURIComponent(selectedDoctor)}`;
-      } else {
-        checkUrl += `&doctor=is.null`;
-      }
-
-      const checkRes = await fetch(checkUrl, {
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+      // B. Create/Update Lecture record via Secure Supabase RPC (Works seamlessly with RLS)
+      const adminSecret = token || (typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null) || 'admin_academic_2026';
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_upsert_lecture`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          p_subject_id: selectedSubjectId,
+          p_lecture_num: lectureNum,
+          p_title: lectureTitle || `المحاضرة ${lectureNum}`,
+          p_doctor: selectedDoctor || null,
+          p_status: 'queued',
+          p_stage_info: 'تم الرفع سحابياً بنجاح، جاري بدء المعالجة بالذكاء الاصطناعي 🚀',
+          p_admin_secret: adminSecret
+        })
       });
-      const existingList = checkRes.ok ? await checkRes.json() : [];
 
-      let lectureId: number;
-      if (existingList.length > 0) {
-        lectureId = existingList[0].id;
-        await fetch(`${SUPABASE_URL}/rest/v1/lectures?id=eq.${lectureId}`, {
-          method: 'PATCH',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            title: lectureTitle || `المحاضرة ${lectureNum}`,
-            doctor: selectedDoctor || null,
-            status: 'queued',
-            stage_info: 'تم الرفع سحابياً بنجاح، جاري بدء المعالجة بالذكاء الاصطناعي 🚀',
-            error_message: null
-          })
-        });
-      } else {
-        const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/lectures`, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-          },
-          body: JSON.stringify({
-            subject_id: selectedSubjectId,
-            lecture_num: lectureNum,
-            title: lectureTitle || `المحاضرة ${lectureNum}`,
-            doctor: selectedDoctor || null,
-            status: 'queued',
-            stage_info: 'تم الرفع سحابياً بنجاح، جاري بدء المعالجة بالذكاء الاصطناعي 🚀'
-          })
-        });
-        const inserted = await insertRes.json();
-        lectureId = inserted[0]?.id;
+      if (!rpcRes.ok) {
+        const errJson = await rpcRes.json().catch(() => ({}));
+        throw new Error(errJson.message || 'فشل تسجيل المحاضرة في قاعدة البيانات السحابية');
       }
+
+      const upsertResult = await rpcRes.json();
+      const lectureId: number = upsertResult.id;
 
       // C. Trigger Cloud GitHub Actions Pipeline Dispatch
       const k1 = 'gho_DxSMOH';
