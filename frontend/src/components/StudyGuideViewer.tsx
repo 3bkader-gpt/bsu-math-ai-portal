@@ -174,9 +174,9 @@ export function RawStudyGuideViewer({ content, onDwell }: StudyGuideViewerProps)
               borderColor: 'var(--border-subtle)',
               color: 'var(--accent-primary)',
             }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-bold mb-4 shadow-sm"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-bold mb-4 shadow-sm shrink-0 whitespace-nowrap"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 shrink-0" />
             <span>{contentData.studyGuideTab.badge}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black leading-snug tracking-tight" style={{ color: 'var(--text-primary)' }}>

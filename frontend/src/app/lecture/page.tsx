@@ -712,9 +712,9 @@ function LectureContent() {
                           {info.formattedSize && (
                             <span
                               style={{ color: 'var(--text-muted)' }}
-                              className="text-[11px] font-mono font-bold"
+                              className="inline-flex items-center text-[10px] sm:text-[11px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-black/5 dark:bg-white/5 border border-[var(--border-subtle)] shrink-0"
                             >
-                              ({info.formattedSize})
+                              <bdi dir="ltr">{info.formattedSize}</bdi>
                             </span>
                           )}
                         </div>
@@ -786,12 +786,12 @@ function LectureContent() {
           className="rounded-2xl border p-1.5 transition-all"
           aria-label="أقسام المحاضرة"
         >
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth md:grid md:grid-cols-5">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth w-full p-0.5">
             {/* TAB 1: AUDIO RECORD */}
             <button
               type="button"
               onClick={() => setActiveTab('audio')}
-              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
+              className={`flex-1 min-w-fit shrink-0 py-2.5 px-3.5 sm:px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-[13px] cursor-pointer select-none ${
                 activeTab === 'audio'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -800,14 +800,14 @@ function LectureContent() {
               }`}
             >
               <Headphones className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'audio' ? (isGirls ? 'text-pink-500' : 'text-cyan-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.audio : content.personas.boys.tabs.audio}</span>
+              <span className="whitespace-nowrap shrink-0">{isGirls ? content.personas.girls.tabs.audio : content.personas.boys.tabs.audio}</span>
             </button>
 
             {/* TAB 2: VIDEO */}
             <button
               type="button"
               onClick={() => setActiveTab('video')}
-              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
+              className={`flex-1 min-w-fit shrink-0 py-2.5 px-3.5 sm:px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-[13px] cursor-pointer select-none ${
                 activeTab === 'video'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -816,14 +816,14 @@ function LectureContent() {
               }`}
             >
               <Video className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'video' ? (isGirls ? 'text-pink-500' : 'text-purple-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.video : content.personas.boys.tabs.video}</span>
+              <span className="whitespace-nowrap shrink-0">{isGirls ? content.personas.girls.tabs.video : content.personas.boys.tabs.video}</span>
             </button>
 
             {/* TAB 3: QUIZ */}
             <button
               type="button"
               onClick={() => setActiveTab('quiz')}
-              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
+              className={`flex-1 min-w-fit shrink-0 py-2.5 px-3.5 sm:px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-[13px] cursor-pointer select-none ${
                 activeTab === 'quiz'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -832,14 +832,33 @@ function LectureContent() {
               }`}
             >
               <HelpCircle className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'quiz' ? (isGirls ? 'text-pink-500' : 'text-amber-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.quiz : content.personas.boys.tabs.quiz} {quizQuestions.length > 0 ? `(${quizQuestions.length})` : ''}</span>
+              <span className="whitespace-nowrap shrink-0">{isGirls ? content.personas.girls.tabs.quiz : content.personas.boys.tabs.quiz}</span>
+              {quizQuestions.length > 0 && (
+                <span
+                  className="inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-1.5 py-0.5 rounded-full shrink-0 font-mono shadow-2xs"
+                  style={{
+                    backgroundColor: activeTab === 'quiz'
+                      ? (isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(245, 158, 11, 0.25)')
+                      : 'var(--bg-surface-elevated)',
+                    color: activeTab === 'quiz'
+                      ? (isGirls ? '#ec4899' : '#d97706')
+                      : 'var(--text-muted)',
+                    border: '1px solid',
+                    borderColor: activeTab === 'quiz'
+                      ? (isGirls ? 'rgba(236, 72, 153, 0.35)' : 'rgba(245, 158, 11, 0.35)')
+                      : 'var(--border-subtle)',
+                  }}
+                >
+                  {quizQuestions.length}
+                </span>
+              )}
             </button>
 
             {/* TAB 4: STUDY GUIDE */}
             <button
               type="button"
               onClick={() => setActiveTab('guide')}
-              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
+              className={`flex-1 min-w-fit shrink-0 py-2.5 px-3.5 sm:px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-[13px] cursor-pointer select-none ${
                 activeTab === 'guide'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -848,14 +867,14 @@ function LectureContent() {
               }`}
             >
               <FileText className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'guide' ? (isGirls ? 'text-pink-500' : 'text-emerald-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.guide : content.personas.boys.tabs.guide}</span>
+              <span className="whitespace-nowrap shrink-0">{isGirls ? content.personas.girls.tabs.guide : content.personas.boys.tabs.guide}</span>
             </button>
 
             {/* TAB 5: FLASHCARDS */}
             <button
               type="button"
               onClick={() => setActiveTab('flashcards')}
-              className={`flex-1 md:flex-initial min-w-[95px] py-2 px-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer select-none shrink-0 ${
+              className={`flex-1 min-w-fit shrink-0 py-2.5 px-3.5 sm:px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-[13px] cursor-pointer select-none ${
                 activeTab === 'flashcards'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
@@ -864,7 +883,26 @@ function LectureContent() {
               }`}
             >
               <Layers className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'flashcards' ? (isGirls ? 'text-pink-500' : 'text-indigo-500') : 'opacity-70'}`} />
-              <span className="whitespace-nowrap">{isGirls ? content.personas.girls.tabs.flashcards : content.personas.boys.tabs.flashcards} {flashcards.length > 0 ? `(${flashcards.length})` : ''}</span>
+              <span className="whitespace-nowrap shrink-0">{isGirls ? content.personas.girls.tabs.flashcards : content.personas.boys.tabs.flashcards}</span>
+              {flashcards.length > 0 && (
+                <span
+                  className="inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-1.5 py-0.5 rounded-full shrink-0 font-mono shadow-2xs"
+                  style={{
+                    backgroundColor: activeTab === 'flashcards'
+                      ? (isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(99, 102, 241, 0.25)')
+                      : 'var(--bg-surface-elevated)',
+                    color: activeTab === 'flashcards'
+                      ? (isGirls ? '#ec4899' : '#6366f1')
+                      : 'var(--text-muted)',
+                    border: '1px solid',
+                    borderColor: activeTab === 'flashcards'
+                      ? (isGirls ? 'rgba(236, 72, 153, 0.35)' : 'rgba(99, 102, 241, 0.35)')
+                      : 'var(--border-subtle)',
+                  }}
+                >
+                  {flashcards.length}
+                </span>
+              )}
             </button>
           </div>
         </nav>

@@ -110,7 +110,7 @@ export function SmartResumeCard() {
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
               <span
-                className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider"
+                className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider whitespace-nowrap shrink-0 border"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   color: 'var(--accent-primary)',
@@ -119,7 +119,7 @@ export function SmartResumeCard() {
               >
                 {subjectName || 'استئناف فوري'}
               </span>
-              <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-[11px] font-medium truncate" style={{ color: 'var(--text-muted)' }}>
                 {mediaSubtitle}
               </span>
             </div>
@@ -137,7 +137,7 @@ export function SmartResumeCard() {
             backgroundColor: 'var(--accent-primary)',
             color: 'var(--bg-page)',
           }}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:opacity-95 active:scale-98 transition-all shrink-0 cursor-pointer"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:opacity-95 active:scale-98 transition-all shrink-0 cursor-pointer whitespace-nowrap min-w-fit"
         >
           <Play className="w-4 h-4 fill-current" />
           <span>كمّل من حيث وقفت</span>

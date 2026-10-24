@@ -177,7 +177,7 @@ export function StudentGamificationPill({
             ? 'rgba(45, 212, 191, 0.35)'
             : '#B2DFDB',
         }}
-        className="group relative flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full border shadow-xs hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer text-xs sm:text-[13px] font-bold shrink"
+        className="group relative flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full border shadow-xs hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer text-xs sm:text-[13px] font-bold shrink-0 min-w-fit whitespace-nowrap"
       >
         {/* Streak Flame */}
         <div className="flex items-center gap-0.5 shrink-0">
@@ -345,11 +345,14 @@ export function StudentGamificationPill({
                       : '#526E6E',
                   borderColor: activeTab === 'badges' ? '#2DD4BF' : 'transparent',
                 }}
-                className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer ${
+                className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   activeTab === 'badges' ? 'font-black' : 'font-medium'
                 }`}
               >
-                الأوسمة والشارات ({unlockedBadges.length})
+                <span>الأوسمة والشارات</span>
+                <span className="inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-full font-mono bg-black/5 dark:bg-white/10 shadow-2xs">
+                  {unlockedBadges.length}
+                </span>
               </button>
               <button
                 onClick={() => setActiveTab('leaderboard')}
