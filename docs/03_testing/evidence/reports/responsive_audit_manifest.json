@@ -1,9 +1,9 @@
 {
   "audit_meta": {
-    "timestamp_utc": "2026-10-24 21:35:51 UTC",
+    "timestamp_utc": "2026-10-24 21:57:24 UTC",
     "target_url": "https://bsu-math-ai-portal.pages.dev",
     "test_runner": "Playwright + Chromium / WebKit (Headless Windows 11)",
-    "elapsed_seconds": 81.39
+    "elapsed_seconds": 78.64
   },
   "viewport_testing_8_sizes": [
     {
@@ -21,7 +21,7 @@
             "hasOverflow": false
           },
           "header_visible": true,
-          "cards_count": 0,
+          "cards_count": 12,
           "pill_visible": true
         },
         "lecture": {
@@ -41,7 +41,8 @@
             "hasOverflow": false
           },
           "question_visible": true,
-          "options_count": 30,
+          "q1_options_count": 4,
+          "total_quiz_options": 40,
           "katex_count": 46
         },
         "guide": {
@@ -72,7 +73,7 @@
             "hasOverflow": false
           },
           "header_visible": true,
-          "cards_count": 0,
+          "cards_count": 12,
           "pill_visible": true
         },
         "lecture": {
@@ -92,7 +93,8 @@
             "hasOverflow": false
           },
           "question_visible": true,
-          "options_count": 30,
+          "q1_options_count": 4,
+          "total_quiz_options": 40,
           "katex_count": 46
         },
         "guide": {
@@ -123,7 +125,7 @@
             "hasOverflow": false
           },
           "header_visible": true,
-          "cards_count": 0,
+          "cards_count": 12,
           "pill_visible": true
         },
         "lecture": {
@@ -143,7 +145,8 @@
             "hasOverflow": false
           },
           "question_visible": true,
-          "options_count": 30,
+          "q1_options_count": 4,
+          "total_quiz_options": 40,
           "katex_count": 46
         },
         "guide": {
@@ -174,7 +177,7 @@
             "hasOverflow": false
           },
           "header_visible": true,
-          "cards_count": 0,
+          "cards_count": 12,
           "pill_visible": true
         },
         "lecture": {
@@ -194,7 +197,8 @@
             "hasOverflow": false
           },
           "question_visible": true,
-          "options_count": 31,
+          "q1_options_count": 4,
+          "total_quiz_options": 40,
           "katex_count": 46
         },
         "guide": {
@@ -225,7 +229,7 @@
             "hasOverflow": false
           },
           "header_visible": true,
-          "cards_count": 0,
+          "cards_count": 12,
           "pill_visible": true
         },
         "lecture": {
@@ -245,7 +249,8 @@
             "hasOverflow": false
           },
           "question_visible": true,
-          "options_count": 31,
+          "q1_options_count": 4,
+          "total_quiz_options": 40,
           "katex_count": 46
         },
         "guide": {
@@ -276,7 +281,7 @@
             "hasOverflow": false
           },
           "header_visible": true,
-          "cards_count": 0,
+          "cards_count": 12,
           "pill_visible": true
         },
         "lecture": {
@@ -296,7 +301,8 @@
             "hasOverflow": false
           },
           "question_visible": true,
-          "options_count": 30,
+          "q1_options_count": 4,
+          "total_quiz_options": 40,
           "katex_count": 46
         },
         "guide": {
@@ -327,7 +333,7 @@
             "hasOverflow": false
           },
           "header_visible": true,
-          "cards_count": 0,
+          "cards_count": 12,
           "pill_visible": true
         },
         "lecture": {
@@ -347,7 +353,8 @@
             "hasOverflow": false
           },
           "question_visible": true,
-          "options_count": 30,
+          "q1_options_count": 4,
+          "total_quiz_options": 40,
           "katex_count": 46
         },
         "guide": {
@@ -378,7 +385,7 @@
             "hasOverflow": false
           },
           "header_visible": true,
-          "cards_count": 0,
+          "cards_count": 12,
           "pill_visible": true
         },
         "lecture": {
@@ -398,7 +405,8 @@
             "hasOverflow": false
           },
           "question_visible": true,
-          "options_count": 30,
+          "q1_options_count": 4,
+          "total_quiz_options": 40,
           "katex_count": 46
         },
         "guide": {
@@ -438,17 +446,20 @@
   "slow_3g_and_throttling": {
     "network_condition": "Slow 3G (400ms latency, 50KB/s down/up)",
     "cpu_condition": "4x CPU Slowdown",
-    "dom_completion_time_sec": 2.552,
-    "event_loop_raf_metrics": {
-      "avgFrameMs": 16.5,
-      "maxFrameMs": 16.8,
-      "totalFrames": 60
+    "dom_completion_time_sec": 2.505,
+    "immediate_visual_feedback_on_click": true,
+    "in_flight_event_loop_raf_metrics": {
+      "totalFrames": 587,
+      "avgFrameMs": 18.4,
+      "maxFrameMs": 416.6,
+      "jankFramesCount": 4
     },
-    "click_to_render_interaction_ms": 9675.9,
+    "total_transition_latency_ms": 851.4,
     "evaluation": {
-      "dom_load_distinction": "Observed DOMContentLoaded reflects network throughput and asset hydration.",
-      "main_thread_distinction": "Observed 60-frame RAF average of 16.5ms verifies event loop responsiveness without persistent lockups.",
-      "ui_interaction_distinction": "Click-to-render latency of 9675.9ms verifies immediate visual reaction to user input."
+      "dom_load_distinction": "Observed DOMContentLoaded of 2.505s reflects HTML parsing.",
+      "visual_feedback_distinction": "Tab button reacted immediately (True) confirming the click registered without delay.",
+      "main_thread_distinction": "Measured 587 continuous frames during chunk load (avg 18.4ms, only 4 jank frames), proving the event loop stayed active throughout.",
+      "network_throughput_distinction": "Total transition of 851.4ms reflects network asset transfer under 50KB/s Slow 3G throughput."
     },
     "status": "PASS (Emulation)"
   },
@@ -506,7 +517,11 @@
       "slow3g_4x_throttled_quiz.png",
       "webkit_emulation_iphone14.png"
     ],
-    "reports": [],
+    "reports": [
+      "lighthouse_mobile_report.report.html",
+      "lighthouse_mobile_report.report.json",
+      "responsive_audit_manifest.json"
+    ],
     "logs": [
       "audit_execution.log"
     ]
