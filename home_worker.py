@@ -358,7 +358,10 @@ async def process_lecture(lecture: dict):
             # 3. Text artifacts (quiz / guide / flashcards / mind-map) — KB scale
             set_stage(lecture_id, "processing", "جاري توليد الكويز والملخص والبطاقات الذكية ✍️")
             quiz_cmd = ["notebooklm", "generate", "quiz",
-                        "اختبار شامل مع تلميحات وشرح الإجابات", "--quantity", "more",
+                        "اختبار شامل مع تلميحات وشرح الإجابات. "
+                        "لكل سؤال أضف بعد الخيارات سطر Hint بإجابة صغيرة، "
+                        "وأسفل الهينت بلوك Steps فيه خطوات الحل النموذجي مرقمة (3 إلى 5 خطوات) "
+                        "بحيث يتعلم الطالب من التدرج خطوة خطوة", "--quantity", "more",
                         "--wait", "--retry", "3", "-n", nb_id]
             report_cmd = ["notebooklm", "generate", "report", "--format", "study-guide",
                           "--wait", "--retry", "3", "-n", nb_id]

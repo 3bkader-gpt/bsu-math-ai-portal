@@ -11,6 +11,8 @@ export interface QuizQuestion {
   options: string[];
   correctIndex: number;
   hint: string;
+  /** Worked solution steps (Phase 3.2 fading) — optional, newer quizzes only. */
+  steps?: string[];
 }
 
 export interface Flashcard {
@@ -222,6 +224,8 @@ export const parseQuizMarkdown = (md: string): QuizQuestion[] => {
     const options: string[] = [];
     let correctIndex = 0;
     let hint = '';
+    let steps: string[] | undefined;
+    let inStepsBlock = false;
 
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
@@ -230,9 +234,19 @@ export const parseQuizMarkdown = (md: string): QuizQuestion[] => {
         const optText = line.replace(/^[-*]\s*\[[ x]\]\s*/, '').trim();
         if (isCorrect) correctIndex = options.length;
         options.push(optText);
-      } else if (line.startsWith('**Hint:**') || line.startsWith('> Hint:') || line.startsWith('Hint:')) {
-        hint = line.replace(/^\*\*Hint:\*\*|^>\s*Hint:|^Hint:\s*/i, '').trim();
-      } else if (options.length === 0) {
+      } else if (/^\*\*(Hint|Steps):\*\*/.test(line) || line.startsWith('> Hint:') || line.startsWith('Hint:')) {
+        if (/^\*\*Steps:\*\*/.test(line)) {
+          inStepsBlock = true;
+          const inline = line.replace(/^\*\*Steps:\*\*\s*/i, '').trim();
+          if (inline) steps = [inline];
+        } else {
+          inStepsBlock = false;
+          hint = line.replace(/^\*\*Hint:\*\*|^>\s*Hint:|^Hint:\s*/i, '').trim();
+        }
+      } else if (inStepsBlock && (line.startsWith('- ') || line.startsWith('* ') || /^\d+[.)]\s/.test(line))) {
+        if (!steps) steps = [];
+        steps.push(line.replace(/^[-*]\s+|^\d+[.)]\s+/, '').trim());
+      } else if (options.length === 0 && !inStepsBlock) {
         questionLines.push(line);
       }
     }
@@ -251,7 +265,8 @@ export const parseQuizMarkdown = (md: string): QuizQuestion[] => {
         question: questionBody || `السؤال رقم ${qNum}`,
         options: items.map(it => it.opt),
         correctIndex: items.findIndex(it => it.isCorrect),
-        hint
+        hint,
+        steps
       });
     }
   }
