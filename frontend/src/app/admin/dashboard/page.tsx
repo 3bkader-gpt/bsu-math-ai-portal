@@ -517,7 +517,12 @@ export default function AdminDashboardPage() {
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
       console.error('Autonomous cloud upload error:', err);
-      setUploadError(err.message || 'حدث خطأ أثناء الرفع السحابي');
+      const isNetworkError = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(String(err?.message));
+      setUploadError(
+        isNetworkError
+          ? 'تعذر الاتصال بالسيرفر السحابي — اتأكدي من الإنترنت وحاولي تاني. لو أول استخدام اليوم، السيرفر بيتصحى وبياخد حوالي دقيقة، جرّبي كمان مرة.'
+          : (err?.message || 'حدث خطأ أثناء الرفع السحابي')
+      );
     } finally {
       setIsUploading(false);
     }
