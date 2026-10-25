@@ -141,6 +141,17 @@ function LectureContent() {
 
   // Active Tab with immediate transition logging
   const [activeTab, setActiveTabState] = useState<'audio' | 'video' | 'quiz' | 'guide' | 'flashcards'>('audio');
+  const activeTabRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [activeTab]);
 
   const setActiveTab = (tab: 'audio' | 'video' | 'quiz' | 'guide' | 'flashcards') => {
     setActiveTabState(tab);
@@ -783,87 +794,68 @@ function LectureContent() {
             borderColor: 'var(--border-subtle)',
             boxShadow: 'var(--card-shadow)',
           }}
-          className="rounded-2xl border p-1 sm:p-1.5 transition-all"
+          className="relative rounded-2xl border p-1 sm:p-1.5 transition-all overflow-hidden"
           aria-label="أقسام المحاضرة"
         >
-          <div className="grid grid-cols-5 gap-1 sm:gap-1.5 w-full p-0.5">
+          <div
+            className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto overscroll-x-contain py-1 px-2.5 sm:px-3 w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:justify-center"
+            style={{
+              maskImage: 'linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)',
+            }}
+          >
             {/* TAB 1: AUDIO RECORD */}
             <button
+              ref={activeTab === 'audio' ? activeTabRef : null}
               type="button"
               onClick={() => setActiveTab('audio')}
-              className={`w-full min-w-0 py-2 sm:py-2.5 px-0.5 sm:px-2 rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 text-[11px] sm:text-[13px] cursor-pointer select-none ${
+              className={`shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-150 cursor-pointer select-none ${
                 activeTab === 'audio'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
                     : 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 font-black shadow-xs'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'
               }`}
             >
-              <Headphones className={`w-4 h-4 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'audio' ? (isGirls ? 'text-pink-500' : 'text-cyan-500') : 'opacity-70'}`} />
-              <span className="truncate">
-                <span className="inline lg:hidden">ريكورد</span>
-                <span className="hidden lg:inline">{isGirls ? content.personas.girls.tabs.audio : content.personas.boys.tabs.audio}</span>
-              </span>
+              {!isGirls && <Headphones className={`w-4 h-4 shrink-0 ${activeTab === 'audio' ? 'text-cyan-500' : 'opacity-70'}`} />}
+              <span className="shrink-0">{isGirls ? content.personas.girls.tabs.audio : content.personas.boys.tabs.audio}</span>
             </button>
 
             {/* TAB 2: VIDEO */}
             <button
+              ref={activeTab === 'video' ? activeTabRef : null}
               type="button"
               onClick={() => setActiveTab('video')}
-              className={`w-full min-w-0 py-2 sm:py-2.5 px-0.5 sm:px-2 rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 text-[11px] sm:text-[13px] cursor-pointer select-none ${
+              className={`shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-150 cursor-pointer select-none ${
                 activeTab === 'video'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
                     : 'bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-black shadow-xs'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'
               }`}
             >
-              <Video className={`w-4 h-4 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'video' ? (isGirls ? 'text-pink-500' : 'text-purple-500') : 'opacity-70'}`} />
-              <span className="truncate">
-                <span className="inline lg:hidden">فيديو</span>
-                <span className="hidden lg:inline">{isGirls ? content.personas.girls.tabs.video : content.personas.boys.tabs.video}</span>
-              </span>
+              {!isGirls && <Video className={`w-4 h-4 shrink-0 ${activeTab === 'video' ? 'text-purple-500' : 'opacity-70'}`} />}
+              <span className="shrink-0">{isGirls ? content.personas.girls.tabs.video : content.personas.boys.tabs.video}</span>
             </button>
 
             {/* TAB 3: QUIZ */}
             <button
+              ref={activeTab === 'quiz' ? activeTabRef : null}
               type="button"
               onClick={() => setActiveTab('quiz')}
-              className={`w-full min-w-0 py-2 sm:py-2.5 px-0.5 sm:px-2 rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 text-[11px] sm:text-[13px] cursor-pointer select-none ${
+              className={`shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-150 cursor-pointer select-none ${
                 activeTab === 'quiz'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
                     : 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 font-black shadow-xs'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'
               }`}
             >
-              <div className="relative inline-flex items-center justify-center shrink-0">
-                <HelpCircle className={`w-4 h-4 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'quiz' ? (isGirls ? 'text-pink-500' : 'text-amber-500') : 'opacity-70'}`} />
-                {quizQuestions.length > 0 && (
-                  <span
-                    className="sm:hidden absolute -top-1 -right-1.5 text-[9px] font-bold px-1 rounded-full font-mono min-w-[14px] text-center leading-tight shadow-2xs"
-                    style={{
-                      backgroundColor: activeTab === 'quiz'
-                        ? (isGirls ? '#ec4899' : '#d97706')
-                        : 'var(--bg-surface-elevated)',
-                      color: activeTab === 'quiz' ? '#ffffff' : 'var(--text-muted)',
-                      border: '1px solid',
-                      borderColor: activeTab === 'quiz'
-                        ? (isGirls ? '#db2777' : '#b45309')
-                        : 'var(--border-subtle)',
-                    }}
-                  >
-                    {quizQuestions.length}
-                  </span>
-                )}
-              </div>
-              <span className="truncate">
-                <span className="inline lg:hidden">كويز</span>
-                <span className="hidden lg:inline">{isGirls ? content.personas.girls.tabs.quiz : content.personas.boys.tabs.quiz}</span>
-              </span>
+              {!isGirls && <HelpCircle className={`w-4 h-4 shrink-0 ${activeTab === 'quiz' ? 'text-amber-500' : 'opacity-70'}`} />}
+              <span className="shrink-0">{isGirls ? content.personas.girls.tabs.quiz : content.personas.boys.tabs.quiz}</span>
               {quizQuestions.length > 0 && (
                 <span
-                  className="hidden sm:inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-1.5 py-0.2 rounded-full shrink-0 font-mono shadow-2xs"
+                  className="inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full font-mono shrink-0 shadow-2xs"
                   style={{
                     backgroundColor: activeTab === 'quiz'
                       ? (isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(245, 158, 11, 0.25)')
@@ -877,69 +869,46 @@ function LectureContent() {
                       : 'var(--border-subtle)',
                   }}
                 >
-                  {quizQuestions.length}
+                  <bdi dir="ltr">{quizQuestions.length}</bdi>
                 </span>
               )}
             </button>
 
             {/* TAB 4: STUDY GUIDE */}
             <button
+              ref={activeTab === 'guide' ? activeTabRef : null}
               type="button"
               onClick={() => setActiveTab('guide')}
-              className={`w-full min-w-0 py-2 sm:py-2.5 px-0.5 sm:px-2 rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 text-[11px] sm:text-[13px] cursor-pointer select-none ${
+              className={`shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-150 cursor-pointer select-none ${
                 activeTab === 'guide'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
                     : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-black shadow-xs'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'
               }`}
             >
-              <FileText className={`w-4 h-4 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'guide' ? (isGirls ? 'text-pink-500' : 'text-emerald-500') : 'opacity-70'}`} />
-              <span className="truncate">
-                <span className="inline lg:hidden">زتونة</span>
-                <span className="hidden lg:inline">{isGirls ? content.personas.girls.tabs.guide : content.personas.boys.tabs.guide}</span>
-              </span>
+              {!isGirls && <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'guide' ? 'text-emerald-500' : 'opacity-70'}`} />}
+              <span className="shrink-0">{isGirls ? content.personas.girls.tabs.guide : content.personas.boys.tabs.guide}</span>
             </button>
 
             {/* TAB 5: FLASHCARDS */}
             <button
+              ref={activeTab === 'flashcards' ? activeTabRef : null}
               type="button"
               onClick={() => setActiveTab('flashcards')}
-              className={`w-full min-w-0 py-2 sm:py-2.5 px-0.5 sm:px-2 rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 text-[11px] sm:text-[13px] cursor-pointer select-none ${
+              className={`shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-150 cursor-pointer select-none ${
                 activeTab === 'flashcards'
                   ? isGirls
                     ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
                     : 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 font-black shadow-xs'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 font-bold border border-transparent'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'
               }`}
             >
-              <div className="relative inline-flex items-center justify-center shrink-0">
-                <Layers className={`w-4 h-4 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'flashcards' ? (isGirls ? 'text-pink-500' : 'text-indigo-500') : 'opacity-70'}`} />
-                {flashcards.length > 0 && (
-                  <span
-                    className="sm:hidden absolute -top-1 -right-1.5 text-[9px] font-bold px-1 rounded-full font-mono min-w-[14px] text-center leading-tight shadow-2xs"
-                    style={{
-                      backgroundColor: activeTab === 'flashcards'
-                        ? (isGirls ? '#ec4899' : '#4f46e5')
-                        : 'var(--bg-surface-elevated)',
-                      color: activeTab === 'flashcards' ? '#ffffff' : 'var(--text-muted)',
-                      border: '1px solid',
-                      borderColor: activeTab === 'flashcards'
-                        ? (isGirls ? '#db2777' : '#4338ca')
-                        : 'var(--border-subtle)',
-                    }}
-                  >
-                    {flashcards.length}
-                  </span>
-                )}
-              </div>
-              <span className="truncate">
-                <span className="inline lg:hidden">كروت</span>
-                <span className="hidden lg:inline">{isGirls ? content.personas.girls.tabs.flashcards : content.personas.boys.tabs.flashcards}</span>
-              </span>
+              {!isGirls && <Layers className={`w-4 h-4 shrink-0 ${activeTab === 'flashcards' ? 'text-indigo-500' : 'opacity-70'}`} />}
+              <span className="shrink-0">{isGirls ? content.personas.girls.tabs.flashcards : content.personas.boys.tabs.flashcards}</span>
               {flashcards.length > 0 && (
                 <span
-                  className="hidden sm:inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-1.5 py-0.2 rounded-full shrink-0 font-mono shadow-2xs"
+                  className="inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full font-mono shrink-0 shadow-2xs"
                   style={{
                     backgroundColor: activeTab === 'flashcards'
                       ? (isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(99, 102, 241, 0.25)')
@@ -953,7 +922,7 @@ function LectureContent() {
                       : 'var(--border-subtle)',
                   }}
                 >
-                  {flashcards.length}
+                  <bdi dir="ltr">{flashcards.length}</bdi>
                 </span>
               )}
             </button>

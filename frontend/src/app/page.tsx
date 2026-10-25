@@ -875,11 +875,11 @@ export default function Home() {
                     ? '#FFFFFF' 
                     : 'var(--text-secondary)',
                 }}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
               >
-                <span>الترم الأول</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/20 text-white font-mono">
-                  {subjects.filter(s => (s.semester ?? 1) === 1).length}
+                <span className="shrink-0">الترم الأول</span>
+                <span className="shrink-0 inline-flex items-center justify-center text-[10px] px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
+                  <bdi dir="ltr">{subjects.filter(s => (s.semester ?? 1) === 1).length}</bdi>
                 </span>
               </button>
 
@@ -894,11 +894,11 @@ export default function Home() {
                     ? '#FFFFFF' 
                     : 'var(--text-secondary)',
                 }}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
               >
-                <span>الترم الثاني</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/20 text-white font-mono">
-                  {subjects.filter(s => (s.semester ?? 1) === 2).length}
+                <span className="shrink-0">الترم الثاني</span>
+                <span className="shrink-0 inline-flex items-center justify-center text-[10px] px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
+                  <bdi dir="ltr">{subjects.filter(s => (s.semester ?? 1) === 2).length}</bdi>
                 </span>
               </button>
             </div>
