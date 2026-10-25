@@ -6,6 +6,14 @@
 
 ## 🔴 Active Sprint (Now)
 
+### Phase 3 — Cognitive Guard & Hint Ladder (2026-10-25) — ✅ BUILT & DEPLOYED
+- [x] `core/hintLadder.ts` pure engine (13/13 Vitest): tier splitting, burnout gate, worked-example fading
+- [x] 3.1 Hint ladder in QuizViewer — 3 tiers (conceptual → full hint → answer + 'نراجعها غداً في الدفتر'), `hintLevelUsed` 0-3 sent on every answer
+- [x] 3.3 Burnout relief — 3 consecutive wrong OR 2-min stall (IntersectionObserver dwell clocks) → compassionate modal (hint or breather), once per attempt
+- [x] 3.4 Session flow — whisper-thin 25-min bar + single gentle break prompt (zero store subscriptions → KaTeX isolation preserved)
+- [x] 3.2 Worked-example fading — `**Steps:**` parser + visible/hidden ladder UI; home worker prompt now generates Hint + numbered Steps for every question
+- Server untouched: `hintLevelUsed` was already accepted in the RPC payload
+
 ### v1.4.1 — Keyless uploader (2026-10-25) — ✅ DONE, LIVE-VERIFIED & CLEANED
 - [x] New JWT-protected `POST /api/lectures/register` replaces the browser-side master-key RPC: the uploader's authorization is simply her admin login — zero keys, zero ⚙️, zero setup of any kind
 - [x] `lectures.source_pdf_url` added to the SQLAlchemy model (was DB-only; crashed the new endpoint until fixed)
