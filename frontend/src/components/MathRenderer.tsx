@@ -358,6 +358,10 @@ export function RawMathRenderer({ text, className = '', block = false }: MathRen
     return elements;
   }, [text, block]);
 
+  if (block) {
+    return <div className={className}>{renderedContent}</div>;
+  }
+
   return <span className={className}>{renderedContent}</span>;
 }
 

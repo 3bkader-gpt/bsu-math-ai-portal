@@ -37,6 +37,7 @@ import {
   Menu
 } from 'lucide-react';
 import MobileNavDrawer from '@/components/MobileNavDrawer';
+import StaplePin3D from '@/components/StaplePin3D';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
 import { AcademicLectureBundle, AcademicMediaAsset } from '@/types/academic';
@@ -68,6 +69,25 @@ import {
   getLocalResumeState,
 } from '@/modules/gamification/resume';
 import { MistakeNotebookModal } from '@/modules/gamification/ui';
+
+const DEFAULT_MATH_FLASHCARDS: Flashcard[] = [
+  {
+    question: 'ما هو تعريف المشتقة الاتجاهية لدالة القياس ∇f؟',
+    answer: 'هي معدل تغير الدالة f في اتجاه متجه الوحدة u، وتساوي حاصل الضرب القياسي: Du f = ∇f · u',
+  },
+  {
+    question: 'متى يقال لمجال متجهي F إنه محافظ (Conservative Field)؟',
+    answer: 'إذا وجد دالة جهد قياسية φ بحيث F = ∇φ، ويكافئ ذلك هندسياً أن دوران المجال curl(F) = 0.',
+  },
+  {
+    question: 'ما هو الشرط الضروري والكافي لتعامد منحنيين في المستوى الإقليدي؟',
+    answer: 'أن يكون حاصل ضرب ميلي المماسين عند نقطة التقاطع يساوي -1، أي m1 · m2 = -1.',
+  },
+  {
+    question: 'ما هو تعريف فضاء المتجهات التآلفي (Affine Space)؟',
+    answer: 'هو فضاء هندسي يمكن فيه الانتقال بين النقاط بمتجهات الإزاحة دون الاعتماد على نقطة أصل ثابتة.',
+  },
+];
 
 function LectureLoadingSkeleton() {
   return (
@@ -314,20 +334,28 @@ function LectureContent() {
         if (cardsAsset) {
           if (cardsAsset.content_text) {
             const parsed = parseFlashcardsMarkdown(cardsAsset.content_text);
-            setFlashcards(parsed);
-            flashcardDetectorRef.current?.setTotalCards(parsed.length);
+            const finalCards = parsed && parsed.length > 0 ? parsed : DEFAULT_MATH_FLASHCARDS;
+            setFlashcards(finalCards);
+            flashcardDetectorRef.current?.setTotalCards(finalCards.length);
           } else if (cardsAsset.stream_url) {
             fetch(getApiUrl(cardsAsset.stream_url))
               .then((r) => r.text())
               .then((text) => {
                 if (isMounted) {
                   const parsed = parseFlashcardsMarkdown(text);
-                  setFlashcards(parsed);
-                  flashcardDetectorRef.current?.setTotalCards(parsed.length);
+                  const finalCards = parsed && parsed.length > 0 ? parsed : DEFAULT_MATH_FLASHCARDS;
+                  setFlashcards(finalCards);
+                  flashcardDetectorRef.current?.setTotalCards(finalCards.length);
                 }
               })
-              .catch(console.error);
+              .catch(() => {
+                if (isMounted) setFlashcards(DEFAULT_MATH_FLASHCARDS);
+              });
+          } else {
+            setFlashcards(DEFAULT_MATH_FLASHCARDS);
           }
+        } else {
+          setFlashcards(DEFAULT_MATH_FLASHCARDS);
         }
       } catch (err: any) {
         if (isMounted) {
@@ -478,7 +506,7 @@ function LectureContent() {
   return (
     <div
       style={{
-        backgroundColor: 'var(--bg-page)',
+        backgroundColor: 'transparent',
         color: 'var(--text-primary)',
       }}
       className="min-h-screen flex flex-col transition-colors duration-200"
@@ -942,7 +970,7 @@ function LectureContent() {
                     borderColor: 'var(--border-subtle)',
                     boxShadow: 'var(--card-shadow)',
                   }}
-                  className="p-6 sm:p-12 rounded-3xl border text-center space-y-6 sm:space-y-8"
+                  className="p-6 sm:p-10 rounded-3xl border text-center space-y-6 relative overflow-hidden"
                 >
                   <audio
                     ref={audioRef}
@@ -984,22 +1012,28 @@ function LectureContent() {
                     onError={(e) => console.error('Audio playback error:', e)}
                   />
 
-                  {/* Big Headphones Visual */}
-                  <div
-                    style={{
-                      backgroundColor: 'var(--accent-primary)',
-                      color: isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff'),
-                    }}
-                    className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full flex items-center justify-center shadow-xl"
-                  >
-                    <Headphones className="w-12 h-12 sm:w-16 sm:h-16" />
-                  </div>
+                  {/* Realistic 3D Metallic Staple Pin */}
+                  <StaplePin3D isGirls={isGirls} className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5" />
 
-                  <div>
-                    <h3 className="text-2xl sm:text-3xl font-black" style={{ color: 'var(--text-primary)' }}>
+                  {/* Header Badge & Track Info */}
+                  <div className="flex flex-col items-center gap-2">
+                    <span
+                      style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        borderColor: 'var(--border-prominent)',
+                        color: 'var(--accent-primary)',
+                      }}
+                      className="px-3.5 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1.5 shadow-xs"
+                    >
+                      <Headphones className="w-3.5 h-3.5 shrink-0" />
+                      <span>{isGirls ? '🌸 ريكورد الشرح والروقان • شرح رايق بالبلدي' : '🎙️ شرح رايق بالبلدي • تسجيل المحاضرة'}</span>
+                    </span>
+
+                    <h3 className="text-xl sm:text-2xl font-black leading-snug max-w-xl mx-auto" style={{ color: 'var(--text-primary)' }}>
                       {audioAsset.title}
                     </h3>
-                    <p className="text-xs sm:text-sm font-semibold mt-2" style={{ color: 'var(--text-muted)' }}>
+
+                    <p className="text-xs sm:text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
                       {content.audioTab.descriptionFormat.replace(
                         '{size}',
                         (((audioAsset.file_size_bytes || 0) / (1024 * 1024)).toFixed(1))
@@ -1007,8 +1041,41 @@ function LectureContent() {
                     </p>
                   </div>
 
+                  {/* Dynamic Audio Waveform Visualizer */}
+                  <div
+                    style={{
+                      backgroundColor: 'var(--bg-surface-elevated)',
+                      borderColor: 'var(--border-subtle)',
+                    }}
+                    className="p-4 sm:p-6 rounded-2xl border flex items-end justify-center gap-1 sm:gap-1.5 h-24 sm:h-28 max-w-xl mx-auto overflow-hidden"
+                  >
+                    {[
+                      35, 60, 45, 80, 55, 90, 70, 40, 65, 85,
+                      95, 60, 40, 75, 90, 50, 70, 85, 60, 45,
+                      80, 95, 65, 40, 55, 75, 50, 35
+                    ].map((heightPct, idx) => {
+                      const barProgress = (idx / 28) * (duration || 100);
+                      const isPast = currentTime >= barProgress;
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            height: `${heightPct}%`,
+                            width: '6px',
+                            backgroundColor: isPast ? 'var(--accent-primary)' : 'var(--border-prominent)',
+                            animationDelay: isPlaying ? `${(idx % 8) * 0.12}s` : '0s',
+                            transition: 'background-color 0.15s ease',
+                          }}
+                          className={`min-w-[4px] rounded-full ${
+                            isPlaying ? 'waveform-bar-active' : 'opacity-60'
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+
                   {/* Audio Progress Scrubber */}
-                  <div className="space-y-2.5 max-w-xl mx-auto">
+                  <div className="space-y-2 max-w-xl mx-auto">
                     <input
                       type="range"
                       min="0"
@@ -1019,7 +1086,10 @@ function LectureContent() {
                         setCurrentTime(val);
                         if (audioRef.current) audioRef.current.currentTime = val;
                       }}
-                      className="w-full accent-blue-600 cursor-pointer h-2.5 rounded-lg"
+                      style={{
+                        accentColor: 'var(--accent-primary)',
+                      }}
+                      className="w-full cursor-pointer h-2 rounded-lg bg-black/10 dark:bg-white/10"
                     />
                     <div className="flex justify-between text-xs font-mono font-bold" style={{ color: 'var(--text-muted)' }}>
                       <span>{formatTime(currentTime)}</span>
@@ -1828,7 +1898,7 @@ function LectureContent() {
                   borderColor: 'var(--border-subtle)',
                   boxShadow: 'var(--card-shadow)',
                 }}
-                className="p-6 sm:p-10 rounded-3xl border"
+                className="p-6 sm:p-10 rounded-3xl border notebook-red-margin overflow-hidden"
               >
                 <StudyGuideViewer
                   content={guideText}
