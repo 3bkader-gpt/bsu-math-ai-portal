@@ -68,7 +68,16 @@ import {
   flushResumeState,
   getLocalResumeState,
 } from '@/modules/gamification/resume';
-import { MistakeNotebookModal } from '@/modules/gamification/ui';
+import { MistakeNotebookModal, SessionFlowBar } from '@/modules/gamification/ui';
+import {
+  BURNOUT,
+  nextHintAction,
+  shouldShowBurnoutRelief,
+  splitFadedSteps,
+  splitHintTiers,
+  type HintTier,
+} from '@/modules/gamification/core/hintLadder';
+import BurnoutReliefModal from '@/modules/gamification/ui/BurnoutReliefModal';
 
 const DEFAULT_MATH_FLASHCARDS: Flashcard[] = [
   {
@@ -210,6 +219,54 @@ function LectureContent() {
   const [score, setScore] = useState<number | null>(null);
   const [showMistakeNotebook, setShowMistakeNotebook] = useState(false);
   const questionStartTimesRef = useRef<Record<number, number>>({});
+
+  // Phase 3 — Cognitive Guard (hint ladder + burnout relief + flow window)
+  const [hintTier, setHintTier] = useState<Record<number, HintTier>>({});
+  const [consecutiveWrong, setConsecutiveWrong] = useState(0);
+  const [showBurnoutRelief, setShowBurnoutRelief] = useState(false);
+  const burnoutShownRef = useRef(false);
+  const burnoutTimerRef = useRef<number | null>(null);
+  const quizCardRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  // Seed each question's dwell clock on first visibility (scroll-into-view).
+  useEffect(() => {
+    if (activeTab !== 'quiz' || quizQuestions.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const qIdx = Number((entry.target as HTMLElement).dataset.qIdx);
+          if (Number.isNaN(qIdx)) continue;
+          if (!questionStartTimesRef.current[qIdx] && userAnswers[qIdx] === undefined) {
+            questionStartTimesRef.current[qIdx] = Date.now();
+          }
+        }
+      },
+      { threshold: 0.4 }
+    );
+    Object.entries(quizCardRefs.current).forEach(([idx, el]) => {
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [activeTab, quizQuestions, userAnswers]);
+
+  // Stall check: unanswered question visible for >= 2 minutes → relief modal.
+  useEffect(() => {
+    if (activeTab !== 'quiz' || showBurnoutRelief || burnoutShownRef.current) return;
+    const id = window.setInterval(() => {
+      const now = Date.now();
+      for (const [idxStr, start] of Object.entries(questionStartTimesRef.current)) {
+        const qIdx = Number(idxStr);
+        if (userAnswers[qIdx] !== undefined) continue;
+        if (now - start >= BURNOUT.dwellMsThreshold) {
+          burnoutShownRef.current = true;
+          setShowBurnoutRelief(true);
+          return;
+        }
+      }
+    }, 15_000);
+    return () => window.clearInterval(id);
+  }, [activeTab, showBurnoutRelief, userAnswers, quizQuestions]);
 
   // Study Guide & Flashcards
   const [guideText, setGuideText] = useState<string>('');
@@ -1321,6 +1378,8 @@ function LectureContent() {
           {/* TAB 3: QUIZ ENGINE WITH KATEX */}
           {activeTab === 'quiz' && (
             <div className="space-y-6 max-w-4xl mx-auto py-4">
+              {/* Phase 3.4 — 25-min structured flow indicator (pure UI island) */}
+              {quizQuestions.length > 0 && <SessionFlowBar isGirls={isGirls} />}
               {quizQuestions.length === 0 ? (
                 <div className="text-center py-20 space-y-4" style={{ color: 'var(--text-muted)' }}>
                   <HelpCircle className="w-16 h-16 mx-auto mb-3 opacity-40 animate-pulse" />
@@ -1404,7 +1463,11 @@ function LectureContent() {
                             onClick={() => {
                               setUserAnswers({});
                               setShowHints({});
+                              setHintTier({});
                               setScore(null);
+                              setConsecutiveWrong(0);
+                              burnoutShownRef.current = false;
+                              questionStartTimesRef.current = {};
                               quizDetectorRef.current?.reset();
                               // Dynamic Shuffle
                               setQuizQuestions((prev) =>
@@ -1477,6 +1540,10 @@ function LectureContent() {
                     return (
                       <div
                         key={qIdx}
+                        data-q-idx={qIdx}
+                        ref={(el) => {
+                          quizCardRefs.current[qIdx] = el;
+                        }}
                         style={{
                           backgroundColor: 'var(--bg-surface)',
                           borderColor: isAnswered
@@ -1539,20 +1606,26 @@ function LectureContent() {
                             )}
                           </div>
 
-                          {q.hint && (
+                          {q.hint && !isAnswered && (
                             <button
                               type="button"
-                              onClick={() => setShowHints((prev) => ({ ...prev, [qIdx]: !prev[qIdx] }))}
+                              onClick={() => {
+                                const current = (hintTier[qIdx] ?? 0) as HintTier;
+                                if (current >= 3) return;
+                                const nextTier = (current + 1) as HintTier;
+                                setHintTier((prev) => ({ ...prev, [qIdx]: nextTier }));
+                                setShowHints((prev) => ({ ...prev, [qIdx]: true }));
+                              }}
                               className="text-xs sm:text-sm hover:underline flex items-center gap-1.5 transition-colors font-bold cursor-pointer"
                               style={{ color: 'var(--accent-amber)' }}
                             >
                               <Lightbulb className="w-4 h-4" />
                               <span>
-                                {showHints[qIdx]
-                                  ? content.quizTab.hideHint
-                                  : isGirls
-                                  ? 'غششة صغننة 💡'
-                                  : content.quizTab.showHint}
+                                {(() => {
+                                  const tier = (hintTier[qIdx] ?? 0) as HintTier;
+                                  if (tier === 0) return isGirls ? 'غششة صغننة 💡' : content.quizTab.showHint;
+                                  return nextHintAction(tier) ?? content.quizTab.hideHint;
+                                })()}
                               </span>
                             </button>
                           )}
@@ -1663,23 +1736,91 @@ function LectureContent() {
                         })()}
 
                         {/* Hint Box */}
-                        {showHints[qIdx] && q.hint && (
-                          <div
-                            style={{
-                              backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                              borderColor: 'var(--accent-amber)',
-                            }}
-                            className="p-4 sm:p-6 rounded-2xl border text-sm sm:text-base leading-relaxed flex items-start gap-3 animate-in fade-in"
-                          >
-                            <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                            <div className="flex-1 font-bold" style={{ color: 'var(--text-primary)' }}>
-                              <span className="font-extrabold text-amber-600 dark:text-amber-400">
-                                {getQuizHintPrefix(qIdx, isGirls)}
-                              </span>
-                              <MathRenderer text={q.hint} />
+                        {/* Phase 3.2 — Worked-example fading (steps present in newer quizzes) */}
+                        {q.steps && q.steps.length > 0 && !isAnswered && (() => {
+                          const { visible, hidden } = splitFadedSteps(q.steps, q.number);
+                          const revealedKey = Number(`9${qIdx}`); // synthetic numeric key in the shared Record<number, boolean>
+                          const revealed = showHints[revealedKey] ?? false;
+                          return (
+                            <div
+                              className="p-4 sm:p-5 rounded-2xl border space-y-2.5 animate-in fade-in"
+                              style={{
+                                backgroundColor: 'var(--bg-surface-elevated)',
+                                borderColor: 'var(--border-subtle)',
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <GraduationCap className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                                <span className="text-xs sm:text-sm font-black" style={{ color: 'var(--text-secondary)' }}>
+                                  الحل النموذجي خطوة بخطوة — جربّي تكمّلي اللي متخفي بنفسك قبل ما تفتحيه
+                                </span>
+                              </div>
+                              {visible.map((step, i) => (
+                                <div key={`v${i}`} className="flex items-start gap-2.5 text-sm sm:text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+                                  <span className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--accent-primary)', border: '1px solid var(--border-subtle)' }}>{i + 1}</span>
+                                  <MathRenderer text={step} />
+                                </div>
+                              ))}
+                              {hidden.map((step, i) => (
+                                <div key={`h${i}`} className="flex items-start gap-2.5">
+                                  <span className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 mt-0.5" style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-muted)', border: '1px dashed var(--border-prominent)' }}>{visible.length + i + 1}</span>
+                                  {revealed ? (
+                                    <MathRenderer text={step} />
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowHints((prev) => ({ ...prev, [revealedKey]: true }))}
+                                      className="text-xs font-black px-3 py-1.5 rounded-lg border border-dashed cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                                      style={{ color: 'var(--text-muted)', borderColor: 'var(--border-prominent)' }}
+                                    >
+                                      {isGirls ? 'كمّلي الخطوة دي بنفسك — اضغطي لو عايزة تشوفيها' : 'كمّل الخطوة دي بنفسك — اضغط لو عايز تشوفها'}
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
                             </div>
-                          </div>
-                        )}
+                          );
+                        })()}
+
+                        {showHints[qIdx] && q.hint && !isAnswered && (() => {
+                          const tier = (hintTier[qIdx] ?? 1) as HintTier;
+                          const { tier1, tier2 } = splitHintTiers(q.hint);
+                          const revealed = tier >= 3
+                            ? q.options[q.correctIndex] ?? ''
+                            : tier >= 2
+                            ? tier2
+                            : tier1 || tier2;
+                          return (
+                            <div
+                              style={{
+                                backgroundColor: tier >= 3
+                                  ? 'rgba(16, 185, 129, 0.10)'
+                                  : 'rgba(245, 158, 11, 0.12)',
+                                borderColor: tier >= 3 ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                              }}
+                              className="p-4 sm:p-6 rounded-2xl border text-sm sm:text-base leading-relaxed flex items-start gap-3 animate-in fade-in"
+                            >
+                              {tier >= 3 ? (
+                                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                              ) : (
+                                <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                              )}
+                              <div className="flex-1 font-bold" style={{ color: 'var(--text-primary)' }}>
+                                <span className={`font-extrabold ${tier >= 3 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                  {tier >= 3
+                                    ? (isGirls ? 'إجابة السؤال يا باشمهندسة — هراجعها معاكي في الدفتر بكرة 📖' : 'إجابة السؤال يا هندسة — هراجعها معاك في الدفتر بكرة 📖')
+                                    : getQuizHintPrefix(qIdx, isGirls)}
+                                </span>
+                                <MathRenderer text={revealed} />
+                                {tier < 3 && (
+                                  <span className="block text-[11px] sm:text-xs font-bold mt-2" style={{ color: 'var(--text-muted)' }}>
+                                    الدرجة {tier} من 3 — لسه في درجات أعلى لو محتاج
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Options Buttons */}
                         <div className="space-y-3 pt-2">
@@ -1731,6 +1872,7 @@ function LectureContent() {
                                   const userAnswerText = q.options[optIdx] ?? '';
                                   const correctAnswerText = q.options[q.correctIndex] ?? '';
                                   const isCorrect = optIdx === q.correctIndex;
+                                  const tierUsed = (hintTier[qIdx] ?? 0) as HintTier;
 
                                   // Deterministic question hash
                                   let hashVal = 0;
@@ -1755,9 +1897,25 @@ function LectureContent() {
                                       durationMs,
                                       'medium', // Default to medium until explicit confidence assessment UI is chosen
                                       q.hint ?? '',
-                                      showHints[qIdx] ? 1 : 0
+                                      tierUsed
                                     );
                                   }
+
+                                  // Cognitive Guard: consecutive-wrong streak
+                                  setConsecutiveWrong((prev) => {
+                                    const streak = isCorrect ? 0 : prev + 1;
+                                    if (
+                                      !burnoutShownRef.current &&
+                                      shouldShowBurnoutRelief({
+                                        consecutiveWrong: streak,
+                                        dwellMs: durationMs,
+                                      })
+                                    ) {
+                                      burnoutShownRef.current = true;
+                                      setShowBurnoutRelief(true);
+                                    }
+                                    return streak;
+                                  });
 
                                   let correctCount = 0;
                                   Object.entries(next).forEach(([idx, chosen]) => {
@@ -1948,6 +2106,30 @@ function LectureContent() {
         isOpen={showMistakeNotebook}
         onClose={() => setShowMistakeNotebook(false)}
       />
+
+      {/* Phase 3.3 — Cognitive Guard: compassionate burnout relief */}
+      {showBurnoutRelief && activeTab === 'quiz' && (() => {
+        // Stuck question = first unanswered one the student has seen
+        const stuckIdx = quizQuestions.findIndex(
+          (q, i) => userAnswers[i] === undefined && questionStartTimesRef.current[i]
+        );
+        const targetIdx = stuckIdx >= 0 ? stuckIdx : quizQuestions.findIndex((q, i) => userAnswers[i] === undefined);
+        return (
+          <BurnoutReliefModal
+            isGirls={isGirls}
+            questionHint={targetIdx >= 0 ? quizQuestions[targetIdx]?.hint ?? null : null}
+            onClose={() => setShowBurnoutRelief(false)}
+            onOpenHint={() => {
+              if (targetIdx >= 0) {
+                setHintTier((prev) => ({ ...prev, [targetIdx]: 2 }));
+                setShowHints((prev) => ({ ...prev, [targetIdx]: true }));
+                quizCardRefs.current[targetIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+              setShowBurnoutRelief(false);
+            }}
+          />
+        );
+      })()}
 
       {/* Academic Footer */}
       <footer
