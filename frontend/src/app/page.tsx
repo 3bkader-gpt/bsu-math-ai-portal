@@ -23,6 +23,7 @@ import {
   Menu
 } from 'lucide-react';
 import MobileNavDrawer from '@/components/MobileNavDrawer';
+import StaplePin3D from '@/components/StaplePin3D';
 import { getApiUrl } from '@/lib/api';
 import { 
   getDirectSupabaseSubjects, 
@@ -514,6 +515,37 @@ export default function Home() {
   const [isWrapUpOpen, setIsWrapUpOpen] = useState(false);
   const [isMistakeNotebookOpen, setIsMistakeNotebookOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
+
+  // Dynamic time-of-day greeting (كلمة ع الماشي / رادار المحاضرات)
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      setTimeGreeting({
+        icon: '☕',
+        title: isGirls ? 'صباح الفل والروقان' : 'صباح النشاط والتركيز',
+        subtitle: isGirls
+          ? 'فنجان نسكافيهك الرايق ومحاضرة د/ سيد.. يومك لطيف وسالك بإذن الله ✨'
+          : 'فنجان قهوتك ومحاضرة د/ سيد.. يومك سالك وموفق بإذن الله 🎯',
+      });
+    } else if (hour >= 12 && hour < 17) {
+      setTimeGreeting({
+        icon: '⏱️',
+        title: isGirls ? 'شدي حيلك يا باشمهندسة' : 'وقت الإنتاجية والإنجاز',
+        subtitle: isGirls
+          ? 'لميلك مسألتين في السريع واليوم هيعدي زي الفل 🌸'
+          : 'لملك مسألتين في السريع قبل ما اليوم يهرب، الزتونة معاك 💪',
+      });
+    } else {
+      setTimeGreeting({
+        icon: '🌙',
+        title: isGirls ? 'سهرة مذاكرة رايقة' : 'سهرة الدحيحة',
+        subtitle: isGirls
+          ? 'سهرانة مع المعادلات والنظريات؟ متقلقيش، الزتونة هنا هتلملك الدنيا 🎀'
+          : 'سهران مع فيرما والمعادلات؟ متقلقش، الزتونة هنا هتلملك الحوار 🚀',
+      });
+    }
+  }, [isGirls]);
 
   // Initialize session KPI telemetry on first visit
   useEffect(() => {
@@ -655,7 +687,7 @@ export default function Home() {
   return (
     <div
       style={{
-        backgroundColor: 'var(--bg-page)',
+        backgroundColor: 'transparent',
         color: 'var(--text-primary)',
       }}
       className="min-h-screen flex flex-col transition-colors duration-200"
@@ -827,6 +859,26 @@ export default function Home() {
             />
             <Search className="w-4 h-4 absolute right-3.5 top-[15px] sm:top-[18px] pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           </div>
+
+          {/* Dynamic Academic Radar / Student Greeting Widget */}
+          {timeGreeting && (
+            <div
+              style={{
+                backgroundColor: 'var(--bg-surface-elevated)',
+                borderColor: 'var(--border-subtle)',
+                boxShadow: 'var(--card-shadow)',
+              }}
+              className="inline-flex items-center justify-center flex-wrap gap-2 px-4 py-2 sm:px-6 sm:py-2.5 rounded-2xl border text-xs sm:text-sm font-semibold max-w-2xl mx-auto shadow-xs text-center animate-in fade-in transition-all"
+            >
+              <span className="text-base sm:text-lg shrink-0 select-none">{timeGreeting.icon}</span>
+              <span className="font-black" style={{ color: 'var(--accent-primary)' }}>
+                {timeGreeting.title}:
+              </span>
+              <span style={{ color: 'var(--text-secondary)' }}>
+                {timeGreeting.subtitle}
+              </span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1227,12 +1279,19 @@ export default function Home() {
                             backgroundColor: 'var(--bg-surface-elevated)',
                             borderColor: isReady ? 'var(--border-subtle)' : 'var(--border-prominent)',
                           }}
-                          className={`lecture-card p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between shadow-sm ${
+                          className={`lecture-card p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between shadow-sm relative overflow-hidden ${
                             isReady 
-                              ? 'cursor-pointer group hover:border-cyan-500 hover:shadow-md' 
+                              ? 'cursor-pointer group hover:border-cyan-500 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0' 
                               : 'opacity-85 select-none'
                           }`}
                         >
+                          {/* Realistic 3D Metallic Staple Pin for Ready Lectures */}
+                          {isReady && (
+                            <StaplePin3D
+                              isGirls={isGirls}
+                              className="absolute top-2 left-2 sm:top-3 sm:left-3 group-hover:scale-110 group-hover:-translate-y-0.5"
+                            />
+                          )}
                           <div className="mb-4">
                             <div className="lecture-card-header-inner gap-2.5 sm:gap-4">
                               <div

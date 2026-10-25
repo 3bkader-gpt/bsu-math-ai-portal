@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import MathRenderer from './MathRenderer';
 import { ChevronRight, ChevronLeft, RotateCcw, Sparkles, Layers } from 'lucide-react';
 import contentData from '@/data/content.json';
+import PaperClip3D from './PaperClip3D';
 
 interface Flashcard {
   question: string;
@@ -18,6 +19,16 @@ interface FlashcardsViewerProps {
 export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isGirls, setIsGirls] = useState(false);
+
+  useEffect(() => {
+    setIsGirls(document.documentElement.getAttribute('data-persona') === 'girls');
+    const handlePersonaChange = () => {
+      setIsGirls(document.documentElement.getAttribute('data-persona') === 'girls');
+    };
+    window.addEventListener('bsu_theme_changed', handlePersonaChange);
+    return () => window.removeEventListener('bsu_theme_changed', handlePersonaChange);
+  }, []);
 
   const toggleFlip = () => {
     setIsFlipped((prev) => {
@@ -114,60 +125,136 @@ export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerPr
         </button>
       </div>
 
-      {/* Interactive Card */}
-      <div
-        id="flashcard-card-box"
-        onClick={toggleFlip}
-        className="w-full min-h-[260px] sm:min-h-[340px] cursor-pointer select-none group"
-      >
+      {/* Interactive 3D Physics Card with Deck Stacking */}
+      <div className="flashcard-3d-scene w-full pb-10 pt-2 px-3 sm:px-6">
         <div
-          style={{
-            backgroundColor: isFlipped ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
-            borderColor: isFlipped ? 'var(--accent-emerald)' : 'var(--border-subtle)',
-            boxShadow: 'var(--card-shadow)',
-          }}
-          className="w-full min-h-[260px] sm:min-h-[340px] rounded-2xl sm:rounded-3xl p-5 sm:p-10 border transition-all duration-200 flex flex-col justify-between"
+          id="flashcard-card-box"
+          onClick={toggleFlip}
+          className="card-deck-stack w-full min-h-[280px] sm:min-h-[350px] rounded-2xl sm:rounded-3xl cursor-pointer select-none group transition-transform duration-300 hover:scale-[1.01] active:scale-[0.99]"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span
-              style={{
-                backgroundColor: isFlipped ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-surface-elevated)',
-                borderColor: isFlipped ? 'var(--accent-emerald)' : 'var(--border-prominent)',
-                color: isFlipped ? 'var(--accent-emerald)' : 'var(--accent-primary)',
-              }}
-              className="px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full font-bold border flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs shrink-0 whitespace-nowrap"
-            >
-              <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              <span>{isFlipped ? contentData.flashcardsTab.answerBadge : contentData.flashcardsTab.questionBadge}</span>
-            </span>
-
-            <span
-              className="group-hover:opacity-100 opacity-70 transition-opacity flex items-center gap-1 text-[11px] sm:text-xs font-semibold"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              <span>{contentData.flashcardsTab.tapToFlip}</span>
-              <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </span>
-          </div>
-
-          {/* Card Body */}
-          <div className="py-5 sm:py-8 text-center my-auto">
-            <div
-              className="text-base sm:text-2xl font-bold leading-relaxed transition-all"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              <MathRenderer text={isFlipped ? currentCard.answer : currentCard.question} />
-            </div>
-          </div>
-
-          {/* Footer */}
           <div
-            className="text-center text-xs sm:text-sm pt-4 border-t flex items-center justify-between"
-            style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
+            className={`flashcard-3d-card w-full min-h-[280px] sm:min-h-[350px] ${
+              isFlipped ? 'is-flipped' : ''
+            }`}
           >
-            <span className="font-medium">{isFlipped ? contentData.flashcardsTab.backHint : contentData.flashcardsTab.frontHint}</span>
-            <span className="text-xs">{contentData.flashcardsTab.navigationHelp}</span>
+            {/* FRONT FACE (Question) */}
+            <div
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+                boxShadow: 'var(--card-shadow)',
+              }}
+              className="flashcard-face w-full min-h-[280px] sm:min-h-[350px] rounded-2xl sm:rounded-3xl p-5 sm:p-10 border flex flex-col justify-between relative overflow-visible"
+            >
+              {/* 3D Metallic Paperclip clipping top edge of flashcard */}
+              <PaperClip3D
+                isGirls={isGirls}
+                className="absolute -top-3.5 left-1/2 -translate-x-1/2 group-hover:-translate-y-1 group-hover:scale-105"
+              />
+
+              {/* Header */}
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span
+                  style={{
+                    backgroundColor: 'var(--bg-surface-elevated)',
+                    borderColor: 'var(--border-prominent)',
+                    color: 'var(--accent-primary)',
+                  }}
+                  className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full font-bold border flex items-center gap-1.5 sm:gap-2 shadow-xs text-xs shrink-0 whitespace-nowrap"
+                >
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">{contentData.flashcardsTab.questionBadge}</span>
+                  <span className="sm:hidden">سؤال</span>
+                </span>
+
+                <span
+                  className="group-hover:opacity-100 opacity-70 transition-opacity flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 shrink-0 whitespace-nowrap"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  <span className="hidden sm:inline">{contentData.flashcardsTab.tapToFlip}</span>
+                  <span className="sm:hidden">اقلب الكارت</span>
+                  <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-300 group-hover:rotate-45" />
+                </span>
+              </div>
+
+              {/* Card Body */}
+              <div className="py-6 sm:py-10 text-center my-auto">
+                <div
+                  className="text-base sm:text-2xl font-bold leading-relaxed"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <MathRenderer text={currentCard.question} />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div
+                className="text-center text-xs sm:text-sm pt-4 border-t flex items-center justify-between"
+                style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
+              >
+                <span className="font-medium">{contentData.flashcardsTab.frontHint}</span>
+                <span className="text-xs hidden sm:inline">{contentData.flashcardsTab.navigationHelp}</span>
+              </div>
+            </div>
+
+            {/* BACK FACE (Answer) */}
+            <div
+              style={{
+                backgroundColor: 'var(--bg-surface-elevated)',
+                borderColor: 'var(--accent-emerald)',
+                boxShadow: 'var(--card-shadow)',
+              }}
+              className="flashcard-face flashcard-face-back absolute inset-0 w-full min-h-[280px] sm:min-h-[350px] rounded-2xl sm:rounded-3xl p-5 sm:p-10 border flex flex-col justify-between overflow-visible"
+            >
+              {/* 3D Metallic Paperclip on flipped back face */}
+              <PaperClip3D
+                isGirls={isGirls}
+                className="absolute -top-3.5 left-1/2 -translate-x-1/2 group-hover:-translate-y-1 group-hover:scale-105"
+              />
+
+              {/* Header */}
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span
+                  style={{
+                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                    borderColor: 'var(--accent-emerald)',
+                    color: 'var(--accent-emerald)',
+                  }}
+                  className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full font-bold border flex items-center gap-1.5 sm:gap-2 shadow-xs text-xs shrink-0 whitespace-nowrap"
+                >
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">{contentData.flashcardsTab.answerBadge}</span>
+                  <span className="sm:hidden">إجابة</span>
+                </span>
+
+                <span
+                  className="group-hover:opacity-100 opacity-70 transition-opacity flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 shrink-0 whitespace-nowrap"
+                >
+                  <span className="hidden sm:inline">{contentData.flashcardsTab.tapToFlip}</span>
+                  <span className="sm:hidden">اقلب الكارت</span>
+                  <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                </span>
+              </div>
+
+              {/* Card Body */}
+              <div className="py-6 sm:py-10 text-center my-auto">
+                <div
+                  className="text-base sm:text-2xl font-bold leading-relaxed"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <MathRenderer text={currentCard.answer} />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div
+                className="text-center text-xs sm:text-sm pt-4 border-t flex items-center justify-between"
+                style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
+              >
+                <span className="font-medium">{contentData.flashcardsTab.backHint}</span>
+                <span className="text-xs hidden sm:inline">{contentData.flashcardsTab.navigationHelp}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

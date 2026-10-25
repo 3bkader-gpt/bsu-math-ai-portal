@@ -113,8 +113,23 @@ export function MistakeNotebookModal({
           borderColor: 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)',
         }}
-        className="w-full max-w-2xl rounded-3xl border overflow-hidden shadow-2xl relative flex flex-col max-h-[92vh]"
+        className="w-full max-w-2xl rounded-3xl border shadow-2xl relative flex flex-col max-h-[92vh] pt-2"
       >
+        {/* Spiral Notebook Wire Bindings (كشكول سلك معدني مجسم) */}
+        <div className="absolute -top-3.5 left-6 right-6 flex items-center justify-around pointer-events-none z-30">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="w-2.5 sm:w-3 h-6 sm:h-7 rounded-full border"
+              style={{
+                background: 'linear-gradient(180deg, #ffffff 0%, #cbd5e1 40%, #64748b 80%, #334155 100%)',
+                borderColor: 'rgba(51, 65, 85, 0.5)',
+                boxShadow: '0 3px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.9)',
+              }}
+            />
+          ))}
+        </div>
+
         {/* Header */}
         <div
           style={{ borderColor: 'var(--border-subtle)' }}

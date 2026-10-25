@@ -85,7 +85,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen antialiased transition-colors duration-200 overflow-x-clip max-w-[100vw] w-full">
+      <body className="min-h-screen antialiased transition-colors duration-200 overflow-x-clip max-w-[100vw] w-full math-notebook-grid">
         <GamificationInitializer />
         <GamificationHost />
         {children}

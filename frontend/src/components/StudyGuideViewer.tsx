@@ -290,9 +290,9 @@ export function RawStudyGuideViewer({ content, onDwell }: StudyGuideViewerProps)
     // Standard Paragraph
     else {
       elements.push(
-        <p key={`p-${keyIdx++}`} className="my-4 text-base sm:text-lg leading-loose" style={{ color: 'var(--text-secondary)' }}>
+        <div key={`p-${keyIdx++}`} className="my-4 text-base sm:text-lg leading-loose" style={{ color: 'var(--text-secondary)' }}>
           <MathRenderer text={trimmed} />
-        </p>
+        </div>
       );
     }
   }
