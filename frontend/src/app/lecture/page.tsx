@@ -34,6 +34,7 @@ import {
   ExternalLink,
   GraduationCap,
   Brain,
+  Coffee,
   Menu
 } from 'lucide-react';
 import MobileNavDrawer from '@/components/MobileNavDrawer';
@@ -68,7 +69,7 @@ import {
   flushResumeState,
   getLocalResumeState,
 } from '@/modules/gamification/resume';
-import { MistakeNotebookModal, SessionFlowBar } from '@/modules/gamification/ui';
+import { MistakeNotebookModal, SessionFlowBar, EthicalWrapUpModal } from '@/modules/gamification/ui';
 import {
   BURNOUT,
   nextHintAction,
@@ -78,6 +79,16 @@ import {
   type HintTier,
 } from '@/modules/gamification/core/hintLadder';
 import BurnoutReliefModal from '@/modules/gamification/ui/BurnoutReliefModal';
+import {
+  diagnoseWrongAnswer,
+  ETHICAL_EXIT,
+  pickPraise,
+  trackPraise,
+  type Persona,
+} from '@/modules/gamification/core/compassionateFeedback';
+import { vibrateCorrect, vibrateWrong } from '@/lib/haptics';
+import { playSound } from '@/lib/audio/soundEngine';
+import { triggerConfetti } from '@/lib/effects/confetti';
 
 const DEFAULT_MATH_FLASHCARDS: Flashcard[] = [
   {
@@ -227,6 +238,14 @@ function LectureContent() {
   const burnoutShownRef = useRef(false);
   const burnoutTimerRef = useRef<number | null>(null);
   const quizCardRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  // Phase 4 — Compassionate feedback (praise bank + diagnostics + micro-delight)
+  const [answerFeedback, setAnswerFeedback] = useState<Record<number, string>>({});
+  const [showEthicalExit, setShowEthicalExit] = useState(false);
+  const [ethicalWrapUpOpen, setEthicalWrapUpOpen] = useState(false);
+  const [easterEgg, setEasterEgg] = useState<string | null>(null);
+  const praiseRecentRef = useRef<string[]>([]);
+  const correctStreakRef = useRef(0);
 
   // Seed each question's dwell clock on first visibility (scroll-into-view).
   useEffect(() => {
@@ -1466,6 +1485,9 @@ function LectureContent() {
                               setHintTier({});
                               setScore(null);
                               setConsecutiveWrong(0);
+                              setAnswerFeedback({});
+                              setShowEthicalExit(false);
+                              correctStreakRef.current = 0;
                               burnoutShownRef.current = false;
                               questionStartTimesRef.current = {};
                               quizDetectorRef.current?.reset();
@@ -1513,7 +1535,47 @@ function LectureContent() {
                           <Brain className="w-4 h-4" />
                           <span>كراسة الأخطاء 🧠</span>
                         </button>
+
+                        {/* Phase 4.4 — Ethical exit: appears when the quiz is completed */}
+                        {showEthicalExit && (
+                          <button
+                            type="button"
+                            onClick={() => setShowEthicalExit((prev) => !prev)}
+                            style={{
+                              backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                              borderColor: 'var(--accent-emerald)',
+                              color: 'var(--accent-emerald)',
+                            }}
+                            className="px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 shadow-xs animate-in fade-in"
+                          >
+                            <Coffee className="w-4 h-4" />
+                            <span>{ETHICAL_EXIT.button(isGirls ? 'girls' : 'boys')}</span>
+                          </button>
+                        )}
                       </div>
+
+                      {/* Phase 4.4 — Ethical exit supportive panel */}
+                      {showEthicalExit && (
+                        <div
+                          className="p-4 rounded-2xl border flex items-start justify-between gap-3 animate-in fade-in"
+                          style={{
+                            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                            borderColor: 'var(--accent-emerald)',
+                          }}
+                        >
+                          <p className="text-xs sm:text-sm font-black leading-relaxed flex-1" style={{ color: 'var(--text-primary)' }}>
+                            {ETHICAL_EXIT.headline(isGirls ? 'girls' : 'boys')}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setEthicalWrapUpOpen(true)}
+                            className="px-4 py-2 rounded-xl text-xs font-black shrink-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+                            style={{ backgroundColor: 'var(--accent-emerald)', color: '#ffffff' }}
+                          >
+                            عرض ملخص يومك 📊
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Progress Bar */}
@@ -1642,7 +1704,7 @@ function LectureContent() {
                         {/* Interactive Hero Reaction Card when answered */}
                         {isAnswered && (() => {
                           const isCorrect = selectedOpt === q.correctIndex;
-                          const feedbackMsg = getQuizFeedback(qIdx, isCorrect, isGirls);
+                          const feedbackMsg = answerFeedback[qIdx] ?? getQuizFeedback(qIdx, isCorrect, isGirls);
                           const mascot = getMascotEmoji(feedbackMsg, isCorrect, isGirls);
 
                           return (
@@ -1697,9 +1759,21 @@ function LectureContent() {
                                             ? 'شطارة وتركيز عالي جداً.. الله ينور عليكي يا بطلة! 🌸✨'
                                             : 'تسلم إيدك وعاش تركيزك يا بطل! 🎯')
                                         : (isGirls
-                                            ? 'ولا تشيلي هم خالص! الغلط بيعلمنا أكتر.. بصي على الشرح أو جربي تاني 💪'
-                                            : 'فداك يا هندسة! راجع الفكرة وجرب تختار إجابة تانية 💡')}
+                                            ? 'ولا تشيلي هم خالص! التلمتري بيعلمنا أكتر.. بصي على التشخيص تحت أو جربي تاني 💪'
+                                            : 'فداك يا هندسة! التشخيص تحت يقولك فين النقطة بالظبط 💡')}
                                     </p>
+                                    {!isCorrect && answerFeedback[qIdx] && (
+                                      <p
+                                        className="text-xs sm:text-sm font-black mt-1.5 px-3 py-2 rounded-xl animate-in fade-in"
+                                        style={{
+                                          backgroundColor: 'rgba(245, 158, 11, 0.10)',
+                                          border: '1px solid var(--accent-amber)',
+                                          color: 'var(--text-primary)',
+                                        }}
+                                      >
+                                        🧭 {answerFeedback[qIdx]}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
 
@@ -1711,6 +1785,13 @@ function LectureContent() {
                                       const next = { ...userAnswers };
                                       delete next[qIdx];
                                       setUserAnswers(next);
+                                      setAnswerFeedback((prev) => {
+                                        const copy = { ...prev };
+                                        delete copy[qIdx];
+                                        return copy;
+                                      });
+                                      setShowEthicalExit(false);
+                                      questionStartTimesRef.current[qIdx] = Date.now();
                                       let correctCount = 0;
                                       Object.entries(next).forEach(([idx, chosen]) => {
                                         if (quizQuestions[parseInt(idx)]?.correctIndex === chosen) {
@@ -1917,6 +1998,23 @@ function LectureContent() {
                                     return streak;
                                   });
 
+                                  // Phase 4 — Compassionate feedback + micro-delight
+                                  const persona: Persona = isGirls ? 'girls' : 'boys';
+                                  if (isCorrect) {
+                                    correctStreakRef.current += 1;
+                                    const praise = pickPraise(persona, praiseRecentRef.current);
+                                    praiseRecentRef.current = trackPraise(praiseRecentRef.current, praise);
+                                    setAnswerFeedback((prev) => ({ ...prev, [qIdx]: praise }));
+                                    vibrateCorrect();
+                                    playSound('quiz_correct', { semitones: correctStreakRef.current - 1 });
+                                  } else {
+                                    correctStreakRef.current = 0;
+                                    const diagnosis = diagnoseWrongAnswer(userAnswerText, correctAnswerText, persona);
+                                    setAnswerFeedback((prev) => ({ ...prev, [qIdx]: diagnosis.message }));
+                                    vibrateWrong();
+                                    playSound('quiz_wrong');
+                                  }
+
                                   let correctCount = 0;
                                   Object.entries(next).forEach(([idx, chosen]) => {
                                     if (quizQuestions[parseInt(idx)]?.correctIndex === chosen) {
@@ -1927,6 +2025,11 @@ function LectureContent() {
 
                                   if (Object.keys(next).length === quizQuestions.length) {
                                     quizDetectorRef.current?.submitQuiz(correctCount, quizQuestions.length);
+                                    // Phase 4 — milestone confetti + ethical exit offer
+                                    if (correctCount === quizQuestions.length) {
+                                      triggerConfetti('epic');
+                                    }
+                                    setShowEthicalExit(true);
                                   }
                                 }}
                                 style={optStyle}
@@ -2107,6 +2210,59 @@ function LectureContent() {
         onClose={() => setShowMistakeNotebook(false)}
       />
 
+      {/* Phase 4.4 — Ethical wrap-up (stats from this quiz attempt) */}
+      <EthicalWrapUpModal
+        isOpen={ethicalWrapUpOpen}
+        onClose={() => setEthicalWrapUpOpen(false)}
+        stats={{
+          conceptsLearned: quizQuestions.length,
+          cardsReviewed: flashcards.length || undefined,
+          quizAccuracy: score !== null && quizQuestions.length > 0
+            ? Math.round((score / quizQuestions.length) * 100)
+            : undefined,
+        }}
+      />
+
+      {/* Phase 4.5 — Mathematical easter eggs (π / e / 1729 trivia) */}
+      {easterEgg && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in"
+          onClick={() => setEasterEgg(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            onClick={(ev) => ev.stopPropagation()}
+            className="w-full max-w-sm rounded-3xl border p-6 text-center shadow-2xl animate-in zoom-in-95"
+            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-prominent)' }}
+          >
+            <div className="text-4xl mb-3">{easterEgg === 'pi' ? '🥧' : easterEgg === 'e' ? '📈' : '🚕'}</div>
+            <h4 className="text-lg font-black mb-2" style={{ color: 'var(--text-primary)' }}>
+              {easterEgg === 'pi'
+                ? 'π — ثابت لا نهائي'
+                : easterEgg === 'e'
+                ? 'e — أساس النمو الطبيعي'
+                : '1729 — رقم التاكسي الأسطوري'}
+            </h4>
+            <p className="text-sm font-bold leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              {easterEgg === 'pi'
+                ? 'لو طبعت π بعد 40 رقم بس، تحسب بها دائرة حجمها مجرة درب التبانة بدقة ذرة هيدروجين! اكتشفه ويليام جونز 1706 واشتهر بأويلر.'
+                : easterEgg === 'e'
+                ? 'ايلر أثبت إن e أساس اللوغاريتم الطبيعي وهو مجموع (1/n!) إلى ما لا نهاية ≈ 2.718 — وبيظهر في كل نمو طبيعي من الفايدة المركبة للنووية.'
+                : 'لما راح هاردي لزيارة رامانوجان قال إن رقم تاكسيه 1729 ممل... فرد عليه رامانوجان: لأ! أصغر رقم يتحسب مجموع مكعبين بطريقتين مختلفتين (1³+12³ = 9³+10³).'}
+            </p>
+            <button
+              type="button"
+              onClick={() => setEasterEgg(null)}
+              className="mt-4 px-5 py-2.5 rounded-2xl text-xs font-black cursor-pointer transition-all hover:scale-105"
+              style={{ backgroundColor: 'var(--accent-primary)', color: '#ffffff' }}
+            >
+              جميل! 🧠✨
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Phase 3.3 — Cognitive Guard: compassionate burnout relief */}
       {showBurnoutRelief && activeTab === 'quiz' && (() => {
         // Stuck question = first unanswered one the student has seen
@@ -2151,6 +2307,23 @@ function LectureContent() {
           >
             <span>← العودة للرئيسية</span>
           </Link>
+        </div>
+
+        {/* Phase 4.5 — Mathematical easter eggs: click a constant for trivia */}
+        <div className="mt-5 flex items-center justify-center gap-2 select-none">
+          {([['π', 'pi'], ['e', 'e'], ['1729', '1729']] as const).map(([label, key]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setEasterEgg(key)}
+              dir="ltr"
+              title="اضغط لحكاية رياضيات"
+              className="px-3 py-1 rounded-full border text-[11px] font-mono font-bold cursor-pointer transition-all hover:scale-110 hover:opacity-100 opacity-50"
+              style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </footer>
 
