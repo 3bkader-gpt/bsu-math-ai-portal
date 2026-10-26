@@ -70,6 +70,7 @@ import {
   getLocalResumeState,
 } from '@/modules/gamification/resume';
 import { MistakeNotebookModal, SessionFlowBar, EthicalWrapUpModal, ConfidenceSelector } from '@/modules/gamification/ui';
+import { useSmartHeaderVisibility } from '@/lib/useSmartHeaderVisibility';
 import {
   BURNOUT,
   nextHintAction,
@@ -255,6 +256,7 @@ function LectureContent() {
 
   // Phase 5 — Fair play & meta-cognition
   const [confidenceLevels, setConfidenceLevels] = useState<Record<number, ConfidenceLevel>>({});
+  const isHeaderVisible = useSmartHeaderVisibility({ threshold: 12, topBoundary: 25 });
 
   // Seed each question's dwell clock on first visibility (scroll-into-view).
   useEffect(() => {
@@ -596,13 +598,18 @@ function LectureContent() {
       }}
       className="min-h-screen flex flex-col transition-colors duration-200"
     >
-      {/* Top Academic Navigation Bar */}
+      {/* Top Academic Navigation Bar (Auto-hides on scroll-down, reveals on scroll-up to maximize screen real estate) */}
       <header
         style={{
           backgroundColor: 'var(--bg-surface-translucent)',
           borderColor: 'var(--border-subtle)',
+          boxShadow: isHeaderVisible ? 'var(--card-shadow)' : 'none',
         }}
-        className="sticky top-0 z-40 border-b backdrop-blur-md transition-colors"
+        className={`sticky top-0 z-40 border-b backdrop-blur-md transition-all duration-300 ease-in-out ${
+          isHeaderVisible
+            ? 'translate-y-0 opacity-100'
+            : '-translate-y-full opacity-0 pointer-events-none'
+        }`}
       >
         <div className="max-w-6xl mx-auto px-3 sm:px-6 min-h-[3.25rem] sm:min-h-[3.75rem] py-1.5 flex items-center justify-between gap-2 sm:gap-3">
           
@@ -663,7 +670,7 @@ function LectureContent() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="md:hidden p-1.5 rounded-lg border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer shrink-0"
+              className="lg:hidden p-1.5 rounded-lg border flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer shrink-0"
               title="القائمة والإعدادات"
               aria-label="القائمة والإعدادات"
             >
