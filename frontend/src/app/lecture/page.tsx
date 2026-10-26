@@ -39,6 +39,8 @@ import {
 } from 'lucide-react';
 import MobileNavDrawer from '@/components/MobileNavDrawer';
 import StaplePin3D from '@/components/StaplePin3D';
+import DeveloperCreditsModal from '@/components/DeveloperCreditsModal';
+import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
 import { AcademicLectureBundle, AcademicMediaAsset } from '@/types/academic';
@@ -184,6 +186,7 @@ function LectureContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isDevCreditsOpen, setIsDevCreditsOpen] = useState(false);
 
   // Active Tab with immediate transition logging
   const [activeTab, setActiveTabState] = useState<'audio' | 'video' | 'quiz' | 'guide' | 'flashcards'>('audio');
@@ -2338,6 +2341,15 @@ function LectureContent() {
             <p className="font-semibold" style={{ color: 'var(--text-secondary)' }}>{content.footer.copyright}</p>
             <p className="mt-0.5">{content.footer.description}</p>
           </div>
+
+          {/* Developer Credits Pill */}
+          <div className="flex items-center justify-center my-2 sm:my-0">
+            <DeveloperCreditsPill
+              isGirls={isGirls}
+              onClick={() => setIsDevCreditsOpen(true)}
+            />
+          </div>
+
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 font-bold hover:underline"
@@ -2371,6 +2383,14 @@ function LectureContent() {
         onClose={() => setIsMobileNavOpen(false)}
         isGirls={isGirls}
         isDark={isDark}
+        onOpenDevCredits={() => setIsDevCreditsOpen(true)}
+      />
+
+      {/* Developer Credits Modal */}
+      <DeveloperCreditsModal
+        isOpen={isDevCreditsOpen}
+        onClose={() => setIsDevCreditsOpen(false)}
+        isGirls={isGirls}
       />
     </div>
   );
