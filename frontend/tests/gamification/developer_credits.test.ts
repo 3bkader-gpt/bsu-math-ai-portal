@@ -12,10 +12,21 @@ describe('Artisan Developer Credits Integration', () => {
   describe('DeveloperCreditsModal Component', () => {
     const modalCode = fs.readFileSync(modalPath, 'utf8');
 
-    it('contains exact developer identity: عبقادر', () => {
+    it('contains exact developer identity and horizontal ID badges: عبقادر', () => {
       expect(modalCode).toContain('عبقادر');
-      expect(modalCode).toContain('مطور ومصمم المنصة');
-      expect(modalCode).toContain('كلية التربية • تانية رياضيات وذكاء اصطناعي');
+      expect(modalCode).toContain('تانية تربية رياضة');
+      expect(modalCode).toContain('المطور');
+    });
+
+    it('contains Idea 3 friendly exam copy', () => {
+      expect(modalCode).toContain('الموقع ده اتعمل عشان مالناش حجة');
+      expect(modalCode).toContain('ذاكر بقى أو بصمج براحتك، المهم نعدي السنة دي على خير!');
+      expect(modalCode).toContain('لو شايف حاجة ناقصة أو عندك اقتراح يظبط الدنيا، خش كلمني من غير رسميات.');
+    });
+
+    it('contains exact verified WhatsApp link and number: 01023100767', () => {
+      expect(modalCode).toContain('https://wa.me/201023100767');
+      expect(modalCode).toContain('01023100767');
     });
 
     it('contains exact verified Instagram profile URL and handle', () => {
@@ -28,6 +39,13 @@ describe('Artisan Developer Credits Integration', () => {
       expect(modalCode).toContain('3bkader-gpt');
     });
 
+    it('implements split action buttons: WhatsApp idea action and cheer button', () => {
+      expect(modalCode).toContain('ابعت فكرة أو ضيف داتا');
+      expect(modalCode).toContain('دعوة حلوة');
+      expect(modalCode).toContain('bsu_dev_cheers');
+      expect(modalCode).toContain('bsu_dev_user_cheered');
+    });
+
     it('implements landscape safety and scroll guards', () => {
       expect(modalCode).toContain('max-h-[92dvh]');
       expect(modalCode).toContain('overflow-y-auto');
@@ -38,11 +56,6 @@ describe('Artisan Developer Credits Integration', () => {
       expect(modalCode).toContain("e.key === 'Escape'");
       expect(modalCode).toContain('e.target === e.currentTarget');
       expect(modalCode).toContain('onClose()');
-    });
-
-    it('has interactive cheer with localStorage persistence', () => {
-      expect(modalCode).toContain('bsu_dev_cheers');
-      expect(modalCode).toContain('bsu_dev_user_cheered');
     });
   });
 
