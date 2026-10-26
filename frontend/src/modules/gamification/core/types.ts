@@ -33,6 +33,7 @@ export interface GamificationState {
   unlockedBadges: string[]; // List of badge IDs
   dailyDate: string; // Current tracked Cairo date (YYYY-MM-DD)
   dailyXpEarned: number; // XP earned today (for daily cap check)
+  lastFreezeRechargeWeek?: string | null; // Cairo calendar week of last freeze top-up
   
   // Counters for badge conditions
   audioCompletedCount: number;

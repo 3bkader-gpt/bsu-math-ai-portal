@@ -28,6 +28,72 @@ export function getDaysDifference(earlierDate: string, laterDate: string): numbe
 }
 
 /**
+ * Adds N calendar days to a YYYY-MM-DD date string.
+ */
+export function getIntermediateDate(dateStr: string, daysToAdd = 1): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + daysToAdd, 12, 0, 0));
+  const ny = dt.getUTCFullYear();
+  const nm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const nd = String(dt.getUTCDate()).padStart(2, '0');
+  return `${ny}-${nm}-${nd}`;
+}
+
+/**
+ * Checks whether a given YYYY-MM-DD date is a Friday (day index 5).
+ */
+export function isFriday(dateStr: string): boolean {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  return dt.getUTCDay() === 5;
+}
+
+/**
+ * Returns the Sunday-anchored week identifier YYYY-MM-DD for Cairo calendar weeks.
+ */
+export function getCairoWeekKey(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const day = dt.getUTCDay(); // 0 is Sunday
+  dt.setUTCDate(dt.getUTCDate() - day);
+  const sy = dt.getUTCFullYear();
+  const sm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const sd = String(dt.getUTCDate()).padStart(2, '0');
+  return `${sy}-${sm}-${sd}`;
+}
+
+export const WEEKLY_FREEZE_ALLOWANCE = 2;
+
+/**
+ * Recharges weekly streak freezes up to WEEKLY_FREEZE_ALLOWANCE (2)
+ * if entering a new Cairo calendar week.
+ */
+export function checkAndRechargeWeeklyFreezes(
+  state: GamificationState,
+  todayCairo: string
+): { nextState: GamificationState; recharged: boolean; freezesAdded: number } {
+  const currentWeek = getCairoWeekKey(todayCairo);
+  if (state.lastFreezeRechargeWeek !== currentWeek) {
+    const nextFreezes = Math.max(state.freezesRemaining, WEEKLY_FREEZE_ALLOWANCE);
+    const added = nextFreezes - state.freezesRemaining;
+    return {
+      nextState: {
+        ...state,
+        freezesRemaining: nextFreezes,
+        lastFreezeRechargeWeek: currentWeek,
+      },
+      recharged: true,
+      freezesAdded: added,
+    };
+  }
+  return {
+    nextState: state,
+    recharged: false,
+    freezesAdded: 0,
+  };
+}
+
+/**
  * Pure function: Evaluates and updates student's streak based on Cairo calendar days.
  */
 export function evaluateDailyStreak(
@@ -106,30 +172,36 @@ export function evaluateDailyStreak(
     };
   }
 
-  // 4. Missed exactly one day (diff === 2): Try streak freeze
-  if (diff === 2 && state.freezesRemaining > 0) {
-    const nextStreak = state.currentStreak + 1;
-    const nextState: GamificationState = {
-      ...state,
-      currentStreak: nextStreak,
-      longestStreak: Math.max(state.longestStreak, nextStreak),
-      lastActiveDate: today,
-      freezesRemaining: state.freezesRemaining - 1,
-    };
-    effects.push(
-      createEffect('streak.updated', {
+  // 4. Missed exactly one day (diff === 2): Check Friday academic exemption or streak freeze
+  if (diff === 2) {
+    const missedDate = getIntermediateDate(lastActive, 1);
+    const fridayExempt = isFriday(missedDate);
+
+    if (fridayExempt || state.freezesRemaining > 0) {
+      const nextStreak = state.currentStreak + 1;
+      const nextState: GamificationState = {
+        ...state,
         currentStreak: nextStreak,
+        longestStreak: Math.max(state.longestStreak, nextStreak),
+        lastActiveDate: today,
+        // Friday academic exemption protects without consuming a freeze
+        freezesRemaining: fridayExempt ? state.freezesRemaining : state.freezesRemaining - 1,
+      };
+      effects.push(
+        createEffect('streak.updated', {
+          currentStreak: nextStreak,
+          isNewDay: true,
+        })
+      );
+      effects.push(createEffect('sound.play', { sound: 'streak_fire' }));
+      return {
+        nextState,
         isNewDay: true,
-      })
-    );
-    effects.push(createEffect('sound.play', { sound: 'streak_fire' }));
-    return {
-      nextState,
-      isNewDay: true,
-      streakExtended: true,
-      streakFrozen: true,
-      effects,
-    };
+        streakExtended: true,
+        streakFrozen: true,
+        effects,
+      };
+    }
   }
 
   // 5. Streak broken (diff > 1 without freeze): Reset to 1

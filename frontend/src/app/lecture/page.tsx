@@ -69,7 +69,7 @@ import {
   flushResumeState,
   getLocalResumeState,
 } from '@/modules/gamification/resume';
-import { MistakeNotebookModal, SessionFlowBar, EthicalWrapUpModal } from '@/modules/gamification/ui';
+import { MistakeNotebookModal, SessionFlowBar, EthicalWrapUpModal, ConfidenceSelector } from '@/modules/gamification/ui';
 import {
   BURNOUT,
   nextHintAction,
@@ -86,6 +86,10 @@ import {
   trackPraise,
   type Persona,
 } from '@/modules/gamification/core/compassionateFeedback';
+import {
+  type ConfidenceLevel,
+  getConfidenceFeedback,
+} from '@/modules/gamification/core/confidence';
 import { vibrateCorrect, vibrateWrong } from '@/lib/haptics';
 import { playSound } from '@/lib/audio/soundEngine';
 import { triggerConfetti } from '@/lib/effects/confetti';
@@ -247,6 +251,9 @@ function LectureContent() {
   const [easterEgg, setEasterEgg] = useState<string | null>(null);
   const praiseRecentRef = useRef<string[]>([]);
   const correctStreakRef = useRef(0);
+
+  // Phase 5 — Fair play & meta-cognition
+  const [confidenceLevels, setConfidenceLevels] = useState<Record<number, ConfidenceLevel>>({});
 
   // Seed each question's dwell clock on first visibility (scroll-into-view).
   useEffect(() => {
@@ -1484,6 +1491,7 @@ function LectureContent() {
                               setUserAnswers({});
                               setShowHints({});
                               setHintTier({});
+                              setConfidenceLevels({});
                               setScore(null);
                               setConsecutiveWrong(0);
                               setAnswerFeedback({});
@@ -1905,6 +1913,14 @@ function LectureContent() {
                           );
                         })()}
 
+                        {/* Phase 5.1 — Pre-Answer Confidence Assessment */}
+                        <ConfidenceSelector
+                          selected={confidenceLevels[qIdx] ?? 'medium'}
+                          onChange={(lvl) => setConfidenceLevels((prev) => ({ ...prev, [qIdx]: lvl }))}
+                          disabled={isAnswered}
+                          isGirls={isGirls}
+                        />
+
                         {/* Options Buttons */}
                         <div className="space-y-3 pt-2">
                           {q.options.map((opt, optIdx) => {
@@ -1966,6 +1982,7 @@ function LectureContent() {
                                   }
                                   const questionHash = 'q_' + Math.abs(hashVal).toString(36);
 
+                                  const chosenConfidence = confidenceLevels[qIdx] ?? 'medium';
                                   if (lectureBundle) {
                                     trackQuizQuestionAnswered(
                                       lectureBundle.id,
@@ -1978,7 +1995,7 @@ function LectureContent() {
                                       correctAnswerText,
                                       isCorrect,
                                       durationMs,
-                                      'medium', // Default to medium until explicit confidence assessment UI is chosen
+                                      chosenConfidence,
                                       q.hint ?? '',
                                       tierUsed
                                     );
@@ -2000,19 +2017,25 @@ function LectureContent() {
                                     return streak;
                                   });
 
-                                  // Phase 4 — Compassionate feedback + micro-delight
+                                  // Phase 4 & Phase 5 — Compassionate feedback & meta-cognition
                                   const persona: Persona = isGirls ? 'girls' : 'boys';
+                                  const confFeedback = getConfidenceFeedback(chosenConfidence, isCorrect, persona);
+
                                   if (isCorrect) {
                                     correctStreakRef.current += 1;
-                                    const praise = pickPraise(persona, praiseRecentRef.current);
+                                    const praise = confFeedback.message
+                                      ? `${confFeedback.headline} ${confFeedback.message}`
+                                      : pickPraise(persona, praiseRecentRef.current);
                                     praiseRecentRef.current = trackPraise(praiseRecentRef.current, praise);
                                     setAnswerFeedback((prev) => ({ ...prev, [qIdx]: praise }));
                                     vibrateCorrect();
                                     playSound('quiz_correct', { semitones: correctStreakRef.current - 1 });
                                   } else {
                                     correctStreakRef.current = 0;
-                                    const diagnosis = diagnoseWrongAnswer(userAnswerText, correctAnswerText, persona);
-                                    setAnswerFeedback((prev) => ({ ...prev, [qIdx]: diagnosis.message }));
+                                    const errorMsg = confFeedback.isMisconception
+                                      ? `${confFeedback.headline} ${confFeedback.message}`
+                                      : diagnoseWrongAnswer(userAnswerText, correctAnswerText, persona).message;
+                                    setAnswerFeedback((prev) => ({ ...prev, [qIdx]: errorMsg }));
                                     vibrateWrong();
                                     playSound('quiz_wrong');
                                   }
