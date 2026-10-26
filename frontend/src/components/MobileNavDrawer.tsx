@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { isAudioMuted, setAudioMuted, playSound } from '@/lib/audio/soundEngine';
 import { THEME_PALETTES, PersonaType, ModeType } from './ThemeToggle';
+import DeveloperCreditsPill from './DeveloperCreditsPill';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface MobileNavDrawerProps {
   onOpenMistakeNotebook?: () => void;
   onOpenMicroSession?: () => void;
   onOpenWrapUp?: () => void;
+  onOpenDevCredits?: () => void;
 }
 
 export function MobileNavDrawer({
@@ -35,6 +37,7 @@ export function MobileNavDrawer({
   onOpenMistakeNotebook,
   onOpenMicroSession,
   onOpenWrapUp,
+  onOpenDevCredits,
 }: MobileNavDrawerProps) {
   const [isMuted, setIsMuted] = useState(false);
 
@@ -423,6 +426,18 @@ export function MobileNavDrawer({
               </div>
             </div>
           </div>
+
+          {/* Developer Credits Capsule */}
+          {onOpenDevCredits && (
+            <DeveloperCreditsPill
+              variant="drawer"
+              isGirls={isGirls}
+              onClick={() => {
+                onClose();
+                setTimeout(onOpenDevCredits, 150);
+              }}
+            />
+          )}
 
           {/* Academic Info Badge */}
           <div 
