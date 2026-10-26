@@ -233,7 +233,7 @@ export function StudentGamificationPill({
         <div
           role="dialog"
           aria-modal="true"
-          className={`fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 ${
+          className={`fixed inset-0 z-[200] flex items-center justify-center p-2.5 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto overscroll-contain animate-in fade-in duration-200 ${
             isDark ? 'dark' : ''
           }`}
           dir="rtl"
@@ -245,7 +245,7 @@ export function StudentGamificationPill({
               borderColor: isDark ? '#1E2B3A' : '#E3D7C1',
               color: isDark ? '#F1F5F9' : '#162828',
             }}
-            className="w-full max-w-lg rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden flex flex-col max-h-[90svh] animate-in zoom-in-95 duration-200"
+            className="w-full max-w-lg rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] my-auto animate-in zoom-in-95 duration-200"
           >
             {/* Modal Header */}
             <div
@@ -736,12 +736,12 @@ export function StudentGamificationPill({
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>اسمك في اللوحة:</span>
+                            <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>اسمك في اللوحة:</span>
                             <span className="text-xs font-extrabold truncate" style={{ color: 'var(--accent-primary)' }}>
                               {studentName}
                             </span>
                           </div>
-                          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                             {totalXp} XP • المستوى {level} • {streak} يوم استمرار 🔥
                           </p>
                         </div>
@@ -753,7 +753,7 @@ export function StudentGamificationPill({
                           setNameInput(studentName);
                           setIsEditingName(true);
                         }}
-                        className="px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-transform hover:scale-105 active:scale-95 cursor-pointer shrink-0 flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-lg border text-xs font-bold transition-transform hover:scale-105 active:scale-95 cursor-pointer shrink-0 flex items-center gap-1"
                         style={{
                           backgroundColor: 'var(--bg-surface)',
                           borderColor: 'var(--border-subtle)',
@@ -806,7 +806,7 @@ export function StudentGamificationPill({
                       const accentColor = isGirls ? '#F43F5E' : '#0D9488';
                       return (
                         <div
-                          className="px-3 py-2 rounded-xl border text-[11px] font-bold flex items-center justify-between animate-in fade-in"
+                          className="px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-between animate-in fade-in"
                           style={{
                             backgroundColor: `${accentColor}10`,
                             borderColor: `${accentColor}30`,
@@ -817,7 +817,7 @@ export function StudentGamificationPill({
                             <span>🎯 فارقك للمركز التالي:</span>
                             <strong style={{ color: accentColor }}>+{neighborhoodData.xpToNextRank} XP</strong>
                           </span>
-                          <span className="text-[10px] opacity-75">حل سؤال وتقدم! 🚀</span>
+                          <span className="text-[11px] opacity-80">حل سؤال وتقدم! 🚀</span>
                         </div>
                       );
                     }
@@ -898,7 +898,7 @@ export function StudentGamificationPill({
                                   <span className="truncate">{student.nickname}</span>
                                   {isMe && (
                                     <span 
-                                      className="text-[10px] px-1.5 py-0.2 rounded-full font-bold shrink-0 text-white"
+                                      className="text-[11px] px-1.5 py-0.2 rounded-full font-bold shrink-0 text-white"
                                       style={{ backgroundColor: 'var(--accent-primary)' }}
                                     >
                                       أنت
@@ -907,7 +907,7 @@ export function StudentGamificationPill({
                                 </div>
                                 <div
                                   style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
-                                  className="text-[10px] font-medium"
+                                  className="text-[11px] font-medium"
                                 >
                                   المستوى {student.level} • {student.current_streak} يوم استمرار 🔥
                                 </div>
