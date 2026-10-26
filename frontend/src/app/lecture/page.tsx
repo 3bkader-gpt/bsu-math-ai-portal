@@ -242,6 +242,7 @@ function LectureContent() {
   // Phase 4 — Compassionate feedback (praise bank + diagnostics + micro-delight)
   const [answerFeedback, setAnswerFeedback] = useState<Record<number, string>>({});
   const [showEthicalExit, setShowEthicalExit] = useState(false);
+  const [ethicalExitPanelOpen, setEthicalExitPanelOpen] = useState(false);
   const [ethicalWrapUpOpen, setEthicalWrapUpOpen] = useState(false);
   const [easterEgg, setEasterEgg] = useState<string | null>(null);
   const praiseRecentRef = useRef<string[]>([]);
@@ -1536,15 +1537,16 @@ function LectureContent() {
                           <span>كراسة الأخطاء 🧠</span>
                         </button>
 
-                        {/* Phase 4.4 — Ethical exit: appears when the quiz is completed */}
+                        {/* Phase 4.4 — Ethical exit: stays visible once the quiz is completed;
+                            clicking toggles the supportive panel (never self-destructs) */}
                         {showEthicalExit && (
                           <button
                             type="button"
-                            onClick={() => setShowEthicalExit((prev) => !prev)}
+                            onClick={() => setEthicalExitPanelOpen((prev) => !prev)}
                             style={{
-                              backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                              backgroundColor: ethicalExitPanelOpen ? 'var(--accent-emerald)' : 'rgba(16, 185, 129, 0.12)',
                               borderColor: 'var(--accent-emerald)',
-                              color: 'var(--accent-emerald)',
+                              color: ethicalExitPanelOpen ? '#ffffff' : 'var(--accent-emerald)',
                             }}
                             className="px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 shadow-xs animate-in fade-in"
                           >
@@ -1555,7 +1557,7 @@ function LectureContent() {
                       </div>
 
                       {/* Phase 4.4 — Ethical exit supportive panel */}
-                      {showEthicalExit && (
+                      {showEthicalExit && ethicalExitPanelOpen && (
                         <div
                           className="p-4 rounded-2xl border flex items-start justify-between gap-3 animate-in fade-in"
                           style={{
