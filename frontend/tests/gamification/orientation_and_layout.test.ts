@@ -50,6 +50,8 @@ describe('Orientation & Mobile Landscape Resilience (Phase 7)', () => {
       expect(code).toContain('hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0');
       // Brand tag must be hidden on screens below lg
       expect(code).toContain("hidden lg:inline-block px-2.5 py-0.5 text-xs font-bold rounded-full border shrink-0");
+      // Hamburger drawer trigger must be accessible on landscape mobile (< lg)
+      expect(code).toContain('className="lg:hidden p-1.5 rounded-lg border flex items-center justify-center');
     });
   });
 
