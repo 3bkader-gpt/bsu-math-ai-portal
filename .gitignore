@@ -81,3 +81,7 @@ Thumbs.db
 .cursor/
 .gemini/
 
+# Scratch & Local Assets
+scratch/
+photo_*.jpg
+
