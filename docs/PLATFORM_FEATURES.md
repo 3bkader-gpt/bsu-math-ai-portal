@@ -226,7 +226,7 @@ Zero external MP3/WAV files. Zero network requests. 100% offline compatibility u
 - Accessible via the footer pill or Mobile Drawer.
 - Features developer photography, authentic unpretentious message to the cohort, and verified academic credentials.
 - **Direct Contact Integrations:**
-  - **WhatsApp:** Direct pre-filled message template to `01023100767`.
+  - **WhatsApp:** Direct clean chat link to `01023100767` (no awkward pre-filled text).
   - **Instagram:** Direct link to `@3_bkader`.
   - **GitHub:** Direct link to `3bkader-gpt`.
 
