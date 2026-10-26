@@ -6,6 +6,14 @@
 
 ## 🔴 Active Sprint (Now)
 
+### Phase 4 — Compassionate Feedback (2026-10-25) — ✅ BUILT, DEPLOYED & MCP-TESTED
+- [x] `core/compassionateFeedback.ts` pure engine (12/12 Vitest): 32-line praise bank per persona with no-repeat-within-10, diagnostic error taxonomy (sign / magnitude / units / reversed / conceptual) with never-shaming Egyptian copy, ethical exit copy
+- [x] Praise on correct (variety verified live), diagnostic panel (🧭) on wrong — sign flips, rounding near-misses and missing units each get tailored tutoring
+- [x] Haptics (15ms correct / [10,50,10] wrong, fail-safe) + ascending streak chime (semitone per consecutive correct) + gentle 'quiz_wrong' tone
+- [x] Epic confetti reserved for a perfect score; ethical exit button on quiz completion opening the Phase-1 wrap-up modal with THIS attempt's real stats (27 concepts / 80 cards / 26% verified live)
+- [x] Easter eggs: π / e / 1729 footer chips open math trivia (Ramanujan taxicab verified live)
+- [x] Live-test fix: ethical exit button no longer self-destructs on first click
+
 ### Phase 3 — Cognitive Guard & Hint Ladder (2026-10-25) — ✅ BUILT & DEPLOYED
 - [x] `core/hintLadder.ts` pure engine (13/13 Vitest): tier splitting, burnout gate, worked-example fading
 - [x] 3.1 Hint ladder in QuizViewer — 3 tiers (conceptual → full hint → answer + 'نراجعها غداً في الدفتر'), `hintLevelUsed` 0-3 sent on every answer
