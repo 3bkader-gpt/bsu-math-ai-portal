@@ -745,7 +745,7 @@ export default function Home() {
                   {isGirls ? "🎀 You're Just A Baby Girl" : 'نسخة الشباب'}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs font-medium mt-0.5 leading-snug truncate" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs sm:text-sm font-medium mt-0.5 leading-snug truncate" style={{ color: 'var(--text-muted)' }}>
                 <span className="xs:hidden">تربية بني سويف</span>
                 <span className="hidden xs:inline sm:hidden">تربية بني سويف • تانية رياضيات</span>
                 <span className="hidden sm:inline">{isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}</span>
@@ -826,7 +826,7 @@ export default function Home() {
                 color: 'var(--accent-primary)',
                 boxShadow: 'var(--card-shadow)',
               }}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-sm font-bold shadow-sm max-w-full flex-wrap justify-center"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full border text-xs sm:text-sm font-bold shadow-sm max-w-full flex-wrap justify-center"
             >
               <span className="text-sm">🎀</span>
               <span>مساحتك الهادية للمذاكرة • You&apos;re Just A Baby Girl ✨</span>
@@ -940,7 +940,7 @@ export default function Home() {
                 className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
               >
                 <span className="shrink-0">الترم الأول</span>
-                <span className="shrink-0 inline-flex items-center justify-center text-[10px] px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
+                <span className="shrink-0 inline-flex items-center justify-center text-xs px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
                   <bdi dir="ltr">{subjects.filter(s => (s.semester ?? 1) === 1).length}</bdi>
                 </span>
               </button>
@@ -959,7 +959,7 @@ export default function Home() {
                 className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
               >
                 <span className="shrink-0">الترم الثاني</span>
-                <span className="shrink-0 inline-flex items-center justify-center text-[10px] px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
+                <span className="shrink-0 inline-flex items-center justify-center text-xs px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
                   <bdi dir="ltr">{subjects.filter(s => (s.semester ?? 1) === 2).length}</bdi>
                 </span>
               </button>
@@ -1014,9 +1014,9 @@ export default function Home() {
               <div className="flex md:hidden items-center justify-between text-xs font-semibold px-1 mb-2.5" style={{ color: 'var(--text-muted)' }}>
                 <span className="flex items-center gap-1.5">
                   <span>{content.semesters.mobileSwipeHint}</span>
-                  <span className="text-[11px] opacity-75">↔</span>
+                  <span className="text-xs opacity-75">↔</span>
                 </span>
-                <span className="text-[11px] opacity-80">{filteredSubjects.length} مادة</span>
+                <span className="text-xs opacity-80">{filteredSubjects.length} مادة</span>
               </div>
 
               <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] overflow-x-auto md:overflow-x-visible overscroll-x-contain snap-x snap-mandatory gap-2.5 pb-2.5 pt-3 md:py-0 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rail-courses-mobile">
@@ -1066,7 +1066,7 @@ export default function Home() {
                       {isActive && (
                         <div className="absolute -top-2 right-2.5 z-10">
                           <span
-                            className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-sm flex items-center gap-1 tracking-wide"
+                            className="text-xs font-bold px-2 py-0.5 rounded-full border shadow-sm flex items-center gap-1 tracking-wide"
                             style={{
                               backgroundColor: isDark ? (isGirls ? '#28162F' : '#0B132B') : (isGirls ? '#FFF0F3' : '#EFF6FF'),
                               borderColor: activeGlowColor,
@@ -1091,7 +1091,7 @@ export default function Home() {
                           {/* Floating Charm Sticker (Girls only) */}
                           {isGirls && activeCharm && (
                             <div
-                              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border shadow-sm flex items-center justify-center text-[9px] select-none leading-none pointer-events-none"
+                              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border shadow-sm flex items-center justify-center text-xs select-none leading-none pointer-events-none"
                               style={{
                                 backgroundColor: isDark ? '#28162F' : '#FFFFFF',
                                 borderColor: isDark ? `${activeGlowColor}80` : '#F2CBD5',
@@ -1106,7 +1106,7 @@ export default function Home() {
                         </h4>
                         {sub.canonicalDoctor && (
                           <span
-                            className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.5 rounded-md mt-1 truncate max-w-full border"
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded-md mt-1 truncate max-w-full border"
                             style={{
                               backgroundColor: isDark ? `${activeGlowColor}18` : `${activeGlowColor}12`,
                               color: activeGlowColor,
@@ -1117,9 +1117,9 @@ export default function Home() {
                           </span>
                         )}
                       </div>
-                      <div className="mt-2.5 flex items-center justify-between text-[11px] sm:text-xs" style={{ color: 'var(--text-muted)' }}>
+                      <div className="mt-2.5 flex items-center justify-between text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>
                         <span 
-                          className="font-semibold text-[10px] sm:text-xs whitespace-nowrap" 
+                          className="font-semibold text-xs sm:text-sm whitespace-nowrap" 
                           style={{ color: activeGlowColor }}
                         >
                           {activeBadgeTag}
@@ -1239,7 +1239,7 @@ export default function Home() {
                         <span className="shrink-0">{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
                         <span className="shrink-0">{doc}</span>
                         <span
-                          className="inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-1.5 py-0.5 rounded-full shrink-0 font-mono shadow-2xs"
+                          className="inline-flex items-center justify-center text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0 font-mono shadow-2xs"
                           style={{
                             backgroundColor: isSelected
                               ? 'rgba(255, 255, 255, 0.25)'
@@ -1330,7 +1330,7 @@ export default function Home() {
                                 {lec.doctor && (
                                   <div className="mb-1">
                                     <span
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-bold border whitespace-nowrap"
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs sm:text-sm font-bold border whitespace-nowrap"
                                       style={{
                                         backgroundColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.12)' : 'rgba(59, 130, 246, 0.12)',
                                         borderColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.3)' : 'rgba(59, 130, 246, 0.3)',
@@ -1344,7 +1344,7 @@ export default function Home() {
                                 <h4 className="font-extrabold text-sm sm:text-xl transition-colors group-hover:text-cyan-500 dark:group-hover:text-cyan-400 break-words leading-snug" style={{ color: 'var(--text-primary)' }}>
                                   {lec.title}
                                 </h4>
-                                <p className="text-[11px] sm:text-sm font-medium mt-1 break-words leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                                <p className="text-xs sm:text-sm font-medium mt-1 break-words leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                                   {isReady 
                                     ? (resourceCount >= 5 
                                         ? (isGirls ? 'المحاضرة مكتملة بجميع المصادر 🎀✨' : 'المحاضرة مكتملة بجميع مصادر المذاكرة (5/5)')
@@ -1401,7 +1401,7 @@ export default function Home() {
                               </span>
 
                               <span 
-                                className="mr-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs"
+                                className="mr-1 text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs"
                                 style={{
                                   backgroundColor: isReady ? 'var(--bg-surface)' : 'var(--bg-surface-elevated)',
                                   borderColor: isReady ? 'var(--border-prominent)' : 'var(--border-subtle)',

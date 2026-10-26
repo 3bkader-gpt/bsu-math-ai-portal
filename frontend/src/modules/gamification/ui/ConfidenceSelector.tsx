@@ -33,7 +33,7 @@ export default function ConfidenceSelector({
         <span className="text-xs sm:text-sm font-bold flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
           <span>درجة ثقتك في الحل:</span>
         </span>
-        <span className="text-[11px] sm:text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+        <span className="text-xs sm:text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
           {selected === 'high' ? '🎯 متأكد (+3 بونص)' : selected === 'low' ? '🎲 تخمين' : '🤔 عادي'}
         </span>
       </div>
@@ -67,7 +67,7 @@ export default function ConfidenceSelector({
               <span className="truncate">{opt.label}</span>
               {lvl === 'high' && (
                 <span
-                  className="hidden sm:inline-block text-[10px] px-1 py-0.2 rounded font-black ml-0.5"
+                  className="hidden sm:inline-block text-xs px-1 py-0.2 rounded font-black ml-0.5"
                   style={{
                     backgroundColor: isSelected ? accent : 'var(--border-prominent)',
                     color: isSelected ? '#ffffff' : 'var(--text-muted)',

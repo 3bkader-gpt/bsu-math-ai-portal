@@ -173,7 +173,7 @@ export default function CohortChallengeWidget({
 
       {/* Student Personal Contribution Footer */}
       <div
-        className="mt-2.5 pt-2 border-t flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs font-semibold"
+        className="mt-2.5 pt-2 border-t flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-semibold"
         style={{
           borderColor: 'var(--border-subtle)',
           color: 'var(--text-muted)',

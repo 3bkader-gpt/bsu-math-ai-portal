@@ -65,12 +65,15 @@ describe('Orientation & Mobile Landscape Resilience (Phase 7)', () => {
     });
   });
 
-  describe('Arabic Typography Scale (2.4% Optimal Growth)', () => {
-    it('sets root font-size to 14.85px for mobile in globals.css', () => {
+  describe('Arabic Responsive Typography Scale (Device-Aware Tablet & Desktop & Mobile)', () => {
+    it('configures device-aware root font-size scale in globals.css', () => {
       const css = fs.readFileSync(globalsCssPath, 'utf8');
-      expect(css).toContain('font-size: 14.85px;');
-      expect(css).toContain('font-size: 15.35px;');
-      expect(css).toContain('font-size: 15.65px;');
+      expect(css).toContain('font-size: 16px;');
+      expect(css).toContain('font-size: 18px;');
+      expect(css).toContain('font-size: 19px;');
+      expect(css).toContain('font-size: 20px;');
+      expect(css).toContain('font-size: 22px;');
+      expect(css).toContain('pointer: coarse');
     });
   });
 
