@@ -185,7 +185,7 @@ export function MobileNavDrawer({
             </div>
             <div>
               <h2 className="text-sm font-extrabold tracking-tight">إعدادات المنصة</h2>
-              <p className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                 تربية بني سويف • رياضيات
               </p>
             </div>
@@ -211,7 +211,7 @@ export function MobileNavDrawer({
           
           {/* Quick Study Tools */}
           <div className="space-y-1.5">
-            <h3 className="text-[11px] font-bold uppercase tracking-wider px-1" style={{ color: 'var(--text-muted)' }}>
+            <h3 className="text-xs font-bold uppercase tracking-wider px-1" style={{ color: 'var(--text-muted)' }}>
               أدوات المذاكرة السريعة
             </h3>
             
@@ -288,7 +288,7 @@ export function MobileNavDrawer({
             {/* 1. Persona Switcher (Boys vs Girls) */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between px-1">
-                <span className="text-[11px] font-bold" style={{ color: 'var(--text-secondary)' }}>
+                <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
                   طابع النسخة والأسلوب
                 </span>
               </div>
@@ -334,7 +334,7 @@ export function MobileNavDrawer({
             {/* 2. Light / Dark Mode Selector */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between px-1">
-                <span className="text-[11px] font-bold" style={{ color: 'var(--text-secondary)' }}>
+                <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
                   نمط العرض والإضاءة
                 </span>
               </div>
@@ -380,7 +380,7 @@ export function MobileNavDrawer({
             {/* 3. Sound Effects Selector */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between px-1">
-                <span className="text-[11px] font-bold" style={{ color: 'var(--text-secondary)' }}>
+                <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
                   المؤثرات الصوتية
                 </span>
               </div>
@@ -432,17 +432,17 @@ export function MobileNavDrawer({
               borderColor: 'var(--border-subtle)',
             }}
           >
-            <p className="text-[11px] font-bold" style={{ color: 'var(--accent-primary)' }}>
+            <p className="text-xs font-bold" style={{ color: 'var(--accent-primary)' }}>
               جامعة بني سويف • كلية التربية
             </p>
-            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               الفرقة الثانية • قسم الرياضيات والذكاء الاصطناعي
             </p>
           </div>
         </div>
 
         {/* Drawer Footer */}
-        <div className="p-3 border-t text-center text-[10px]" style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
+        <div className="p-3 border-t text-center text-xs" style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
           منصة المنهج الذكية v1.2.9 • 2026
         </div>
       </div>

@@ -616,7 +616,7 @@ function LectureContent() {
           {/* Back to Courses Link */}
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold transition-all shadow-xs hover:scale-[1.02] active:scale-[0.98] group shrink-0"
+            className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold transition-all shadow-xs hover:scale-[1.02] active:scale-[0.98] group shrink-0"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
@@ -644,7 +644,7 @@ function LectureContent() {
             )}
             {lectureBundle.doctor && (
               <span
-                className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg border opacity-90 whitespace-nowrap"
+                className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-lg border opacity-90 whitespace-nowrap"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   borderColor: 'var(--border-subtle)',
@@ -719,7 +719,7 @@ function LectureContent() {
                 {lectureBundle.doctor && (
                   <>
                     <span className="hidden sm:inline" style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span className="text-[11px] font-bold sm:hidden" style={{ color: 'var(--text-muted)' }}>
+                    <span className="text-xs font-bold sm:hidden" style={{ color: 'var(--text-muted)' }}>
                       {lectureBundle.doctor}
                     </span>
                   </>
@@ -733,7 +733,7 @@ function LectureContent() {
                 {lectureBundle.title}
               </h1>
 
-              <p className="text-[11px] sm:text-xs font-medium break-words" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs sm:text-sm font-medium break-words" style={{ color: 'var(--text-muted)' }}>
                 {isGirls 
                   ? 'كل المصادر مشروحة ومترتبة عشان تذاكري بروقان وتركيز 🌸' 
                   : 'جميع المصادر الأكاديمية مشروحة ومفصلة للمذاكرة الذكية'}
@@ -836,14 +836,14 @@ function LectureContent() {
                                 ? (isBook ? 'rgba(59, 130, 246, 0.4)' : 'rgba(245, 158, 11, 0.4)')
                                 : (isBook ? '#93C5FD' : '#FCD34D'),
                             }}
-                            className="text-[10px] font-black px-2 py-0.5 rounded-md border"
+                            className="text-xs font-black px-2 py-0.5 rounded-md border"
                           >
                             {info.badgeText}
                           </span>
                           {info.formattedSize && (
                             <span
                               style={{ color: 'var(--text-muted)' }}
-                              className="inline-flex items-center text-[10px] sm:text-[11px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-black/5 dark:bg-white/5 border border-[var(--border-subtle)] shrink-0"
+                              className="inline-flex items-center text-xs font-mono font-bold px-1.5 py-0.5 rounded-md bg-black/5 dark:bg-white/5 border border-[var(--border-subtle)] shrink-0"
                             >
                               <bdi dir="ltr">{info.formattedSize}</bdi>
                             </span>
@@ -857,7 +857,7 @@ function LectureContent() {
                         </h4>
                         {info.subtitle && (
                           <p
-                            className="text-[11px] font-bold leading-relaxed line-clamp-1"
+                            className="text-xs font-bold leading-relaxed line-clamp-1"
                             style={{ color: 'var(--text-secondary)' }}
                           >
                             {info.subtitle}
@@ -975,7 +975,7 @@ function LectureContent() {
               <span className="shrink-0">{isGirls ? content.personas.girls.tabs.quiz : content.personas.boys.tabs.quiz}</span>
               {quizQuestions.length > 0 && (
                 <span
-                  className="inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full font-mono shrink-0 shadow-2xs"
+                  className="inline-flex items-center justify-center text-xs font-bold px-2 py-0.5 rounded-full font-mono shrink-0 shadow-2xs"
                   style={{
                     backgroundColor: activeTab === 'quiz'
                       ? (isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(245, 158, 11, 0.25)')
@@ -1028,7 +1028,7 @@ function LectureContent() {
               <span className="shrink-0">{isGirls ? content.personas.girls.tabs.flashcards : content.personas.boys.tabs.flashcards}</span>
               {flashcards.length > 0 && (
                 <span
-                  className="inline-flex items-center justify-center text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full font-mono shrink-0 shadow-2xs"
+                  className="inline-flex items-center justify-center text-xs font-bold px-2 py-0.5 rounded-full font-mono shrink-0 shadow-2xs"
                   style={{
                     backgroundColor: activeTab === 'flashcards'
                       ? (isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(99, 102, 241, 0.25)')
@@ -1758,7 +1758,7 @@ function LectureContent() {
                                           backgroundColor: isCorrect ? 'var(--accent-emerald)' : 'var(--accent-rose)',
                                           color: '#ffffff',
                                         }}
-                                        className="px-2.5 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase shadow-xs"
+                                        className="px-2.5 py-0.5 rounded-full text-xs font-black tracking-wider uppercase shadow-xs"
                                       >
                                         {isCorrect ? 'إجابة عبقرية ✨' : 'محاولة محتاجة تركيز 💡'}
                                       </span>
@@ -1912,7 +1912,7 @@ function LectureContent() {
                                 </span>
                                 <MathRenderer text={revealed} />
                                 {tier < 3 && (
-                                  <span className="block text-[11px] sm:text-xs font-bold mt-2" style={{ color: 'var(--text-muted)' }}>
+                                  <span className="block text-xs sm:text-sm font-bold mt-2" style={{ color: 'var(--text-muted)' }}>
                                     الدرجة {tier} من 3 — لسه في درجات أعلى لو محتاج
                                   </span>
                                 )}
@@ -2356,7 +2356,7 @@ function LectureContent() {
               onClick={() => setEasterEgg(key)}
               dir="ltr"
               title="اضغط لحكاية رياضيات"
-              className="px-3 py-1 rounded-full border text-[11px] font-mono font-bold cursor-pointer transition-all hover:scale-110 hover:opacity-100 opacity-50"
+              className="px-3 py-1 rounded-full border text-xs font-mono font-bold cursor-pointer transition-all hover:scale-110 hover:opacity-100 opacity-50"
               style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
             >
               {label}

@@ -110,7 +110,7 @@ export function SmartResumeCard() {
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
               <span
-                className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider whitespace-nowrap shrink-0 border"
+                className="px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wider whitespace-nowrap shrink-0 border"
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
                   color: 'var(--accent-primary)',
@@ -119,7 +119,7 @@ export function SmartResumeCard() {
               >
                 {subjectName || 'استئناف فوري'}
               </span>
-              <span className="text-[11px] font-medium truncate" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-xs font-medium truncate" style={{ color: 'var(--text-muted)' }}>
                 {mediaSubtitle}
               </span>
             </div>

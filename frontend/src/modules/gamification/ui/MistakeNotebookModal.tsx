@@ -186,7 +186,7 @@ export function MistakeNotebookModal({
                 }}
                 className="p-1.5 rounded-xl border flex flex-col items-center justify-center gap-0.5 bg-black/5 dark:bg-white/5"
               >
-                <span className="text-[10px] text-gray-500">
+                <span className="text-xs font-semibold text-gray-500">
                   {isBox5 ? 'متقن 🎯' : `صندوق ${box}`}
                 </span>
                 <span className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>
