@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "typecheck": "node --max-old-space-size=4096 ./node_modules/typescript/bin/tsc --noEmit",
+    "test": "node --max-old-space-size=4096 ./node_modules/vitest/vitest.mjs run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
