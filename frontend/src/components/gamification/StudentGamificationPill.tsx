@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   useTotalXp,
@@ -14,6 +14,7 @@ import { getXpRequiredForLevel, getLevelTitle } from '@/modules/gamification/cor
 import { GAMIFICATION_CONFIG } from '@/config/gamification-rules';
 import { fetchCohortLeaderboard } from '@/modules/gamification/supabase/gamification';
 import { LeaderboardEntry } from '@/modules/gamification/supabase/types';
+import { getNeighborhoodWindow } from '@/modules/gamification/core/neighborhoodLeaderboard';
 import {
   Flame,
   Zap,
@@ -34,6 +35,7 @@ import {
   Edit3,
   User,
   Loader2,
+  Users,
 } from 'lucide-react';
 import { isAudioMuted, toggleAudioMute, playSound } from '@/lib/audio/soundEngine';
 import { updateStudentProfile } from '@/modules/gamification/supabase/auth';
@@ -80,6 +82,7 @@ export function StudentGamificationPill({
   const [isEditingName, setIsEditingName] = useState(false);
   const [isSavingName, setIsSavingName] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [leaderboardMode, setLeaderboardMode] = useState<'neighborhood' | 'top'>('neighborhood');
 
   useEffect(() => {
     setIsMuted(isAudioMuted());
@@ -760,6 +763,63 @@ export function StudentGamificationPill({
                     </div>
                   )}
 
+                  {/* Phase 5.2 — Neighborhood vs Top 10 Sub-selector */}
+                  <div className="flex items-center gap-1.5 p-1 rounded-xl border" style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}>
+                    <button
+                      type="button"
+                      onClick={() => setLeaderboardMode('neighborhood')}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        leaderboardMode === 'neighborhood' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'
+                      }`}
+                      style={{
+                        backgroundColor: leaderboardMode === 'neighborhood' ? 'var(--bg-surface)' : 'transparent',
+                        color: leaderboardMode === 'neighborhood' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      }}
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      <span>جيراني (حولك)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLeaderboardMode('top')}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        leaderboardMode === 'top' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'
+                      }`}
+                      style={{
+                        backgroundColor: leaderboardMode === 'top' ? 'var(--bg-surface)' : 'transparent',
+                        color: leaderboardMode === 'top' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      }}
+                    >
+                      <Trophy className="w-3.5 h-3.5" />
+                      <span>أوائل الدفعة</span>
+                    </button>
+                  </div>
+
+                  {/* Actionable Next-Rank Distance Banner */}
+                  {(() => {
+                    const neighborhoodData = getNeighborhoodWindow(leaderboard, currentUserId);
+                    if (leaderboardMode === 'neighborhood' && neighborhoodData.xpToNextRank !== null) {
+                      const accentColor = isGirls ? '#F43F5E' : '#0D9488';
+                      return (
+                        <div
+                          className="px-3 py-2 rounded-xl border text-[11px] font-bold flex items-center justify-between animate-in fade-in"
+                          style={{
+                            backgroundColor: `${accentColor}10`,
+                            borderColor: `${accentColor}30`,
+                            color: 'var(--text-primary)',
+                          }}
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <span>🎯 فارقك للمركز التالي:</span>
+                            <strong style={{ color: accentColor }}>+{neighborhoodData.xpToNextRank} XP</strong>
+                          </span>
+                          <span className="text-[10px] opacity-75">حل سؤال وتقدم! 🚀</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {loadingLb ? (
                     <div
                       style={{ color: isDark ? '#94A3B8' : '#526E6E' }}
@@ -780,11 +840,18 @@ export function StudentGamificationPill({
                       style={{ borderColor: isDark ? '#1E2B3A' : '#E3D7C1' }}
                       className="space-y-1"
                     >
-                      {leaderboard.map((student) => {
-                        const isMe =
-                          (currentUserId && student.user_id === currentUserId) ||
-                          (studentName && student.nickname === studentName);
-                        return (
+                      {(() => {
+                        const neighborhoodData = getNeighborhoodWindow(leaderboard, currentUserId);
+                        const displayed =
+                          leaderboardMode === 'neighborhood'
+                            ? neighborhoodData.entries
+                            : leaderboard.slice(0, 10);
+
+                        return displayed.map((student) => {
+                          const isMe =
+                            (currentUserId && student.user_id === currentUserId) ||
+                            (studentName && student.nickname === studentName);
+                          return (
                           <div
                             key={student.user_id}
                             style={{
@@ -850,8 +917,9 @@ export function StudentGamificationPill({
                             </div>
                           </div>
                         );
-                      })}
-                    </div>
+                      });
+                    })()}
+                  </div>
                   )}
                 </div>
               )}
