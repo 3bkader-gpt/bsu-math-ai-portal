@@ -73,30 +73,30 @@ html {
 /* Tablets / Phablets in Portrait (640px to 1023px) */
 @media (min-width: 640px) {
   html {
-    font-size: 18px;
+    font-size: 17px;
   }
 }
 
 /* Desktop PC / Laptops (Mouse & Fine Pointer) */
 @media (min-width: 1024px) {
   html {
-    font-size: 19px;
+    font-size: 18px;
   }
 }
 
 /* Wide Desktop Monitors (1440px+) */
 @media (min-width: 1440px) {
   html {
-    font-size: 20px;
+    font-size: 19px;
   }
 }
 
 /* Tablet in Landscape Mode (Touch screen with wide viewport: hover:none & pointer:coarse)
-   Provides dedicated 22px base font scaling (+40.5% boost) so 10.4-inch tablets (like Samsung Galaxy Tab A7)
-   render Arabic letters, dots, and diacritics with unmistakable clarity when viewed from a desk */
+   The "Goldilocks Zone" (20.5px): A calibrated +31% boost over original base, giving crisp legibility
+   without feeling bulky or crowding lecture cards and nav tabs */
 @media (hover: none) and (pointer: coarse) and (min-width: 1024px) {
   html {
-    font-size: 22px;
+    font-size: 20.5px;
   }
 }
 

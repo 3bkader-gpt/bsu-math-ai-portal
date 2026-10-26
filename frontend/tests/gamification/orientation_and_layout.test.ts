@@ -69,10 +69,10 @@ describe('Orientation & Mobile Landscape Resilience (Phase 7)', () => {
     it('configures device-aware root font-size scale in globals.css', () => {
       const css = fs.readFileSync(globalsCssPath, 'utf8');
       expect(css).toContain('font-size: 16px;');
+      expect(css).toContain('font-size: 17px;');
       expect(css).toContain('font-size: 18px;');
       expect(css).toContain('font-size: 19px;');
-      expect(css).toContain('font-size: 20px;');
-      expect(css).toContain('font-size: 22px;');
+      expect(css).toContain('font-size: 20.5px;');
       expect(css).toContain('pointer: coarse');
     });
   });
