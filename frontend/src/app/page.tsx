@@ -26,6 +26,8 @@ import MobileNavDrawer from '@/components/MobileNavDrawer';
 import StaplePin3D from '@/components/StaplePin3D';
 import DeveloperCreditsModal from '@/components/DeveloperCreditsModal';
 import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
+import WelcomeStudentModal from '@/components/WelcomeStudentModal';
+import { getStudentProfileLocal, shouldPromptOnboarding, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl } from '@/lib/api';
 import { 
   getDirectSupabaseSubjects, 
@@ -520,38 +522,70 @@ export default function Home() {
   const [isMistakeNotebookOpen, setIsMistakeNotebookOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isDevCreditsOpen, setIsDevCreditsOpen] = useState(false);
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
+  const [studentName, setStudentName] = useState<string>('');
   const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
   const isHeaderVisible = useSmartHeaderVisibility({ threshold: 12, topBoundary: 25 });
+
+  // Load student profile & prompt onboarding if first visit
+  useEffect(() => {
+    const profile = getStudentProfileLocal();
+    if (profile.name) {
+      setStudentName(profile.name);
+    }
+    if (shouldPromptOnboarding()) {
+      const timer = setTimeout(() => {
+        setIsWelcomeModalOpen(true);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Sync profile changes across components
+  useEffect(() => {
+    const handleProfileUpdate = (e: any) => {
+      if (e.detail?.name !== undefined) {
+        setStudentName(e.detail.name);
+      }
+      if (e.detail?.persona) {
+        setCurrentPersona(e.detail.persona);
+      }
+    };
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
+    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
+  }, []);
 
   // Dynamic time-of-day greeting (كلمة ع الماشي / رادار المحاضرات)
   useEffect(() => {
     const hour = new Date().getHours();
+    const namePrefix = studentName ? ` يا ${studentName}` : '';
+
     if (hour >= 5 && hour < 12) {
       setTimeGreeting({
         icon: '☕',
-        title: isGirls ? 'صباح الفل والروقان' : 'صباح النشاط والتركيز',
+        title: isGirls ? `صباح الفل${namePrefix} ✨` : `صباح النشاط${namePrefix} 🎯`,
         subtitle: isGirls
-          ? 'فنجان نسكافيهك الرايق ومحاضرة د/ سيد.. يومك لطيف وسالك بإذن الله ✨'
-          : 'فنجان قهوتك ومحاضرة د/ سيد.. يومك سالك وموفق بإذن الله 🎯',
+          ? 'فنجان نسكافيهك الرايق ومحاضرة د/ سيد.. يومك لطيف وسالك بإذن الله 🌸'
+          : 'فنجان قهوتك ومحاضرة د/ سيد.. يومك سالك وموفق بإذن الله 🚀',
       });
     } else if (hour >= 12 && hour < 17) {
       setTimeGreeting({
         icon: '⏱️',
-        title: isGirls ? 'شدي حيلك يا باشمهندسة' : 'وقت الإنتاجية والإنجاز',
+        title: isGirls ? `شدي حيلك${namePrefix} 🌸` : `وقت الإنجاز${namePrefix} 💪`,
         subtitle: isGirls
-          ? 'لميلك مسألتين في السريع واليوم هيعدي زي الفل 🌸'
-          : 'لملك مسألتين في السريع قبل ما اليوم يهرب، الزتونة معاك 💪',
+          ? 'لميلك مسألتين في السريع واليوم هيعدي زي الفل ✨'
+          : 'لملك مسألتين في السريع قبل ما اليوم يهرب، الزتونة معاك 🎯',
       });
     } else {
       setTimeGreeting({
         icon: '🌙',
-        title: isGirls ? 'سهرة مذاكرة رايقة' : 'سهرة الدحيحة',
+        title: isGirls ? `سهرة مذاكرة رايقة${namePrefix} 🎀` : `سهرة الدحيحة${namePrefix} 🚀`,
         subtitle: isGirls
-          ? 'سهرانة مع المعادلات والنظريات؟ متقلقيش، الزتونة هنا هتلملك الدنيا 🎀'
-          : 'سهران مع فيرما والمعادلات؟ متقلقش، الزتونة هنا هتلملك الحوار 🚀',
+          ? 'سهرانة مع المعادلات والنظريات؟ متقلقيش، الزتونة هنا هتلملك الدنيا ✨'
+          : 'سهران مع فيرما والمعادلات؟ متقلقش، الزتونة هنا هتلملك الحوار 💡',
       });
     }
-  }, [isGirls]);
+  }, [isGirls, studentName]);
 
   // Initialize session KPI telemetry on first visit
   useEffect(() => {
@@ -794,6 +828,22 @@ export default function Home() {
               <span>☕ استريح</span>
             </button>
             <StudentGamificationPill isGirls={isGirls} isDark={isDark} />
+            {studentName && (
+              <button
+                type="button"
+                onClick={() => setIsWelcomeModalOpen(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-extrabold hover:scale-105 active:scale-95 transition-all shadow-2xs cursor-pointer select-none"
+                style={{
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  borderColor: isGirls ? 'rgba(244, 63, 94, 0.35)' : 'var(--border-interactive)',
+                  color: isGirls ? '#F43F5E' : 'var(--accent-primary)',
+                }}
+                title="تعديل اسمك وهويتك في المنصة"
+              >
+                <span>{isGirls ? '👩‍🎓' : '👨‍🎓'}</span>
+                <span className="truncate max-w-[120px]">{studentName}</span>
+              </button>
+            )}
             <div className="hidden md:inline-flex">
               <ThemeToggle />
             </div>
@@ -1507,6 +1557,7 @@ export default function Home() {
         onOpenMicroSession={() => setIsMicroSessionOpen(true)}
         onOpenWrapUp={() => setIsWrapUpOpen(true)}
         onOpenDevCredits={() => setIsDevCreditsOpen(true)}
+        onOpenEditProfile={() => setIsWelcomeModalOpen(true)}
       />
 
       {/* Developer Credits Modal */}
@@ -1514,6 +1565,13 @@ export default function Home() {
         isOpen={isDevCreditsOpen}
         onClose={() => setIsDevCreditsOpen(false)}
         isGirls={isGirls}
+      />
+
+      {/* First-Visit / Edit Student Profile Modal */}
+      <WelcomeStudentModal
+        isOpen={isWelcomeModalOpen}
+        onClose={() => setIsWelcomeModalOpen(false)}
+        isInitialOnboarding={!studentName}
       />
     </div>
   );

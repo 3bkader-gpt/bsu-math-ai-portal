@@ -41,6 +41,8 @@ import MobileNavDrawer from '@/components/MobileNavDrawer';
 import StaplePin3D from '@/components/StaplePin3D';
 import DeveloperCreditsModal from '@/components/DeveloperCreditsModal';
 import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
+import WelcomeStudentModal from '@/components/WelcomeStudentModal';
+import { getStudentProfileLocal, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
 import { AcademicLectureBundle, AcademicMediaAsset } from '@/types/academic';
@@ -187,6 +189,19 @@ function LectureContent() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isDevCreditsOpen, setIsDevCreditsOpen] = useState(false);
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
+  const [studentName, setStudentName] = useState<string>('');
+
+  useEffect(() => {
+    const profile = getStudentProfileLocal();
+    if (profile.name) setStudentName(profile.name);
+
+    const handleProfileUpdate = (e: any) => {
+      if (e.detail?.name !== undefined) setStudentName(e.detail.name);
+    };
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
+    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
+  }, []);
 
   // Active Tab with immediate transition logging
   const [activeTab, setActiveTabState] = useState<'audio' | 'video' | 'quiz' | 'guide' | 'flashcards'>('audio');
@@ -2384,6 +2399,7 @@ function LectureContent() {
         isGirls={isGirls}
         isDark={isDark}
         onOpenDevCredits={() => setIsDevCreditsOpen(true)}
+        onOpenEditProfile={() => setIsWelcomeModalOpen(true)}
       />
 
       {/* Developer Credits Modal */}
@@ -2391,6 +2407,13 @@ function LectureContent() {
         isOpen={isDevCreditsOpen}
         onClose={() => setIsDevCreditsOpen(false)}
         isGirls={isGirls}
+      />
+
+      {/* Edit Student Profile Modal */}
+      <WelcomeStudentModal
+        isOpen={isWelcomeModalOpen}
+        onClose={() => setIsWelcomeModalOpen(false)}
+        isInitialOnboarding={false}
       />
     </div>
   );
