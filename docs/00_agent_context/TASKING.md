@@ -52,34 +52,19 @@
 
 ---
 
-## 🟡 Next In Queue (Phase 3 — Behavioral Plan)
+## 🟡 Next In Queue (Phase 5 — Fair Play & Anti-Cheat)
 
-### Phase 3: Cognitive Guard & Hint Ladder
-**Goal:** Break down complex proofs and preserve learning momentum when students are stuck.
+### Phase 5: Fair Play, Confidence Assessment & Peer Leaderboards
+**Goal:** Promote intrinsic motivation, calibrate meta-cognition, and protect daily streaks fairly.
 
 #### Tasks:
-- [ ] **3.1 — 3-Tier Hint Ladder UI**
-  - Hint 0: General conceptual direction ("فكر في خاصية التوزيع")
-  - Hint 1: First concrete step ("ابدأ بعزل المجهول")
-  - Hint 2: Full worked solution (marks as "رجعنا لها بكره" in notebook)
-  - Track `hintLevelUsed: 0|1|2|3` in `quiz.question_answered` event
-  - Integrate into `QuizViewer` component in `lecture/page.tsx`
-
-- [ ] **3.2 — Worked Example Fading**
-  - First question: fully solved
-  - Second: missing last step
-  - Third: missing last two steps
-  - Requires new question type flag in `content.json`
-
-- [ ] **3.3 — Burnout / Frustration Detector**
-  - Trigger: 3 consecutive wrong answers OR >2min on single question
-  - UI response: compassionate modal offering hint or difficulty reduction
-  - Client-side only (no RPC needed)
-  - Add to `QuizViewer` local state
-
-- [ ] **3.4 — 25-Minute Session Timer** (optional visual)
-  - Subtle progress bar in lecture header
-  - At 25 min: gentle "أخد استراحة؟" prompt (not forced)
+- [ ] **5.1 — Pre-Answer Confidence Assessment UI**
+  - Prompt before answer selection: 'متأكد' (+3 bonus), 'مش متأكد' (+1 bonus), 'بتخمين' (0 bonus)
+  - Send confidence level in `quiz.question_answered` event (RPC already supports `confidence_rating`)
+- [ ] **5.2 — 10-Peer Leaderboard Window**
+  - Display user within a local window of 10 peers by XP rather than the full university list
+- [ ] **5.3 — Automatic Weekly Streak Freezes**
+  - Auto-recharge 2 streak freezes per week (RPC mechanic exists; needs scheduled/weekly trigger)
 
 ---
 
