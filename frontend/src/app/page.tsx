@@ -779,7 +779,7 @@ export default function Home() {
                   }}
                   className="hidden lg:inline-block px-2.5 py-0.5 text-xs font-bold rounded-full border shrink-0"
                 >
-                  {isGirls ? "🎀 You're Just A Baby Girl" : 'نسخة الشباب'}
+                  {isGirls ? 'نسخة البنات 🌸' : 'نسخة الشباب'}
                 </span>
               </div>
               <p className="text-xs sm:text-sm font-medium mt-0.5 leading-snug truncate" style={{ color: 'var(--text-muted)' }}>
@@ -865,27 +865,12 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Showcase Section */}
+      {/* Hero Showcase Section - Clean, Modern, Above-the-fold */}
       <section
         style={{ borderColor: 'var(--border-subtle)' }}
-        className="relative overflow-hidden pt-6 pb-8 sm:pt-12 sm:pb-16 px-4 sm:px-6 lg:px-8 border-b"
+        className="relative overflow-hidden pt-4 pb-6 sm:pt-8 sm:pb-10 px-4 sm:px-6 lg:px-8 border-b"
       >
-        <div className="max-w-4xl mx-auto text-center relative z-10 space-y-4 sm:space-y-6">
-          {isGirls && (
-            <div
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE',
-                color: 'var(--accent-primary)',
-                boxShadow: 'var(--card-shadow)',
-              }}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full border text-xs sm:text-sm font-bold shadow-sm max-w-full flex-wrap justify-center"
-            >
-              <span className="text-sm">🎀</span>
-              <span>مساحتك الهادية للمذاكرة • You&apos;re Just A Baby Girl ✨</span>
-            </div>
-          )}
-
+        <div className="max-w-4xl mx-auto text-center relative z-10 space-y-3 sm:space-y-4">
           <h2
             className="fluid-h1 font-black tracking-tight leading-snug max-w-4xl mx-auto"
             style={{ color: 'var(--text-primary)' }}
@@ -896,7 +881,7 @@ export default function Home() {
           </h2>
 
           <p
-            className="fluid-body max-w-2xl mx-auto leading-relaxed"
+            className="fluid-body max-w-2xl mx-auto leading-relaxed text-xs sm:text-sm font-medium"
             style={{ color: 'var(--text-secondary)' }}
           >
             {isGirls
@@ -919,26 +904,6 @@ export default function Home() {
             />
             <Search className="w-4 h-4 absolute right-3.5 top-[15px] sm:top-[18px] pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           </div>
-
-          {/* Dynamic Academic Radar / Student Greeting Widget */}
-          {timeGreeting && (
-            <div
-              style={{
-                backgroundColor: 'var(--bg-surface-elevated)',
-                borderColor: 'var(--border-subtle)',
-                boxShadow: 'var(--card-shadow)',
-              }}
-              className="inline-flex items-center justify-center flex-wrap gap-2 px-4 py-2 sm:px-6 sm:py-2.5 rounded-2xl border text-xs sm:text-sm font-semibold max-w-2xl mx-auto shadow-xs text-center animate-in fade-in transition-all"
-            >
-              <span className="text-base sm:text-lg shrink-0 select-none">{timeGreeting.icon}</span>
-              <span className="font-black" style={{ color: 'var(--accent-primary)' }}>
-                {timeGreeting.title}:
-              </span>
-              <span style={{ color: 'var(--text-secondary)' }}>
-                {timeGreeting.subtitle}
-              </span>
-            </div>
-          )}
         </div>
       </section>
 
