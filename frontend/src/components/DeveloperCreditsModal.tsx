@@ -103,19 +103,23 @@ export function DeveloperCreditsModal({ isOpen, onClose, isGirls = false }: Deve
           
           {/* 1. Horizontal Header (ID / Dev Card style) */}
           <div className="flex items-center gap-3.5 text-right pt-1 pl-8">
-            {/* Custom Stylish Avatar with Monogram */}
+            {/* Real Developer Photo Avatar */}
             <div className="relative shrink-0">
               <div
-                className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl flex items-center justify-center font-black shadow-md border-2 transition-transform duration-300 hover:rotate-3 select-none"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border-2 transition-transform duration-300 hover:scale-105 select-none"
                 style={{
-                  background: isGirls
-                    ? 'linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(251, 113, 133, 0.1))'
-                    : 'linear-gradient(135deg, rgba(13, 148, 136, 0.25), rgba(56, 189, 248, 0.15))',
                   borderColor: isGirls ? '#F43F5E' : 'var(--accent-primary)',
-                  color: isGirls ? '#F43F5E' : 'var(--accent-primary)',
                 }}
               >
-                <span className="font-mono font-black text-2xl sm:text-3xl leading-none">ع</span>
+                <img
+                  src="/abdelkader.webp"
+                  alt="عبدالقادر - مطور المنصة"
+                  className="w-full h-full object-cover object-center"
+                  loading="eager"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/abdelkader.jpg';
+                  }}
+                />
               </div>
 
               {/* Active Online Indicator */}
