@@ -97,7 +97,7 @@ export default function CohortChallengeWidget({
             <h4 className="text-xs sm:text-sm font-extrabold truncate" style={{ color: 'var(--text-primary)' }}>
               {data.title}
             </h4>
-            <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+            <div className="flex items-center gap-2 text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
               <span>الهدف: {data.targetCount} سؤال</span>
               {data.daysRemaining !== undefined && (
                 <span className="flex items-center gap-1 opacity-80">
@@ -144,7 +144,7 @@ export default function CohortChallengeWidget({
       </div>
 
       {/* Progress Numbers */}
-      <div className="flex items-center justify-between text-[11px] sm:text-xs font-bold mt-2" style={{ color: 'var(--text-secondary)' }}>
+      <div className="flex items-center justify-between text-xs font-bold mt-2" style={{ color: 'var(--text-secondary)' }}>
         <span>حلّت الدفعة: {data.currentCount} سؤال</span>
         <span>
           {isCompleted ? (
@@ -173,7 +173,7 @@ export default function CohortChallengeWidget({
 
       {/* Student Personal Contribution Footer */}
       <div
-        className="mt-2.5 pt-2 border-t flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] font-semibold"
+        className="mt-2.5 pt-2 border-t flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs font-semibold"
         style={{
           borderColor: 'var(--border-subtle)',
           color: 'var(--text-muted)',

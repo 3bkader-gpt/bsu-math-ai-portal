@@ -60,7 +60,7 @@
 }
 
 html {
-  font-size: 14.5px;
+  font-size: 14.85px;
   overflow-x: clip;
   max-width: 100vw;
   scroll-behavior: smooth;
@@ -71,13 +71,13 @@ html {
 
 @media (min-width: 640px) {
   html {
-    font-size: 15px;
+    font-size: 15.35px;
   }
 }
 
 @media (min-width: 1024px) {
   html {
-    font-size: 15.25px;
+    font-size: 15.65px;
   }
 }
 

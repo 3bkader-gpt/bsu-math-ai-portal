@@ -26,14 +26,14 @@ export default function BurnoutReliefModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-md overflow-y-auto overscroll-contain animate-in fade-in duration-200"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl border p-5 sm:p-7 shadow-2xl animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md max-h-[92dvh] overflow-y-auto my-auto rounded-3xl border p-5 sm:p-7 shadow-2xl animate-in zoom-in-95 duration-200"
         style={{
           backgroundColor: 'var(--bg-surface)',
           borderColor: 'var(--border-prominent)',

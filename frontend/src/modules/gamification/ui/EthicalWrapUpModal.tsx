@@ -36,19 +36,26 @@ export function EthicalWrapUpModal({ isOpen, onClose, stats }: EthicalWrapUpModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto overscroll-contain animate-fade-in"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
           backgroundColor: 'var(--bg-surface)',
           borderColor: 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)',
         }}
-        className="w-full max-w-md rounded-3xl border overflow-hidden shadow-2xl relative p-6 sm:p-8 text-center space-y-6"
+        className="w-full max-w-md max-h-[92dvh] overflow-y-auto my-auto rounded-3xl border shadow-2xl relative p-5 sm:p-8 text-center space-y-4 sm:space-y-6"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 left-4 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+          className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
           style={{ color: 'var(--text-muted)' }}
+          aria-label="إغلاق"
         >
           <X className="w-5 h-5" />
         </button>
@@ -59,9 +66,9 @@ export function EthicalWrapUpModal({ isOpen, onClose, stats }: EthicalWrapUpModa
             backgroundColor: 'var(--accent-primary)',
             color: 'var(--bg-page)',
           }}
-          className="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center shadow-xl animate-pulse"
+          className="w-14 h-14 sm:w-20 sm:h-20 mx-auto rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-xl animate-pulse"
         >
-          <Coffee className="w-10 h-10" />
+          <Coffee className="w-7 h-7 sm:w-10 sm:h-10" />
         </div>
 
         {/* Supportive Heading */}

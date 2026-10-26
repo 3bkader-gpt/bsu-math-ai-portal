@@ -734,7 +734,7 @@ export default function Home() {
                     borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : (isDark ? 'rgba(45, 212, 191, 0.35)' : '#B2DFDB'),
                     color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : (isDark ? '#2DD4BF' : '#184E4E'),
                   }}
-                  className="hidden md:inline-block px-2 py-0.5 text-[10px] font-bold rounded-full border shrink-0"
+                  className="hidden lg:inline-block px-2.5 py-0.5 text-xs font-bold rounded-full border shrink-0"
                 >
                   {isGirls ? "🎀 You're Just A Baby Girl" : 'نسخة الشباب'}
                 </span>
@@ -747,7 +747,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={() => setIsMistakeNotebookOpen(true)}
               style={{
@@ -755,7 +755,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
+              className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
               title="كراسة الأخطاء الذكية وتكرار لايتنر"
             >
               <span>🧠 كراسة الأخطاء</span>
@@ -767,7 +767,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
+              className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
               title="جلسة الـ 5 دقائق السريعة"
             >
               <span>⏱️ 5 دقائق</span>
@@ -779,7 +779,7 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
+              className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
               title="أنهيت مذاكرتي لليوم"
             >
               <span>☕ استريح</span>
@@ -1013,7 +1013,7 @@ export default function Home() {
                 <span className="text-[11px] opacity-80">{filteredSubjects.length} مادة</span>
               </div>
 
-              <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] overflow-x-auto md:overflow-x-visible overscroll-x-contain touch-pan-x snap-x snap-mandatory gap-2.5 pb-2.5 pt-3 md:py-0 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rail-courses-mobile">
+              <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] overflow-x-auto md:overflow-x-visible overscroll-x-contain snap-x snap-mandatory gap-2.5 pb-2.5 pt-3 md:py-0 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rail-courses-mobile">
                 {filteredSubjects.map((sub) => {
                   const isActive = sub.id === activeSubjectId;
                   const styleConfig = SUBJECT_THEME_STYLES[sub.name] || {

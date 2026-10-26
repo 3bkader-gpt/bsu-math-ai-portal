@@ -106,14 +106,20 @@ export function MistakeNotebookModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-5 bg-black/60 backdrop-blur-sm overflow-y-auto overscroll-contain animate-fade-in"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
           backgroundColor: 'var(--bg-surface)',
           borderColor: 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)',
         }}
-        className="w-full max-w-2xl rounded-3xl border shadow-2xl relative flex flex-col max-h-[92vh] pt-2"
+        className="w-full max-w-2xl rounded-3xl border shadow-2xl relative flex flex-col max-h-[92dvh] my-auto pt-2"
       >
         {/* Spiral Notebook Wire Bindings (كشكول سلك معدني مجسم) */}
         <div className="absolute -top-3.5 left-6 right-6 flex items-center justify-around pointer-events-none z-30">
