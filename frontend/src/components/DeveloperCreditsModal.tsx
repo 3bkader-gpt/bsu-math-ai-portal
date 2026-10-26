@@ -50,7 +50,7 @@ export function DeveloperCreditsModal({ isOpen, onClose, isGirls = false }: Deve
 
   if (!isOpen) return null;
 
-  const whatsappHref = `https://wa.me/201023100767?text=${encodeURIComponent('يا عبقادر، عندي فكرة / داتا للمنصة:')}`;
+  const whatsappHref = 'https://wa.me/201023100767';
 
   return (
     <div
