@@ -92,8 +92,17 @@ function playTone(
 /**
  * Synthesizes sound effects matching game events.
  */
+export type SoundEffect =
+  | 'xp_chime'
+  | 'level_up'
+  | 'streak_fire'
+  | 'badge_unlock'
+  | 'quiz_correct'
+  | 'quiz_wrong';
+
 export function playSound(
-  sound: 'xp_chime' | 'level_up' | 'streak_fire' | 'badge_unlock' | 'quiz_correct'
+  sound: SoundEffect,
+  options?: { /** Semitone offset for ascending streak chimes (capped). */ semitones?: number }
 ): void {
   if (isAudioMuted()) return;
 
@@ -111,9 +120,18 @@ export function playSound(
     }
 
     case 'quiz_correct': {
-      // Crisp bell chime
-      playTone(ctx, 880, now, 0.18, 'sine', 0.18);
-      playTone(ctx, 1760, now + 0.05, 0.28, 'sine', 0.12);
+      // Ascending harmonious chime: pitch climbs one semitone per
+      // consecutive correct answer (capped at +5) — Phase 4.3
+      const shift = Math.pow(2, Math.min(options?.semitones ?? 0, 5) / 12);
+      playTone(ctx, 880 * shift, now, 0.18, 'sine', 0.18);
+      playTone(ctx, 1760 * shift, now + 0.05, 0.28, 'sine', 0.12);
+      break;
+    }
+
+    case 'quiz_wrong': {
+      // Gentle descending pair — supportive, never punishing (Phase 4.3)
+      playTone(ctx, 440, now, 0.15, 'sine', 0.1);
+      playTone(ctx, 349.23, now + 0.1, 0.22, 'sine', 0.08);
       break;
     }
 
