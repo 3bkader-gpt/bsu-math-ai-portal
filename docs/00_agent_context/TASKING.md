@@ -6,6 +6,12 @@
 
 ## 🔴 Active Sprint (Now)
 
+### Phase 6 — Sybil-Proof Cohort Collaboration (2026-10-26) — ✅ BUILT & TESTED
+- [x] `20261026_cohort_challenges.sql`: Non-blocking append-only contributions schema + daily per-student cap guard (15/day) + `get_active_cohort_challenge` and `record_cohort_contribution` RPCs.
+- [x] `core/cohortChallenge.ts` pure engine (11/11 Vitest): Progress percentage math, milestone stage messages (25%, 50%, 75%, 100%), and daily quota checks.
+- [x] `CohortChallengeWidget.tsx`: Beautiful cohort goal progress widget displaying collective count, milestone motivation, and individual contribution quotas.
+- [x] Wired into home page (`page.tsx`) and student leaderboard modal (`StudentGamificationPill.tsx`) + auto-contribute on correct quiz answers (`lecture/page.tsx`).
+
 ### Phase 5 — Fair Play, Confidence Assessment & Peer Leaderboards (2026-10-26) — ✅ BUILT & TESTED
 - [x] `core/confidence.ts` pure engine (8/8 Vitest): Calibrates meta-cognition before answer submission, Certainty rewards (High + Correct => +3 XP bonus), Severe Misconception detection (High + Wrong => priority Leitner flag).
 - [x] `ConfidenceSelector.tsx`: Tactile 3-pill selector (🎯 متأكد / 🤔 مش متأكد / 🎲 بتخمين) integrated seamlessly into `QuizViewer`.
@@ -31,26 +37,12 @@
 
 ---
 
-## 🟡 Next In Queue (Phase 6 — Cohort Collaboration)
-
-### Phase 6: Sybil-Proof Cohort Collaboration
-**Goal:** Cultivate cohort solidarity ("كلنا في نفس المركب") without database lock contention.
-
-#### Tasks:
-- [ ] **6.1 — Cohort Challenges Schema & RPC**
-  - Append-only `cohort_challenge_contributions` table with Cairo date and question hash
-  - Daily per-student contribution cap (15/day)
-- [ ] **6.2 — Collective Challenge UI Progress Widget**
-  - Progress bar towards weekly cohort goal (e.g. "الدفعة حلت 500 سؤال")
-  - Materialized view / non-blocking cached aggregator
-
----
-
-## 🟢 Completed (Recent)
+## 🟢 Completed Roadmap (Phases 0–6 All Complete)
 
 | Date | Feature | Commit |
 |---|---|---|
-| 2026-10-26 | Phase 5: Confidence Assessment + Neighborhood Leaderboard + Weekly Freezes | Current |
+| 2026-10-26 | Phase 6: Sybil-Proof Collaborative Cohort Challenge (Append-Only + Daily Cap + Widget) | Current |
+| 2026-10-26 | Phase 5: Confidence Assessment + Neighborhood Leaderboard + Weekly Freezes | `88672f9` |
 | 2026-10-26 | Phase 4: Compassionate Feedback + Diagnostics + Haptics + Easter Eggs | `4c59b3e` |
 | 2026-10-25 | Phase 3: Cognitive Guard & Hint Ladder | `6a30c55` |
 | 2026-10-21 | Phase 2 docs updated to COMPLETED | `3b77c13` |

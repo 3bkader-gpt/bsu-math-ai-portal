@@ -93,6 +93,7 @@ import {
 import { vibrateCorrect, vibrateWrong } from '@/lib/haptics';
 import { playSound } from '@/lib/audio/soundEngine';
 import { triggerConfetti } from '@/lib/effects/confetti';
+import { recordCohortContribution } from '@/modules/gamification/supabase/cohortChallenge';
 
 const DEFAULT_MATH_FLASHCARDS: Flashcard[] = [
   {
@@ -1999,6 +2000,11 @@ function LectureContent() {
                                       q.hint ?? '',
                                       tierUsed
                                     );
+                                  }
+
+                                  // Phase 6: Sybil-proof cohort challenge contribution
+                                  if (isCorrect && questionHash) {
+                                    recordCohortContribution('mock-weekly-challenge', questionHash);
                                   }
 
                                   // Cognitive Guard: consecutive-wrong streak

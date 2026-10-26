@@ -15,6 +15,7 @@ import { GAMIFICATION_CONFIG } from '@/config/gamification-rules';
 import { fetchCohortLeaderboard } from '@/modules/gamification/supabase/gamification';
 import { LeaderboardEntry } from '@/modules/gamification/supabase/types';
 import { getNeighborhoodWindow } from '@/modules/gamification/core/neighborhoodLeaderboard';
+import { CohortChallengeWidget } from '@/modules/gamification/ui';
 import {
   Flame,
   Zap,
@@ -640,6 +641,9 @@ export function StudentGamificationPill({
 
               {activeTab === 'leaderboard' && (
                 <div className="space-y-3">
+                  {/* Phase 6: Sybil-Proof Collaborative Cohort Challenge */}
+                  <CohortChallengeWidget userId={currentUserId} isGirls={isGirls} compact={true} />
+
                   {/* Student Name Registration / Edit Card */}
                   {!studentName || isEditingName ? (
                     <div 

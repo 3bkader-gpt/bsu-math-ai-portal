@@ -38,6 +38,7 @@ import {
   QuickMicroSessionModal,
   EthicalWrapUpModal,
   MistakeNotebookModal,
+  CohortChallengeWidget,
 } from '@/modules/gamification/ui';
 import { trackSessionStarted } from '@/modules/telemetry';
 
@@ -887,6 +888,9 @@ export default function Home() {
         
         {/* Phase 1: Zero-Redundancy Smart Resume ("كمّل من حيث وقفت") */}
         <SmartResumeCard />
+
+        {/* Phase 6: Sybil-Proof Collaborative Cohort Challenge */}
+        <CohortChallengeWidget isGirls={isGirls} />
 
         {/* Subjects Grid & Semester Selector */}
         <section>

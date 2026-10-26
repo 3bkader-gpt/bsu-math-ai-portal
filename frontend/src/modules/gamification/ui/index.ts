@@ -6,4 +6,5 @@ export * from './MistakeNotebookModal';
 export { default as SessionFlowBar } from './SessionFlowBar';
 export { default as BurnoutReliefModal } from './BurnoutReliefModal';
 export { default as ConfidenceSelector } from './ConfidenceSelector';
+export { default as CohortChallengeWidget } from './CohortChallengeWidget';
 
