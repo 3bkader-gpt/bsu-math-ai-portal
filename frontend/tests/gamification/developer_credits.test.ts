@@ -16,6 +16,7 @@ describe('Artisan Developer Credits Integration', () => {
       expect(modalCode).toContain('عبقادر');
       expect(modalCode).toContain('تانية تربية رياضة');
       expect(modalCode).toContain('المطور');
+      expect(modalCode).toContain('/abdelkader.webp');
     });
 
     it('contains Idea 3 friendly exam copy', () => {

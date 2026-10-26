@@ -30,14 +30,19 @@ export function DeveloperCreditsPill({
       >
         <div className="flex items-center gap-2 min-w-0">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border shadow-2xs"
+            className="w-7 h-7 rounded-lg overflow-hidden shrink-0 border shadow-2xs"
             style={{
-              backgroundColor: isGirls ? 'rgba(255, 101, 132, 0.15)' : 'rgba(45, 212, 191, 0.15)',
-              borderColor: isGirls ? 'rgba(255, 101, 132, 0.3)' : 'rgba(45, 212, 191, 0.3)',
-              color: isGirls ? '#F43F5E' : 'var(--accent-primary)',
+              borderColor: isGirls ? 'rgba(255, 101, 132, 0.3)' : 'var(--accent-primary)',
             }}
           >
-            <Code2 className="w-3.5 h-3.5" />
+            <img
+              src="/abdelkader.webp"
+              alt="عبقادر"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = '/abdelkader.jpg';
+              }}
+            />
           </div>
           <div className="text-right min-w-0">
             <span className="block text-xs font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
