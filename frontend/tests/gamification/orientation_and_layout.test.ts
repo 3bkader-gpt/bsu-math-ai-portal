@@ -73,4 +73,34 @@ describe('Orientation & Mobile Landscape Resilience (Phase 7)', () => {
       expect(css).toContain('font-size: 15.65px;');
     });
   });
+
+  describe('Smart Auto-Hiding Header (Maximize Screen Real Estate)', () => {
+    const smartHeaderPath = path.resolve(__dirname, '../../src/lib/useSmartHeaderVisibility.ts');
+    const lecturePagePath = path.resolve(__dirname, '../../src/app/lecture/page.tsx');
+
+    it('implements useSmartHeaderVisibility with RAF throttling, delta threshold, and top boundary', () => {
+      const code = fs.readFileSync(smartHeaderPath, 'utf8');
+      expect(code).toContain('export function useSmartHeaderVisibility');
+      expect(code).toContain('requestAnimationFrame');
+      expect(code).toContain('delta > threshold');
+      expect(code).toContain('delta < -threshold');
+      expect(code).toContain('currentScrollY <= topBoundary');
+    });
+
+    it('applies smart auto-hiding and reveal transitions to header in page.tsx', () => {
+      const code = fs.readFileSync(pagePath, 'utf8');
+      expect(code).toContain('useSmartHeaderVisibility');
+      expect(code).toContain('translate-y-0 opacity-100');
+      expect(code).toContain('-translate-y-full opacity-0 pointer-events-none');
+    });
+
+    it('applies smart auto-hiding and reveal transitions to header in lecture/page.tsx', () => {
+      const code = fs.readFileSync(lecturePagePath, 'utf8');
+      expect(code).toContain('useSmartHeaderVisibility');
+      expect(code).toContain('translate-y-0 opacity-100');
+      expect(code).toContain('-translate-y-full opacity-0 pointer-events-none');
+      expect(code).toContain('className="lg:hidden p-1.5 rounded-lg border flex items-center justify-center');
+    });
+  });
 });
+

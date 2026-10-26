@@ -40,6 +40,7 @@ import {
   MistakeNotebookModal,
   CohortChallengeWidget,
 } from '@/modules/gamification/ui';
+import { useSmartHeaderVisibility } from '@/lib/useSmartHeaderVisibility';
 import { trackSessionStarted } from '@/modules/telemetry';
 
 type Subject = AcademicSubject;
@@ -517,6 +518,7 @@ export default function Home() {
   const [isMistakeNotebookOpen, setIsMistakeNotebookOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
+  const isHeaderVisible = useSmartHeaderVisibility({ threshold: 12, topBoundary: 25 });
 
   // Dynamic time-of-day greeting (كلمة ع الماشي / رادار المحاضرات)
   useEffect(() => {
@@ -694,14 +696,18 @@ export default function Home() {
       className="min-h-screen flex flex-col transition-colors duration-200"
     >
       
-      {/* Top Academic Header */}
+      {/* Top Academic Header (Auto-hides on scroll-down, reveals on scroll-up to maximize screen real estate) */}
       <header
         style={{
           backgroundColor: 'var(--bg-surface-translucent)',
           borderColor: 'var(--border-subtle)',
-          boxShadow: 'var(--card-shadow)',
+          boxShadow: isHeaderVisible ? 'var(--card-shadow)' : 'none',
         }}
-        className="sticky top-0 z-40 border-b backdrop-blur-md transition-colors"
+        className={`sticky top-0 z-40 border-b backdrop-blur-md transition-all duration-300 ease-in-out ${
+          isHeaderVisible
+            ? 'translate-y-0 opacity-100'
+            : '-translate-y-full opacity-0 pointer-events-none'
+        }`}
       >
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 min-h-[3.5rem] sm:min-h-[4rem] py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-4">
           
