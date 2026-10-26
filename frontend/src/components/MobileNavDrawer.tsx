@@ -17,6 +17,7 @@ import {
 import { isAudioMuted, setAudioMuted, playSound } from '@/lib/audio/soundEngine';
 import { THEME_PALETTES, PersonaType, ModeType } from './ThemeToggle';
 import DeveloperCreditsPill from './DeveloperCreditsPill';
+import { getStudentProfileLocal, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ interface MobileNavDrawerProps {
   onOpenMicroSession?: () => void;
   onOpenWrapUp?: () => void;
   onOpenDevCredits?: () => void;
+  onOpenEditProfile?: () => void;
 }
 
 export function MobileNavDrawer({
@@ -38,11 +40,21 @@ export function MobileNavDrawer({
   onOpenMicroSession,
   onOpenWrapUp,
   onOpenDevCredits,
+  onOpenEditProfile,
 }: MobileNavDrawerProps) {
   const [isMuted, setIsMuted] = useState(false);
+  const [studentName, setStudentName] = useState('');
 
   useEffect(() => {
     setIsMuted(isAudioMuted());
+    const profile = getStudentProfileLocal();
+    setStudentName(profile.name);
+
+    const handleProfileUpdate = (e: any) => {
+      if (e.detail?.name !== undefined) setStudentName(e.detail.name);
+    };
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
+    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
   }, [isOpen]);
 
   // Bulletproof Body Scroll Lock when Drawer is open
@@ -212,6 +224,53 @@ export function MobileNavDrawer({
         {/* Drawer Body (Scrollable inside drawer without affecting background) */}
         <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-4">
           
+          {/* Student Profile Card */}
+          <div
+            className="p-3 rounded-2xl border flex items-center justify-between gap-3 shadow-xs"
+            style={{
+              backgroundColor: 'var(--bg-surface-elevated)',
+              borderColor: isGirls ? 'rgba(244, 63, 94, 0.25)' : 'var(--border-interactive)',
+            }}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shadow-2xs shrink-0 select-none"
+                style={{
+                  backgroundColor: isGirls ? 'rgba(255, 101, 132, 0.2)' : 'rgba(45, 212, 191, 0.2)',
+                  color: isGirls ? '#F43F5E' : 'var(--accent-primary)',
+                }}
+              >
+                {studentName ? studentName.charAt(0) : (isGirls ? '👩‍🎓' : '👨‍🎓')}
+              </div>
+              <div className="min-w-0">
+                <span className="block text-xs font-black truncate" style={{ color: 'var(--text-primary)' }}>
+                  {studentName ? `أهلاً، ${studentName}` : 'طالب تانية رياضيات'}
+                </span>
+                <span className="block text-[10px] font-medium opacity-75" style={{ color: 'var(--text-muted)' }}>
+                  كلية التربية • دفعة 2026 📐
+                </span>
+              </div>
+            </div>
+
+            {onOpenEditProfile && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  setTimeout(onOpenEditProfile, 150);
+                }}
+                className="text-[11px] font-bold px-2.5 py-1 rounded-xl border transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  borderColor: 'var(--border-subtle)',
+                  color: isGirls ? '#F43F5E' : 'var(--accent-primary)',
+                }}
+              >
+                تعديل ✏️
+              </button>
+            )}
+          </div>
+
           {/* Quick Study Tools */}
           <div className="space-y-1.5">
             <h3 className="text-xs font-bold uppercase tracking-wider px-1" style={{ color: 'var(--text-muted)' }}>
