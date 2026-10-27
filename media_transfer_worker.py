@@ -142,17 +142,26 @@ async def transfer(handoff: dict):
             doctor=handoff["doctor"],
         )
         uploads = []
-        audio = _cli_download("audio", temp_dir / "audio_overview.m4a", nb_id, state_file)
-        cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
-                                    cap_base["title"], cap_base["doctor"],
-                                    "🎧 بودكاست الشرح الصوتي بالمصرية")
-        uploads.append((audio, "audio", "بودكاست الشرح الصوتي", cap))
+        try:
+            audio = _cli_download("audio", temp_dir / "audio_overview.m4a", nb_id, state_file)
+            cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
+                                        cap_base["title"], cap_base["doctor"],
+                                        "🎧 بودكاست الشرح الصوتي بالمصرية")
+            uploads.append((audio, "audio", "بودكاست الشرح الصوتي", cap))
+        except Exception as e:
+            logger.warning("Audio not ready or failed to download: %s", e)
 
-        video = _cli_download("video", temp_dir / "video_overview.mp4", nb_id, state_file)
-        cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
-                                    cap_base["title"], cap_base["doctor"],
-                                    "🎬 فيديو الشرح المرئي التفاعلي")
-        uploads.append((video, "video", "فيديو الشرح التفاعلي", cap))
+        try:
+            video = _cli_download("video", temp_dir / "video_overview.mp4", nb_id, state_file)
+            cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
+                                        cap_base["title"], cap_base["doctor"],
+                                        "🎬 فيديو الشرح المرئي التفاعلي")
+            uploads.append((video, "video", "فيديو الشرح التفاعلي", cap))
+        except Exception as e:
+            logger.warning("Video not ready or failed to download: %s", e)
+
+        if not uploads:
+            raise RuntimeError("Neither audio nor video was successfully downloaded from Google.")
 
         for file_path, asset_type, title, caption in uploads:
             up = await telegram_storage.upload_asset(file_path, asset_type, caption)
@@ -198,21 +207,23 @@ async def transfer(handoff: dict):
 
 
 async def main():
-    handoff_id = sys.argv[1] if len(sys.argv) > 1 else None
-    handoff = fetch_handoff(handoff_id)
-    if not handoff:
-        logger.info("No pending handoff — nothing to do")
-        return
-    logger.info("Processing handoff %s for lecture %s", handoff["id"], handoff["lecture_id"])
-    mark_handoff(handoff["id"], "in_progress")
-    try:
-        await transfer(handoff)
-        purge_handoff(handoff["id"])
-        logger.info("Handoff %s transferred & purged", handoff["id"])
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("Transfer failed for handoff %s", handoff["id"])
-        mark_handoff(handoff["id"], "failed", str(exc)[:500])
-        raise
+    target_id = sys.argv[1] if len(sys.argv) > 1 else None
+    while True:
+        handoff = fetch_handoff(target_id)
+        if not handoff:
+            logger.info("No pending handoff — finished all!")
+            break
+        logger.info("Processing handoff %s for lecture %s", handoff["id"], handoff["lecture_id"])
+        mark_handoff(handoff["id"], "in_progress")
+        try:
+            await transfer(handoff)
+            purge_handoff(handoff["id"])
+            logger.info("Handoff %s transferred & purged", handoff["id"])
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Transfer failed for handoff %s", handoff["id"])
+            mark_handoff(handoff["id"], "failed", str(exc)[:500])
+        if target_id:
+            break
 
 
 if __name__ == "__main__":
