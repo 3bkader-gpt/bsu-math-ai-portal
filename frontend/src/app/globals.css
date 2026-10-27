@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --breakpoint-xs: 475px;
+}
+
 @font-face {
   font-family: 'Noto Sans Egyptian Hieroglyphs';
   font-style: normal;

@@ -642,8 +642,8 @@ function LectureContent() {
             }}
           >
             <ArrowRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:-translate-x-0.5 transition-transform shrink-0" />
-            <span className="hidden xs:inline">رجوع للمقررات</span>
-            <span className="xs:hidden">رجوع</span>
+            <span className="hidden sm:inline">رجوع للمقررات</span>
+            <span className="sm:hidden">رجوع</span>
           </Link>
 
           {/* Subject & Doctor Badge in Center (Visible on md+ where space is ample, eliminating ugly 'هـ...' clipping on mobile) */}

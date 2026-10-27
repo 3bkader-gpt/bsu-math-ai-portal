@@ -115,7 +115,7 @@ const CANONICAL_COURSES: CanonicalCourse[] = [
   },
   {
     canonicalName: 'تكنولوجيا التعليم',
-    doctor: 'د/ ايمان',
+    doctor: 'د/ ايمان + د/ ايه',
     icon: '💻',
     aliases: ['تكنولوجيا والتحول الرقمي', 'تكنولوجيا التعليم', 'تكنولوجيا'],
     fallbackId: 5,
@@ -317,6 +317,56 @@ interface Lecture {
 }
 
 
+
+function getDoctorTrackDetails(subjectName: string = '', docName: string = '') {
+  const isTech = subjectName.includes('تكنولوجيا') || subjectName.includes('التحول الرقمي');
+  const isEdu = subjectName.includes('تعليم') || subjectName.includes('رياد');
+
+  if (isTech) {
+    if (docName.includes('ايمان')) {
+      return {
+        label: 'المحاضرات النظرية',
+        subtext: 'د/ إيمان',
+        icon: '📖',
+        badge: 'نظري',
+      };
+    }
+    if (docName.includes('ايه')) {
+      return {
+        label: 'السكاشن العملية',
+        subtext: 'د/ آية',
+        icon: '💻',
+        badge: 'عملي',
+      };
+    }
+  }
+
+  if (isEdu) {
+    if (docName.includes('مروة')) {
+      return {
+        label: 'التربية المعاصرة',
+        subtext: 'د/ مروة',
+        icon: '👩‍🏫',
+        badge: 'تربية',
+      };
+    }
+    if (docName.includes('وليد')) {
+      return {
+        label: 'ريادة الأعمال',
+        subtext: 'د/ وليد',
+        icon: '💼',
+        badge: 'مشروعات',
+      };
+    }
+  }
+
+  return {
+    label: docName,
+    subtext: docName,
+    icon: (docName.includes('مروة') || docName.includes('ايه') || docName.includes('ايمان')) ? '👩‍🏫' : '👨‍🏫',
+    badge: null,
+  };
+}
 
 // Build Unified Courses from Backend + Canonical Registry (Dynamic Semester 1 & 2 Extensibility)
 const mergeSubjects = (backendSubjects: any[]): Subject[] => {
@@ -783,8 +833,7 @@ export default function Home() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm font-medium mt-0.5 leading-snug truncate" style={{ color: 'var(--text-muted)' }}>
-                <span className="xs:hidden">تربية بني سويف</span>
-                <span className="hidden xs:inline sm:hidden">تربية بني سويف • تانية رياضيات</span>
+                <span className="sm:hidden">تربية بني سويف • تانية رياضيات</span>
                 <span className="hidden sm:inline">{isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}</span>
               </p>
             </div>
@@ -1238,36 +1287,59 @@ export default function Home() {
 
               {/* Doctor / Professor Tracks Switcher */}
               {activeSubject?.doctors && activeSubject.doctors.length > 1 && (
-                <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
+                <div className="flex items-center gap-2.5 mb-6 overflow-x-auto pb-2 scrollbar-none">
                   {activeSubject.doctors.map((doc) => {
                     const isSelected = selectedDoctor === doc;
                     const count = subjectLectures.filter(l => l.doctor === doc).length;
+                    const track = getDoctorTrackDetails(activeSubject.name, doc);
                     return (
                       <button
                         key={doc}
                         type="button"
                         onClick={() => setSelectedDoctor(doc)}
-                        className="shrink-0 min-w-fit px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-sm"
+                        className={`shrink-0 min-w-fit px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold border transition-all cursor-pointer flex items-center gap-2.5 shadow-sm ${
+                          isSelected ? 'scale-[1.02] shadow-md' : 'opacity-85 hover:opacity-100 hover:scale-[1.01]'
+                        }`}
                         style={{
                           backgroundColor: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
                           borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
                           color: isSelected ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)'
                         }}
                       >
-                        <span className="shrink-0">{doc.includes('مروة') ? '👩‍🏫' : '👨‍🏫'}</span>
-                        <span className="shrink-0">{doc}</span>
+                        <span className="text-base sm:text-lg shrink-0">{track.icon}</span>
+                        <div className="flex flex-col text-right leading-tight">
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <span>{track.label}</span>
+                            {track.badge && (
+                              <span 
+                                className="text-[10px] px-1.5 py-0.2 rounded font-semibold border"
+                                style={{
+                                  backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'var(--bg-surface)',
+                                  borderColor: isSelected ? 'rgba(255, 255, 255, 0.3)' : 'var(--border-subtle)',
+                                  color: isSelected ? 'inherit' : 'var(--text-muted)'
+                                }}
+                              >
+                                {track.badge}
+                              </span>
+                            )}
+                          </div>
+                          {track.subtext !== track.label && (
+                            <span className="text-[11px] font-medium opacity-85 mt-0.5">
+                              {track.subtext}
+                            </span>
+                          )}
+                        </div>
                         <span
-                          className="inline-flex items-center justify-center text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0 font-mono shadow-2xs"
+                          className="inline-flex items-center justify-center text-xs font-bold px-2 py-0.5 rounded-full shrink-0 font-mono ms-1 border"
                           style={{
                             backgroundColor: isSelected
                               ? 'rgba(255, 255, 255, 0.25)'
                               : 'var(--bg-surface)',
-                            borderColor: 'var(--border-subtle)',
+                            borderColor: isSelected ? 'transparent' : 'var(--border-subtle)',
                             color: isSelected ? 'inherit' : 'var(--text-muted)',
-                            borderWidth: '1px',
                           }}
                         >
-                          {count}
+                          {count > 0 ? count : (track.badge === 'عملي' ? 'قريباً' : 0)}
                         </span>
                       </button>
                     );
@@ -1284,15 +1356,26 @@ export default function Home() {
                   <span className="text-base font-semibold">{content.lecturesSection.loading}</span>
                 </div>
               ) : displayedLectures.length === 0 ? (
-                <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
+                <div 
+                  className="text-center py-12 px-4 rounded-3xl border border-dashed my-4 max-w-xl mx-auto backdrop-blur-xs" 
+                  style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}
+                >
                   <div
-                    style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
-                    className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+                    style={{ backgroundColor: isGirls ? 'rgba(236, 72, 153, 0.12)' : 'rgba(59, 130, 246, 0.12)', borderColor: isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(59, 130, 246, 0.25)' }}
+                    className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center border text-3xl shadow-inner"
                   >
-                    <GraduationCap className="w-8 h-8 opacity-60" />
+                    {selectedDoctor.includes('ايه') ? '💻' : <GraduationCap className="w-8 h-8 opacity-60" />}
                   </div>
-                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{content.lecturesSection.emptyTitle}</p>
-                  <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{content.lecturesSection.emptySubtitle}</p>
+                  <p className="text-base sm:text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {selectedDoctor.includes('ايه') 
+                      ? 'السكاشن العملية (د/ آية) - جاري التجهيز' 
+                      : content.lecturesSection.emptyTitle}
+                  </p>
+                  <p className="text-xs sm:text-sm mt-1.5 max-w-md mx-auto leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                    {selectedDoctor.includes('ايه') 
+                      ? 'سيتم رفع وإتاحة السكاشن العملية مع كافة ملخصاتها واختباراتها الذكية هنا فور تسليمها 🌸' 
+                      : content.lecturesSection.emptySubtitle}
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3 sm:gap-5">
