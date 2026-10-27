@@ -144,6 +144,15 @@ async def transfer(handoff: dict):
         uploads = []
         try:
             audio = _cli_download("audio", temp_dir / "audio_overview.m4a", nb_id, state_file)
+            # If audio > 45MB, transcode to 64k MP3 to guarantee fit under Telegram Bot API 50MB limit
+            if audio.stat().st_size > 45 * 1024 * 1024:
+                logger.info(f"Audio size {audio.stat().st_size} bytes > 45MB. Transcoding to 64k mp3 via ffmpeg...")
+                mp3 = temp_dir / "audio_overview.mp3"
+                res = subprocess.run(["ffmpeg", "-y", "-i", str(audio), "-b:a", "64k", str(mp3)], capture_output=True)
+                if res.returncode == 0 and mp3.exists() and mp3.stat().st_size > 1000:
+                    logger.info(f"Transcoded audio: {audio.stat().st_size} -> {mp3.stat().st_size} bytes")
+                    audio = mp3
+
             cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
                                         cap_base["title"], cap_base["doctor"],
                                         "🎧 بودكاست الشرح الصوتي بالمصرية")
@@ -153,6 +162,15 @@ async def transfer(handoff: dict):
 
         try:
             video = _cli_download("video", temp_dir / "video_overview.mp4", nb_id, state_file)
+            # If video > 48MB, transcode to crf 28 to guarantee fit under Telegram Bot API 50MB limit
+            if video.stat().st_size > 48 * 1024 * 1024:
+                logger.info(f"Video size {video.stat().st_size} bytes > 48MB. Transcoding to compact mp4 via ffmpeg...")
+                comp_mp4 = temp_dir / "video_overview_comp.mp4"
+                res = subprocess.run(["ffmpeg", "-y", "-i", str(video), "-vcodec", "libx264", "-crf", "28", "-preset", "fast", str(comp_mp4)], capture_output=True)
+                if res.returncode == 0 and comp_mp4.exists() and comp_mp4.stat().st_size > 1000:
+                    logger.info(f"Transcoded video: {video.stat().st_size} -> {comp_mp4.stat().st_size} bytes")
+                    video = comp_mp4
+
             cap = make_telegram_caption(cap_base["subject_name"], cap_base["lecture_num"],
                                         cap_base["title"], cap_base["doctor"],
                                         "🎬 فيديو الشرح المرئي التفاعلي")

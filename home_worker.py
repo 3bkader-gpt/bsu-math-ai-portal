@@ -342,18 +342,26 @@ async def process_lecture(lecture: dict):
                 ))
                 db.commit()
 
-            # 2. Launch media generation in Google's cloud (no local bytes)
+            # 2. Launch media generation in Google's cloud with rate-limit awareness
             set_stage(lecture_id, "processing",
                       "جاري توليد البودكاست والفيديو على سيرفرات جوجل + الكويز والملخص ☁️")
             prompt_file = PROMPTS_DIR / f"{subject_name}.txt"
             prompt_path = str(prompt_file) if prompt_file.exists() else None
 
-            audio_cmd = ["notebooklm", "generate", "audio", "--length", "long", "-n", nb_id]
-            video_cmd = ["notebooklm", "generate", "video", "--format", "explainer", "-n", nb_id]
-            for cmd in (audio_cmd, video_cmd):
-                if prompt_path:
-                    cmd.extend(["--prompt-file", prompt_path])
-            await asyncio.gather(run_cmd_async(audio_cmd), run_cmd_async(video_cmd))
+            # Launch Audio
+            audio_cmd = ["notebooklm", "generate", "audio", "--length", "long", "--retry", "3", "-n", nb_id]
+            if prompt_path:
+                audio_cmd.extend(["--prompt-file", prompt_path])
+            await run_cmd_async(audio_cmd)
+            await asyncio.sleep(15)  # Spacing cooldown before requesting video
+
+            # Launch Video with CLI retry & rate-limit handling
+            video_cmd = ["notebooklm", "generate", "video", "--format", "explainer", "--retry", "3", "-n", nb_id]
+            if prompt_path:
+                video_cmd.extend(["--prompt-file", prompt_path])
+            v_code, v_out = await run_cmd_async(video_cmd)
+            if v_code != 0:
+                logger.warning(f"Video launch returned code {v_code} for lecture {lecture_id}: {v_out[:200]}")
 
             # 3. Text artifacts (quiz / guide / flashcards / mind-map) — KB scale
             set_stage(lecture_id, "processing", "جاري توليد الكويز والملخص والبطاقات الذكية ✍️")

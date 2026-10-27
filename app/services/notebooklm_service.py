@@ -135,11 +135,12 @@ class NotebookLMPipeline:
                 audio_cmd.extend(["--prompt-file", prompt_path])
             else:
                 audio_cmd.extend(["اشرح المحاضرة بالتفصيل وباللهجة المصرية وركز على القوانين وخطوات الحل"])
-            # Launch audio asynchronously without waiting so text artifacts can generate concurrently
+            # Launch audio asynchronously with retry
             await run_cmd_async(audio_cmd)
+            await asyncio.sleep(15)  # Spacing cooldown before requesting video
 
-            # Launch explainer video generation with the same subject prompt file
-            video_cmd = ["notebooklm", "generate", "video", "--format", "explainer", "-n", nb_id]
+            # Launch explainer video generation with rate-limit retry and backoff
+            video_cmd = ["notebooklm", "generate", "video", "--format", "explainer", "--retry", "3", "-n", nb_id]
             if prompt_path and Path(prompt_path).exists():
                 video_cmd.extend(["--prompt-file", prompt_path])
             else:
