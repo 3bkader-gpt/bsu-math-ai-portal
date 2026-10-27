@@ -8,6 +8,7 @@
 .wrangler/
 *.png
 !docs/03_testing/evidence/**
+!frontend/public/icons/**
 
 
 

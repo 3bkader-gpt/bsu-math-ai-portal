@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MathRenderer from './MathRenderer';
 import { ChevronRight, ChevronLeft, RotateCcw, Sparkles, Layers } from 'lucide-react';
 import contentData from '@/data/content.json';
@@ -21,6 +21,10 @@ export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerPr
   const [isFlipped, setIsFlipped] = useState(false);
   const [isGirls, setIsGirls] = useState(false);
 
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const isSwipingRef = useRef<boolean>(false);
+
   useEffect(() => {
     setIsGirls(document.documentElement.getAttribute('data-persona') === 'girls');
     const handlePersonaChange = () => {
@@ -38,6 +42,63 @@ export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerPr
       }
       return next;
     });
+  };
+
+  const handleNext = () => {
+    setIsFlipped(false);
+    setCurrentIndex((prev) => (prev + 1) % cards.length);
+  };
+
+  const handlePrev = () => {
+    setIsFlipped(false);
+    setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchStartYRef.current = e.touches[0].clientY;
+      isSwipingRef.current = false;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const dx = e.touches[0].clientX - touchStartXRef.current;
+    const dy = e.touches[0].clientY - touchStartYRef.current;
+    if (Math.abs(dx) > 15 && Math.abs(dx) > Math.abs(dy)) {
+      isSwipingRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const dx = endX - touchStartXRef.current;
+    const dy = endY - touchStartYRef.current;
+
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.1) {
+      // Horizontal swipe detected
+      if (dx < 0) {
+        // Swiped left (in RTL: next card)
+        handleNext();
+      } else {
+        // Swiped right (in RTL: previous card)
+        handlePrev();
+      }
+    }
+  };
+
+  const handleCardClick = () => {
+    if (isSwipingRef.current) {
+      isSwipingRef.current = false;
+      return;
+    }
+    toggleFlip();
   };
 
   // Keyboard navigation support
@@ -69,15 +130,6 @@ export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerPr
 
   const currentCard = cards[currentIndex];
 
-  const handleNext = () => {
-    setIsFlipped(false);
-    setCurrentIndex((prev) => (prev + 1) % cards.length);
-  };
-
-  const handlePrev = () => {
-    setIsFlipped(false);
-    setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
-  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 py-4">
@@ -129,8 +181,11 @@ export function RawFlashcardsViewer({ cards, onCardFlipped }: FlashcardsViewerPr
       <div className="flashcard-3d-scene w-full pb-10 pt-2 px-3 sm:px-6">
         <div
           id="flashcard-card-box"
-          onClick={toggleFlip}
-          className="card-deck-stack w-full min-h-[280px] sm:min-h-[350px] rounded-2xl sm:rounded-3xl cursor-pointer select-none group transition-transform duration-300 hover:scale-[1.01] active:scale-[0.99]"
+          onClick={handleCardClick}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="card-deck-stack w-full min-h-[280px] sm:min-h-[350px] rounded-2xl sm:rounded-3xl cursor-pointer select-none group transition-transform duration-300 hover:scale-[1.01] active:scale-[0.99] touch-pan-y"
         >
           <div
             className={`flashcard-3d-card w-full min-h-[280px] sm:min-h-[350px] ${

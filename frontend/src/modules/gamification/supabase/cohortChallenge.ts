@@ -56,8 +56,9 @@ export async function recordCohortContribution(
   questionHash: string
 ): Promise<boolean> {
   try {
+    const isValidUuid = typeof challengeId === 'string' && /^[0-9a-fA-F-]{36}$/.test(challengeId);
     const { data, error } = await supabase.rpc('record_cohort_contribution', {
-      p_challenge_id: challengeId,
+      p_challenge_id: isValidUuid ? challengeId : null,
       p_question_hash: questionHash,
     });
 

@@ -36,7 +36,13 @@ export const isAssetStorageAvailable = (a: AcademicMediaAsset): boolean => {
   if (typeof a.is_available === 'boolean') {
     return a.is_available;
   }
-  return Boolean(a.has_telegram || a.telegram_file_id || a.telegram_message_id);
+  return Boolean(
+    a.has_telegram ||
+    a.telegram_file_id ||
+    a.telegram_message_id ||
+    a.file_url ||
+    a.local_file_path?.startsWith('http')
+  );
 };
 
 export const getOriginalPdfDetails = (pdf: any, lectureNum?: number): OriginalPdfInfo => {
@@ -51,9 +57,12 @@ export const getOriginalPdfDetails = (pdf: any, lectureNum?: number): OriginalPd
     : null;
   const formattedSize = sizeMb && parseFloat(sizeMb) >= 0.5 ? `${sizeMb} ميجا` : (sizeKb ? `${sizeKb} ك.ب` : '');
 
-  const downloadUrl = (pdf.stream_url || `/api/stream/${pdf.id}`).includes('?')
-    ? `${pdf.stream_url || `/api/stream/${pdf.id}`}&download=true`
-    : `${pdf.stream_url || `/api/stream/${pdf.id}`}?download=true`;
+  const directUrl = pdf.file_url || (pdf.local_file_path?.startsWith('http') ? pdf.local_file_path : null);
+  const downloadUrl = directUrl || (
+    (pdf.stream_url || `/api/stream/${pdf.id}`).includes('?')
+      ? `${pdf.stream_url || `/api/stream/${pdf.id}`}&download=true`
+      : `${pdf.stream_url || `/api/stream/${pdf.id}`}?download=true`
+  );
 
   if (isBook) {
     const bookTopic = rawTitle

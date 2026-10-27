@@ -52,6 +52,7 @@ export interface AcademicLecture {
   has_guide?: boolean;
   has_flashcards?: boolean;
   is_ready?: boolean;
+  source_pdf_url?: string | null;
 }
 
 /**
@@ -68,6 +69,8 @@ export interface AcademicMediaAsset {
   telegram_file_id?: string | null;
   telegram_message_id?: number | null;
   content_text?: string | null;
+  local_file_path?: string | null;
+  file_url?: string | null;
   is_available?: boolean;
 }
 
@@ -86,6 +89,7 @@ export interface AcademicLectureBundle {
   error_message: string | null;
   assets: AcademicMediaAsset[];
   created_at: string;
+  source_pdf_url?: string | null;
 }
 
 // Aliases for backward compatibility and clean domain naming

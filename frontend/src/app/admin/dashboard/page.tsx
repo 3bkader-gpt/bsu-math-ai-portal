@@ -49,6 +49,7 @@ import {
   AcademicMediaAsset as LectureAsset 
 } from '@/types/academic';
 import { lockBodyScroll, unlockBodyScroll } from '@/lib/scrollLock';
+import { supabase } from '@/modules/gamification/supabase/client';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function AdminDashboardPage() {
   const [showDiagnosticsModal, setShowDiagnosticsModal] = useState(false);
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
   const [isLoadingDiagnostics, setIsLoadingDiagnostics] = useState(false);
-  const [diagnosticsTab, setDiagnosticsTab] = useState<'overview' | 'matrix' | 'logs'>('overview');
+  const [diagnosticsTab, setDiagnosticsTab] = useState<'overview' | 'matrix' | 'logs' | 'cohort'>('overview');
   const [logsData, setLogsData] = useState<any[]>([]);
   const [logsStats, setLogsStats] = useState<any>(null);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
@@ -90,6 +91,10 @@ export default function AdminDashboardPage() {
   const [matrixFilter, setMatrixFilter] = useState<'ALL' | 'COMPLETE' | 'INCOMPLETE'>('ALL');
   const [matrixSearch, setMatrixSearch] = useState<string>('');
   const [copiedReport, setCopiedReport] = useState(false);
+
+  // Live Cohort Analytics State
+  const [cohortAnalytics, setCohortAnalytics] = useState<any>(null);
+  const [isLoadingCohort, setIsLoadingCohort] = useState(false);
 
   // Freeze background page scroll completely when a modal is open
   useEffect(() => {
@@ -136,6 +141,48 @@ export default function AdminDashboardPage() {
       console.error('Failed to fetch logs:', e);
     } finally {
       setIsLoadingLogs(false);
+    }
+  };
+
+  const fetchCohortAnalytics = async () => {
+    setIsLoadingCohort(true);
+    try {
+      const [
+        profilesRes,
+        dauRes,
+        errorsRes,
+        mistakesRes,
+        challengeRes,
+        contribsCountRes
+      ] = await Promise.all([
+        supabase.from('profiles').select('id, nickname, total_xp, level, current_streak, created_at').order('created_at', { ascending: false }).limit(40),
+        supabase.from('v_kpi_daily_cohort_summary').select('*').order('day', { ascending: false }).limit(7),
+        supabase.from('ingestion_errors').select('*').order('created_at', { ascending: false }).limit(10),
+        supabase.from('mistake_notebook').select('id, box_level', { count: 'exact' }),
+        supabase.from('cohort_challenges').select('*').eq('is_active', true).limit(1),
+        supabase.from('cohort_challenge_contributions').select('id', { count: 'exact', head: true })
+      ]);
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const profiles = profilesRes.data || [];
+      const todayProfiles = profiles.filter((p: any) => (p.created_at || '').startsWith(todayStr));
+      const activeXpStudents = profiles.filter((p: any) => (p.total_xp || 0) > 0);
+
+      setCohortAnalytics({
+        totalProfilesCount: profiles.length,
+        todayProfilesCount: todayProfiles.length,
+        activeXpStudentsCount: activeXpStudents.length,
+        profilesList: profiles,
+        dauList: dauRes.data || [],
+        errorsList: errorsRes.data || [],
+        mistakesCount: mistakesRes.count || 0,
+        activeChallenge: challengeRes.data?.[0] || null,
+        totalContributions: contribsCountRes.count || 0,
+      });
+    } catch (err) {
+      console.error('Failed to fetch cohort analytics:', err);
+    } finally {
+      setIsLoadingCohort(false);
     }
   };
 
@@ -586,6 +633,24 @@ export default function AdminDashboardPage() {
               <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-500 shrink-0" />
               <span className="hidden lg:inline">بوابة الطلاب</span>
             </Link>
+
+            <button
+              onClick={() => {
+                setDiagnosticsTab('cohort');
+                setShowDiagnosticsModal(true);
+                fetchCohortAnalytics();
+              }}
+              title="تحليلات ونبض نشاط الدفعة المباشر"
+              className="inline-flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-black border transition-all sm:hover:scale-[1.02] shadow-sm shrink-0 cursor-pointer"
+              style={{
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                borderColor: 'rgba(16, 185, 129, 0.4)',
+                color: '#10b981'
+              }}
+            >
+              <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-emerald-500" />
+              <span className="hidden sm:inline">نبض الدفعة 🎓</span>
+            </button>
 
             <button
               onClick={() => {
@@ -1491,6 +1556,27 @@ export default function AdminDashboardPage() {
                   </span>
                 )}
               </button>
+
+              <button
+                onClick={() => {
+                  setDiagnosticsTab('cohort');
+                  fetchCohortAnalytics();
+                }}
+                className={`pb-2.5 px-3 border-b-2 text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 ${
+                  diagnosticsTab === 'cohort'
+                    ? 'border-cyan-500 text-cyan-500'
+                    : 'border-transparent opacity-70 hover:opacity-100'
+                }`}
+                style={{ color: diagnosticsTab === 'cohort' ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+              >
+                <GraduationCap className="w-4 h-4 text-emerald-500" />
+                <span>تحليلات ونبض الدفعة (Cohort Pulse)</span>
+                {cohortAnalytics?.todayProfilesCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-500 font-bold">
+                    +{cohortAnalytics.todayProfilesCount} اليوم
+                  </span>
+                )}
+              </button>
             </div>
 
             {/* Modal Body Content */}
@@ -1931,6 +2017,171 @@ export default function AdminDashboardPage() {
                         </div>
                       ))
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: LIVE COHORT PULSE */}
+              {diagnosticsTab === 'cohort' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  {/* Top Refresh & Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-surface-elevated)] p-4 rounded-2xl border border-[var(--border-subtle)]">
+                    <div>
+                      <h4 className="font-black text-sm sm:text-base flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                        <GraduationCap className="w-5 h-5 text-emerald-500" />
+                        <span>لوحة مؤشرات ونبض الدفعة المباشر (Cohort Telemetry)</span>
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        بيانات مباشرة ومحدثة من جداول ومناظر Supabase بدون وسيط
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={fetchCohortAnalytics}
+                      disabled={isLoadingCohort}
+                      className="px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all hover:scale-102 active:scale-98 cursor-pointer disabled:opacity-50"
+                      style={{
+                        backgroundColor: 'var(--bg-surface)',
+                        borderColor: 'var(--border-prominent)',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isLoadingCohort ? 'animate-spin text-teal-400' : ''}`} />
+                      <span>{isLoadingCohort ? 'جاري التحديث...' : 'تحديث البيانات 🔄'}</span>
+                    </button>
+                  </div>
+
+                  {/* 4 Summary Cards */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {/* Card 1: Registrations */}
+                    <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-1">
+                      <div className="flex items-center justify-between text-xs text-gray-400 font-bold">
+                        <span>إجمالي الطلاب المسجلين</span>
+                        <span>👥</span>
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-cyan-400">
+                        {cohortAnalytics?.totalProfilesCount ?? '...'}
+                      </div>
+                      <div className="text-[11px] font-semibold text-emerald-400">
+                        +{cohortAnalytics?.todayProfilesCount ?? 0} طالب دخلوا اليوم ⚡
+                      </div>
+                    </div>
+
+                    {/* Card 2: Ingestion Health */}
+                    <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-1">
+                      <div className="flex items-center justify-between text-xs text-gray-400 font-bold">
+                        <span>سلامة التيليمتري</span>
+                        <span>🛡️</span>
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-emerald-400">
+                        {cohortAnalytics?.errorsList?.length === 0 ? '0 أخطاء' : `${cohortAnalytics?.errorsList?.length} تنبيه`}
+                      </div>
+                      <div className="text-[11px] font-semibold text-gray-400">
+                        {cohortAnalytics?.errorsList?.length === 0 ? '✅ جميع الأحداث تتدفق بامتياز' : '⚠️ راجع سجلات الأخطاء'}
+                      </div>
+                    </div>
+
+                    {/* Card 3: Active XP / Quizzes */}
+                    <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-1">
+                      <div className="flex items-center justify-between text-xs text-gray-400 font-bold">
+                        <span>المذاكرين ومكتسبي XP</span>
+                        <span>⭐</span>
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-amber-400">
+                        {cohortAnalytics?.activeXpStudentsCount ?? 0}
+                      </div>
+                      <div className="text-[11px] font-semibold text-gray-400">
+                        طلاب حلوا كويزات وجمعوا نقاط
+                      </div>
+                    </div>
+
+                    {/* Card 4: Leitner Mistakes */}
+                    <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-1">
+                      <div className="flex items-center justify-between text-xs text-gray-400 font-bold">
+                        <span>كروت كشكول الأخطاء</span>
+                        <span>🧠</span>
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-purple-400">
+                        {cohortAnalytics?.mistakesCount ?? 0}
+                      </div>
+                      <div className="text-[11px] font-semibold text-gray-400">
+                        أسئلة محفوظة للمراجعة المتباعدة
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Active Weekly Challenge Status */}
+                  {cohortAnalytics?.activeChallenge && (
+                    <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-3">
+                      <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
+                        <span className="flex items-center gap-2 text-emerald-400">
+                          <span>🏆</span>
+                          <span>{cohortAnalytics.activeChallenge.title}</span>
+                        </span>
+                        <span className="text-gray-400">
+                          {cohortAnalytics.totalContributions} / {cohortAnalytics.activeChallenge.target_count} مساهمة فعلية
+                        </span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-black/20 dark:bg-white/10 overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
+                          style={{
+                            width: `${Math.min(100, (cohortAnalytics.totalContributions / cohortAnalytics.activeChallenge.target_count) * 100)}%`
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Students Table */}
+                  <div className="space-y-3">
+                    <h5 className="text-xs sm:text-sm font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                      <span>📋 أحدث الطلاب والنشاط المسجل في قاعدة البيانات:</span>
+                    </h5>
+                    <div className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden">
+                      <div className="max-h-[350px] overflow-y-auto">
+                        <table className="w-full text-right text-xs">
+                          <thead className="bg-[var(--bg-surface-elevated)] text-gray-400 border-b border-[var(--border-subtle)] sticky top-0">
+                            <tr>
+                              <th className="py-2.5 px-3">الاسم / اللقب</th>
+                              <th className="py-2.5 px-3">المستوى</th>
+                              <th className="py-2.5 px-3">الـ XP</th>
+                              <th className="py-2.5 px-3">الستريك</th>
+                              <th className="py-2.5 px-3">توقيت التسجيل</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-surface)]">
+                            {cohortAnalytics?.profilesList?.length === 0 ? (
+                              <tr>
+                                <td colSpan={5} className="py-6 text-center text-gray-500">
+                                  لا توجد بيانات طلاب مسجلة بعد
+                                </td>
+                              </tr>
+                            ) : (
+                              cohortAnalytics?.profilesList?.map((p: any) => (
+                                <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                                  <td className="py-2.5 px-3 font-bold text-[var(--text-primary)]">
+                                    {p.nickname || 'عاشق الرياضيات'}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-cyan-400 font-bold">
+                                    Lvl {p.level || 1}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-amber-400 font-bold">
+                                    {p.total_xp || 0} XP
+                                  </td>
+                                  <td className="py-2.5 px-3 text-emerald-400">
+                                    {p.current_streak ? `🔥 ${p.current_streak}` : '0'}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-gray-400" dir="ltr" style={{ textAlign: 'right' }}>
+                                    {p.created_at ? new Date(p.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
