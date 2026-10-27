@@ -35,12 +35,15 @@ ALTER TABLE public.cohort_challenges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cohort_challenge_contributions ENABLE ROW LEVEL SECURITY;
 
 -- Public read policies
+DROP POLICY IF EXISTS "cohort_challenges_public_read" ON public.cohort_challenges;
 CREATE POLICY "cohort_challenges_public_read" ON public.cohort_challenges
     FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "cohort_contrib_user_read" ON public.cohort_challenge_contributions;
 CREATE POLICY "cohort_contrib_user_read" ON public.cohort_challenge_contributions
     FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "cohort_contrib_insert_own" ON public.cohort_challenge_contributions;
 CREATE POLICY "cohort_contrib_insert_own" ON public.cohort_challenge_contributions
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
@@ -85,20 +88,20 @@ BEGIN
 
     -- Aggregate total contributions without locking
     SELECT count(*) INTO v_total_contribs
-    FROM public.cohort_challenge_contributions
-    WHERE challenge_id = v_challenge.id;
+    FROM public.cohort_challenge_contributions ccc
+    WHERE ccc.challenge_id = v_challenge.id;
 
     -- Aggregate user-specific contributions if user_id provided
     IF p_user_id IS NOT NULL THEN
         SELECT count(*) INTO v_user_total
-        FROM public.cohort_challenge_contributions
-        WHERE challenge_id = v_challenge.id AND user_id = p_user_id;
+        FROM public.cohort_challenge_contributions ccc
+        WHERE ccc.challenge_id = v_challenge.id AND ccc.user_id = p_user_id;
 
         SELECT count(*) INTO v_user_today
-        FROM public.cohort_challenge_contributions
-        WHERE challenge_id = v_challenge.id 
-          AND user_id = p_user_id 
-          AND cairo_date = v_cairo_today;
+        FROM public.cohort_challenge_contributions ccc
+        WHERE ccc.challenge_id = v_challenge.id 
+          AND ccc.user_id = p_user_id 
+          AND ccc.cairo_date = v_cairo_today;
     END IF;
 
     RETURN QUERY
@@ -138,9 +141,9 @@ BEGIN
 
     -- Check daily cap for this user
     SELECT count(*) INTO v_today_count
-    FROM public.cohort_challenge_contributions
-    WHERE user_id = v_user_id 
-      AND cairo_date = v_cairo_today;
+    FROM public.cohort_challenge_contributions ccc
+    WHERE ccc.user_id = v_user_id 
+      AND ccc.cairo_date = v_cairo_today;
 
     IF v_today_count >= v_cap THEN
         RETURN false; -- Daily cap reached
@@ -160,7 +163,7 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_active_cohort_challenge(UUID) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.record_cohort_contribution(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.record_cohort_contribution(UUID, TEXT) TO anon, authenticated;
 
 -- Seed an initial active weekly challenge if none exists
 INSERT INTO public.cohort_challenges (

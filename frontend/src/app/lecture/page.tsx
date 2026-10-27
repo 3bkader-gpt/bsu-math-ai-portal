@@ -542,11 +542,24 @@ function LectureContent() {
   const isAudioReady = Boolean(audioAsset && (audioAsset.has_telegram || audioAsset.telegram_message_id));
   const isVideoReady = Boolean(videoAsset && (videoAsset.has_telegram || videoAsset.telegram_message_id));
 
-  const originalPdfAssets = (lectureBundle?.assets || []).filter(
+  const originalPdfAssets = [...(lectureBundle?.assets || []).filter(
     (a) =>
       (a.asset_type === 'original_pdf' || a.asset_type === 'pdf') &&
       isAssetStorageAvailable(a)
-  );
+  )];
+
+  if (lectureBundle?.source_pdf_url && !originalPdfAssets.some(a => a.local_file_path === lectureBundle.source_pdf_url || (a as any).file_url === lectureBundle.source_pdf_url)) {
+    originalPdfAssets.unshift({
+      id: 999900 + lectureBundle.id,
+      lecture_id: lectureBundle.id,
+      asset_type: 'original_pdf',
+      title: `ملزمة المحاضرة ${lectureBundle.lecture_num}.pdf`,
+      local_file_path: lectureBundle.source_pdf_url,
+      telegram_file_id: 'supabase_storage',
+      file_size_bytes: null,
+      is_available: true,
+    } as any);
+  }
 
   const sortedOriginalPdfs = [...originalPdfAssets].sort((a, b) => {
     const isBookA = /كتاب/i.test(a.title || '');
@@ -676,6 +689,19 @@ function LectureContent() {
 
           {/* Theme & Persona Switcher */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <button
+              onClick={() => setShowMistakeNotebook(true)}
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl border text-xs font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
+              title="كراسة الأخطاء الذكية وتكرار لايتنر"
+            >
+              <span>🧠</span>
+              <span className="hidden sm:inline">كراسة الأخطاء</span>
+            </button>
             <StudentGamificationPill isGirls={currentPersona === 'girls'} isDark={currentMode === 'dark'} />
             <div className="hidden md:inline-flex">
               <ThemeToggle />

@@ -32,8 +32,15 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "منصة المنهج | كلية التربية جامعة بني سويف",
   description: "المنصة الأكاديمية لشعبة رياضيات - الفرقة الثانية، كلية التربية (عام) جامعة بني سويف",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "تانية رياضيات",
+  },
   icons: {
     icon: "/favicon.ico",
+    apple: "/icons/icon-192.png",
   },
 };
 

@@ -847,10 +847,11 @@ export default function Home() {
                 borderColor: 'var(--border-subtle)',
                 color: 'var(--text-primary)',
               }}
-              className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl border text-xs font-bold hover:scale-102 active:scale-98 transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
               title="كراسة الأخطاء الذكية وتكرار لايتنر"
             >
-              <span>🧠 كراسة الأخطاء</span>
+              <span>🧠</span>
+              <span className="hidden sm:inline">كراسة الأخطاء</span>
             </button>
             <button
               onClick={() => setIsMicroSessionOpen(true)}
