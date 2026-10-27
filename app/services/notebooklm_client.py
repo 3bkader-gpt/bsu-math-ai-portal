@@ -72,6 +72,10 @@ def run_notebooklm_cmd(args: list[str], timeout: int = 1800, max_retries: int = 
     Completely isolated within the project lifecycle.
     """
     env = os.environ.copy()
+    bin_dir = str(Path(sys.executable).parent)
+    if bin_dir not in env.get("PATH", ""):
+        env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+
     env["NOTEBOOKLM_HEADLESS_REAUTH"] = "1"
     env["NOTEBOOKLM_REFRESH_CMD_MIDSESSION"] = "1"
     env["NOTEBOOKLM_REFRESH_CMD_USE_SHELL"] = "1"
