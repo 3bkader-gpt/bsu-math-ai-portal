@@ -199,7 +199,6 @@ def register_cloud_lecture(
             local_file_path=f_url,
             telegram_file_id="supabase_storage",
             file_size_bytes=f_size,
-            is_available=True,
         ))
 
     db.commit()
