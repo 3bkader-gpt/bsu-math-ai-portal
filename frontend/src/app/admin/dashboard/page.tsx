@@ -408,16 +408,25 @@ export default function AdminDashboardPage() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const error = await validatePdf(file);
-      if (error) {
-        setUploadError(error);
-        setSelectedFiles([]);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        return;
+      const incoming = Array.from(e.target.files);
+      const newValidFiles: File[] = [];
+      for (const file of incoming) {
+        const error = await validatePdf(file);
+        if (error) {
+          setUploadError(`تنبيه بخصوص ${file.name}: ${error}`);
+          continue;
+        }
+        newValidFiles.push(file);
       }
-      setSelectedFiles([file]);
-      setUploadError('');
+      if (newValidFiles.length > 0) {
+        setSelectedFiles(prev => {
+          const existingNames = new Set(prev.map(f => f.name));
+          const unique = newValidFiles.filter(f => !existingNames.has(f.name));
+          return [...prev, ...unique];
+        });
+        setUploadError('');
+      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -425,16 +434,48 @@ export default function AdminDashboardPage() {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      const error = await validatePdf(file);
-      if (error) {
-        setUploadError(error);
-        setSelectedFiles([]);
+      const incoming = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+      if (incoming.length === 0) {
+        setUploadError('يرجى سحب ملفات بصيغة PDF فقط');
         return;
       }
-      setSelectedFiles([file]);
-      setUploadError('');
+      const newValidFiles: File[] = [];
+      for (const file of incoming) {
+        const error = await validatePdf(file);
+        if (error) {
+          setUploadError(`تنبيه بخصوص ${file.name}: ${error}`);
+          continue;
+        }
+        newValidFiles.push(file);
+      }
+      if (newValidFiles.length > 0) {
+        setSelectedFiles(prev => {
+          const existingNames = new Set(prev.map(f => f.name));
+          const unique = newValidFiles.filter(f => !existingNames.has(f.name));
+          return [...prev, ...unique];
+        });
+        setUploadError('');
+      }
     }
+  };
+
+  // Remove individual file by index
+  const handleRemoveFile = (indexToRemove: number, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setSelectedFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  // Clear all selected files
+  const handleClearAllFiles = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setSelectedFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // Upload Submission (Autonomous Cloud Pipeline + Local Server Fallback)
@@ -462,10 +503,6 @@ export default function AdminDashboardPage() {
 
     // 1. Try the FastAPI upload ONLY for backends that can actually run the
     // NotebookLM pipeline (local dev server / explicit tunnel override).
-    // The default production Render URL must be skipped: it accepts the file
-    // and then fails in the background ('notebooklm' CLI is not installed
-    // there), which strands the lecture as 'failed' and silently skips the
-    // autonomous cloud dispatch below.
     const PRODUCTION_RENDER_API = 'https://bsu-math-api.onrender.com';
     const apiBase = getApiBaseUrl();
     const canBackendProcess = apiBase !== PRODUCTION_RENDER_API;
@@ -508,34 +545,39 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    // 2. Direct Autonomous Cloud Pipeline (Zero dependency on local PC)
+    // 2. Direct Autonomous Cloud Pipeline: Upload ALL files to Supabase Storage
     try {
-      const file = selectedFiles[0];
-      const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storageKey = `${selectedSubjectId}/lec${lectureNum}/${Date.now()}_${cleanFileName}`;
+      const uploadedFilesInfo: { url: string; title: string; size: number }[] = [];
 
-      // A. Upload PDF to Supabase Storage Public Bucket
-      const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/lectures/${storageKey}`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/pdf',
-          'x-upsert': 'true'
-        },
-        body: file
-      });
+      for (const file of selectedFiles) {
+        const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storageKey = `${selectedSubjectId}/lec${lectureNum}/${Date.now()}_${cleanFileName}`;
 
-      if (!uploadRes.ok) {
-        throw new Error('فشل رفع ملف الـ PDF إلى سيرفر التخزين السحابي');
+        // A. Upload PDF to Supabase Storage Public Bucket
+        const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/lectures/${storageKey}`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/pdf',
+            'x-upsert': 'true'
+          },
+          body: file
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error(`فشل رفع ملف (${file.name}) إلى سيرفر التخزين السحابي`);
+        }
+
+        const publicPdfUrl = `${SUPABASE_URL}/storage/v1/object/public/lectures/${storageKey}`;
+        uploadedFilesInfo.push({
+          url: publicPdfUrl,
+          title: file.name,
+          size: file.size
+        });
       }
 
-      const publicPdfUrl = `${SUPABASE_URL}/storage/v1/object/public/lectures/${storageKey}`;
-
-      // B. Register the lecture via the JWT-protected backend endpoint.
-      // The uploader's authorization is simply her admin login — no shared
-      // keys on her device, no manual setup of any kind. The persistent home
-      // daemon polls the DB for 'queued' lectures within seconds.
+      // B. Register the lecture with ALL files via the JWT-protected backend endpoint
       const registerRes = await fetch(getApiUrl('/api/lectures/register'), {
         method: 'POST',
         headers: {
@@ -547,11 +589,15 @@ export default function AdminDashboardPage() {
           lecture_num: lectureNum,
           title: lectureTitle || `المحاضرة ${lectureNum}`,
           doctor: selectedDoctor || null,
-          source_pdf_url: publicPdfUrl
+          source_pdf_url: uploadedFilesInfo[0].url,
+          files: uploadedFilesInfo
         })
       });
 
       if (!registerRes.ok) {
+        if (registerRes.status === 401) {
+          throw new Error('انتهت صلاحية جلسة تسجيل الدخول، يرجى تسجيل الدخول مجدداً');
+        }
         const errJson = await registerRes.json().catch(() => ({}));
         throw new Error(errJson.detail || 'فشل تسجيل المحاضرة في قاعدة البيانات السحابية');
       }
@@ -1139,7 +1185,7 @@ export default function AdminDashboardPage() {
               {/* Step 3: Drag & Drop Zone */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
-                  2. رفع ملف المحاضرة (PDF)
+                  2. رفع ملفات المحاضرة (PDF)
                 </label>
                 
                 <div
@@ -1156,6 +1202,7 @@ export default function AdminDashboardPage() {
                     ref={fileInputRef}
                     type="file"
                     accept=".pdf,application/pdf"
+                    multiple
                     onChange={handleFileChange}
                     className="hidden"
                   />
@@ -1168,32 +1215,81 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <p className="text-sm sm:text-base font-bold" style={{ color: 'var(--text-primary)' }}>
-                    اسحب ملف الـ PDF وأفلته هنا، أو <span style={{ color: 'var(--accent-primary)' }} className="underline font-bold">تصفح ملفاتك</span>
+                    اسحب ملفات الـ PDF وأفلتها هنا، أو <span style={{ color: 'var(--accent-primary)' }} className="underline font-bold">تصفح ملفاتك</span>
                   </p>
                   <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    ملف PDF واحد لكل محاضرة (حتى 45 ميجابايت) — ملف المحاضرة المعتمد فقط
+                    ارفع ملفات المحاضرة المعتمدة (السبورات + الكتاب المقرر + التلخيص) — يمكنك اختيار وإفلات عدة ملفات معاً
                   </p>
 
-                  {/* Selected files preview badge */}
+                  {/* Selected files preview badge list with removal option */}
                   {selectedFiles.length > 0 && (
-                    <div className="mt-4 pt-3.5 border-t flex flex-wrap justify-center gap-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
-                      {selectedFiles.map((f, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-black shadow-xs"
-                          style={{
-                            backgroundColor: 'var(--bg-surface)',
-                            borderColor: 'var(--border-interactive)',
-                            color: 'var(--accent-primary)'
-                          }}
-                        >
-                          <FileText className="w-4 h-4 shrink-0" />
-                          <span className="truncate max-w-[220px]">{f.name}</span>
-                          <span className="text-xs font-mono font-bold" style={{ color: 'var(--text-secondary)' }}>
-                            ({(f.size / (1024*1024)).toFixed(2)} MB)
-                          </span>
+                    <div 
+                      className="mt-4 pt-3.5 border-t space-y-2.5 text-right" 
+                      style={{ borderColor: 'var(--border-subtle)' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+                          الملفات المختارة ({selectedFiles.length}):
                         </span>
-                      ))}
+                        {selectedFiles.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={handleClearAllFiles}
+                            className="text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>مسح كل الملفات</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {selectedFiles.map((f, idx) => {
+                          const isBook = /كتاب|book/i.test(f.name);
+                          const isSlides = /سبور|سلايد|slides|blackboard|lec/i.test(f.name);
+                          const isNotes = /تلخيص|ملخص|notes/i.test(f.name);
+                          const badgeText = isBook ? '📚 جزء الكتاب' : isNotes ? '✍️ تلخيص يدوي' : isSlides ? '🖼️ سبورات / سلايدات' : '📄 ملف أصلي';
+
+                          return (
+                            <div
+                              key={idx}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black shadow-xs transition-all group/item"
+                              style={{
+                                backgroundColor: 'var(--bg-surface)',
+                                borderColor: 'var(--border-interactive)',
+                                color: 'var(--text-primary)'
+                              }}
+                            >
+                              <FileText className="w-4 h-4 shrink-0 text-emerald-500" />
+                              <span className="truncate max-w-[160px] sm:max-w-[220px]" title={f.name}>
+                                {f.name}
+                              </span>
+                              <span 
+                                className="text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-md font-bold shrink-0 border"
+                                style={{
+                                  backgroundColor: isBook ? 'rgba(59, 130, 246, 0.1)' : isNotes ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                                  borderColor: isBook ? 'rgba(59, 130, 246, 0.3)' : isNotes ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)',
+                                  color: isBook ? '#3B82F6' : isNotes ? '#10B981' : '#F59E0B'
+                                }}
+                              >
+                                {badgeText}
+                              </span>
+                              <span className="text-xs font-mono font-bold shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                ({(f.size / (1024*1024)).toFixed(2)} MB)
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => handleRemoveFile(idx, e)}
+                                className="p-1 rounded-lg hover:bg-rose-500/20 text-rose-500 hover:text-rose-600 transition-colors shrink-0 cursor-pointer ml-1"
+                                title="إلغاء هذا الملف"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
