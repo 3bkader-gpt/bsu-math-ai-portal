@@ -122,15 +122,19 @@ async def ensure_session():
 # ----------------------------------------------------------------------------
 
 def claim_next_lecture() -> dict | None:
-    """Atomically claim the oldest 'queued' lecture (single-daemon safe)."""
+    """Atomically claim the oldest 'queued' or resumable 'processing' lecture."""
     from sqlalchemy import text
     with SessionLocal() as db:
         row = db.execute(text("""
             UPDATE public.lectures SET status='processing',
-                   stage_info='محرك المعالجة المنزلي التقط المحاضرة — جاري إنشاء النوتبوك 🧠',
+                   stage_info='محرك المعالجة المنزلي التقط المحاضرة — جاري المعالجة 🧠',
                    updated_at=now()
-            WHERE id = (SELECT id FROM public.lectures
-                        WHERE status='queued' ORDER BY id ASC LIMIT 1 FOR UPDATE SKIP LOCKED)
+            WHERE id = (
+                SELECT id FROM public.lectures
+                WHERE status='queued'
+                   OR (status='processing' AND id NOT IN (SELECT lecture_id FROM public.media_handoffs WHERE status='completed'))
+                ORDER BY id ASC LIMIT 1 FOR UPDATE SKIP LOCKED
+            )
             RETURNING id, subject_id, lecture_num, title, doctor, source_pdf_url
         """)).fetchone()
         db.commit()
