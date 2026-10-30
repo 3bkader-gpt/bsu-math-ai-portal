@@ -95,11 +95,14 @@ class _RegisterBody:
             lecture_num: int = Field(gt=0)
             title: str | None = None
             doctor: str | None = None
-            source_pdf_url: str
+            source_pdf_url: str | None = None
+            files: list[dict] | None = None
 
             @field_validator("source_pdf_url")
             @classmethod
-            def validate_pdf_url(cls, value: str) -> str:
+            def validate_pdf_url(cls, value: str | None) -> str | None:
+                if not value:
+                    return value
                 allowed_prefix = f"{settings.SUPABASE_URL}/storage/v1/object/public/lectures/"
                 if not value.startswith(allowed_prefix):
                     raise ValueError("يجب أن يكون رابط الملف من مخزن المحاضرات الخاص بالمنصة")
@@ -117,6 +120,8 @@ class _RegisterBody:
     def doctor(self): return self._model.doctor
     @property
     def source_pdf_url(self): return self._model.source_pdf_url
+    @property
+    def files(self): return self._model.files or []
 
 
 @router.post("/lectures/register")
@@ -127,11 +132,9 @@ def register_cloud_lecture(
 ):
     """JWT-protected lecture registration for the autonomous cloud pipeline.
 
-    The dashboard uploads the PDF to Supabase Storage directly (browser ->
+    The dashboard uploads PDFs to Supabase Storage directly (browser ->
     Storage, no backend bandwidth) and then calls this endpoint with the
-    public PDF URL. The persistent home daemon polls for status='queued' and
-    picks the lecture up. This replaces browser-side admin-master-key RPC
-    calls entirely: the uploader's authorization is simply her admin login.
+    public PDF URLs. Supports multiple files (slides + book + notes).
     """
     try:
         body = _RegisterBody(payload)
@@ -145,6 +148,13 @@ def register_cloud_lecture(
     clean_doctor = body.doctor.strip() if body.doctor and body.doctor.strip() else None
     clean_title = body.title.strip() if body.title and body.title.strip() else None
 
+    primary_url = body.source_pdf_url
+    if not primary_url and body.files:
+        primary_url = body.files[0].get("url")
+
+    if not primary_url:
+        raise HTTPException(status_code=422, detail="يرجى توفير رابط ملف PDF واحد على الأقل")
+
     query = db.query(Lecture).filter(
         Lecture.subject_id == subject.id, Lecture.lecture_num == body.lecture_num
     )
@@ -156,10 +166,11 @@ def register_cloud_lecture(
         lecture.doctor = clean_doctor
         lecture.status = "queued"
         lecture.stage_info = "تم الرفع بنجاح، محرك المعالجة المنزلي هيلتقطها خلال ثوانٍ 🚀"
-        lecture.source_pdf_url = body.source_pdf_url
+        lecture.source_pdf_url = primary_url
         lecture.error_message = None
-        for old_asset in lecture.assets:
+        for old_asset in list(lecture.assets):
             db.delete(old_asset)
+        db.flush()
     else:
         lecture = Lecture(
             subject_id=subject.id,
@@ -168,14 +179,33 @@ def register_cloud_lecture(
             doctor=clean_doctor,
             status="queued",
             stage_info="تم الرفع بنجاح، محرك المعالجة المنزلي هيلتقطها خلال ثوانٍ 🚀",
-            source_pdf_url=body.source_pdf_url,
+            source_pdf_url=primary_url,
         )
         db.add(lecture)
+        db.flush()
+
+    # Register each uploaded PDF file as an original_pdf asset
+    files_to_register = body.files if body.files else [{"url": primary_url, "title": f"المحاضرة {body.lecture_num}.pdf", "size": None}]
+    for f in files_to_register:
+        f_url = f.get("url")
+        if not f_url:
+            continue
+        f_title = f.get("title") or "ملف أصلي"
+        f_size = f.get("size")
+        db.add(MediaAsset(
+            lecture_id=lecture.id,
+            asset_type="original_pdf",
+            title=f_title,
+            local_file_path=f_url,
+            telegram_file_id="supabase_storage",
+            file_size_bytes=f_size,
+            is_available=True,
+        ))
 
     db.commit()
     db.refresh(lecture)
     return {"ok": True, "id": lecture.id, "lecture_num": lecture.lecture_num,
-            "title": lecture.title, "status": lecture.status}
+            "title": lecture.title, "status": lecture.status, "files_count": len(files_to_register)}
 
 
 @router.get("/lectures/{lecture_id}")

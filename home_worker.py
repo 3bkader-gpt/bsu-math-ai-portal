@@ -315,11 +315,22 @@ async def process_lecture(lecture: dict):
         elif nb_id and not lecture["source_pdf_url"]:
             raise RuntimeError("Lecture has neither a notebook nor source_pdf_url")
         else:
-            if not lecture["source_pdf_url"]:
-                raise RuntimeError("Lecture has no source_pdf_url")
-            pdf = download_pdf(lecture["source_pdf_url"], temp_dir / f"lecture_{lecture['lecture_num']}.pdf")
+            with SessionLocal() as db:
+                pdf_assets = db.query(MediaAsset).filter(
+                    MediaAsset.lecture_id == lecture_id,
+                    MediaAsset.asset_type == "original_pdf"
+                ).all()
+                pdf_sources = []
+                for p_asset in pdf_assets:
+                    if p_asset.local_file_path and p_asset.local_file_path.startswith("http"):
+                        pdf_sources.append((p_asset.local_file_path, p_asset.title or "source.pdf"))
+                if not pdf_sources and lecture.get("source_pdf_url"):
+                    pdf_sources.append((lecture["source_pdf_url"], f"lecture_{lecture['lecture_num']}.pdf"))
 
-            # 1. Notebook + source + original PDF asset (small Telegram upload)
+            if not pdf_sources:
+                raise RuntimeError("Lecture has no source PDF files")
+
+            # 1. Notebook + sources
             nb_id = await NotebookLMPipeline.create_notebook(
                 f"{subject_name} - المحاضرة {lecture['lecture_num']}"
             )
@@ -328,19 +339,12 @@ async def process_lecture(lecture: dict):
                 lec.notebook_id = nb_id
                 db.commit()
 
-            await NotebookLMPipeline.add_source(nb_id, pdf)
-            cap = make_telegram_caption(subject_name, lecture["lecture_num"], lecture["title"],
-                                        lecture["doctor"], "📄 ملف المحاضرة المعتمد", pdf.name)
-            upload_res = await telegram_storage.upload_asset(pdf, "pdf", cap)
-            with SessionLocal() as db:
-                db.add(MediaAsset(
-                    lecture_id=lecture_id, asset_type="original_pdf", title=pdf.name,
-                    local_file_path=upload_res.get("local_file_path"),
-                    telegram_file_id=upload_res.get("telegram_file_id"),
-                    telegram_message_id=upload_res.get("telegram_message_id"),
-                    file_size_bytes=upload_res.get("file_size"),
-                ))
-                db.commit()
+            for idx, (p_url, p_title) in enumerate(pdf_sources):
+                clean_name = re.sub(r'[^a-zA-Z0-9._-]', '_', p_title)
+                dest = temp_dir / f"src_{idx}_{clean_name}"
+                download_pdf(p_url, dest)
+                logger.info("Adding source %d/%d (%s) to notebook %s...", idx + 1, len(pdf_sources), p_title, nb_id)
+                await NotebookLMPipeline.add_source(nb_id, dest)
 
             # 2. Launch media generation in Google's cloud with rate-limit awareness
             set_stage(lecture_id, "processing",
