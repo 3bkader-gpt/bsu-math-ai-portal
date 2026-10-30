@@ -186,39 +186,91 @@ def _extract_urls(node) -> list[str]:  # retained for future direct-URL handoff
     return found
 
 
-async def artifact_ready(nb_id: str, kind: str) -> bool:
-    """True when the audio/video artifact reports status completed in Google.
-    Never downloads media bytes — status polling only (Zero-Download)."""
+async def artifact_state(nb_id: str, kind: str) -> str:
+    """Returns 'completed', 'in_progress', or 'missing'."""
     code, out = await run_cmd_async(
         ["notebooklm", "artifact", "list", "--type", kind, "--json", "-n", nb_id]
     )
     if code != 0 or not out:
-        return False
+        return "missing"
     try:
         data = json.loads(out)
     except json.JSONDecodeError:
-        return False
+        return "missing"
     entries = data.get("artifacts", []) if isinstance(data, dict) else data
     for entry in entries:
-        if str(entry.get("status", "")).lower() == "completed":
-            return True
+        st = str(entry.get("status", "")).lower()
+        if st == "completed":
+            return "completed"
+        if st in ("in_progress", "pending", "generating"):
+            return "in_progress"
+    return "missing"
+
+
+async def launch_media(nb_id: str, kind: str, prompt_path: str | None) -> bool:
+    if kind == "audio":
+        cmd = ["notebooklm", "generate", "audio", "--length", "long", "--retry", "1", "-n", nb_id]
+    else:
+        cmd = ["notebooklm", "generate", "video", "--format", "explainer", "--retry", "1", "-n", nb_id]
+    if prompt_path:
+        cmd.extend(["--prompt-file", prompt_path])
+    code, out = await run_cmd_async(cmd)
+    if code == 0:
+        logger.info("Launched %s generation for notebook %s", kind, nb_id)
+        return True
+    logger.warning("Launch %s for notebook %s returned code %s: %s", kind, nb_id, code, (out or "")[:150])
     return False
 
 
-async def wait_for_media_ready(nb_id: str) -> tuple[bool, bool]:
-    deadline = time.monotonic() + MEDIA_POLL_TIMEOUT
+async def wait_for_media_ready(nb_id: str, prompt_path: str | None = None,
+                               lecture_id: int | None = None) -> tuple[bool, bool]:
     audio_ready = False
     video_ready = False
-    while time.monotonic() < deadline and not (audio_ready and video_ready):
-        if not audio_ready and await artifact_ready(nb_id, "audio"):
-            audio_ready = True
-            logger.info("Audio artifact COMPLETED in Google (zero-download)")
-        if not video_ready and await artifact_ready(nb_id, "video"):
-            video_ready = True
-            logger.info("Video artifact COMPLETED in Google (zero-download)")
+    last_action_time = time.monotonic()
+
+    while True:
+        # Check audio
+        if not audio_ready:
+            st_audio = await artifact_state(nb_id, "audio")
+            if st_audio == "completed":
+                audio_ready = True
+                logger.info("Audio artifact COMPLETED in Google (zero-download)")
+            elif st_audio == "missing":
+                logger.info("Audio missing for notebook %s — attempting kickoff...", nb_id)
+                if await launch_media(nb_id, "audio", prompt_path):
+                    last_action_time = time.monotonic()
+                await asyncio.sleep(5)
+            elif st_audio == "in_progress":
+                last_action_time = time.monotonic()
+
+        # Check video
+        if not video_ready:
+            st_video = await artifact_state(nb_id, "video")
+            if st_video == "completed":
+                video_ready = True
+                logger.info("Video artifact COMPLETED in Google (zero-download)")
+            elif st_video == "missing":
+                logger.info("Video missing for notebook %s — attempting kickoff...", nb_id)
+                if await launch_media(nb_id, "video", prompt_path):
+                    last_action_time = time.monotonic()
+                await asyncio.sleep(5)
+            elif st_video == "in_progress":
+                last_action_time = time.monotonic()
+
         if audio_ready and video_ready:
             break
+
+        if lecture_id:
+            st_a = "جاهز ✅" if audio_ready else "جاري التوليد / انتظار نافذة الكوتا السحابية ⏳"
+            st_v = "جاهز ✅" if video_ready else "جاري التوليد / انتظار نافذة الكوتا السحابية ⏳"
+            set_stage(lecture_id, "processing", f"النصوص مكتملة ✅ | الصوت: {st_a} | الفيديو: {st_v}")
+
+        # Guard against absolute hang with zero progress for 3 hours
+        if time.monotonic() - last_action_time > 3 * 3600:
+            raise RuntimeError("Media generation made no progress for 3 hours")
+
         await asyncio.sleep(POLL_STEP)
+
     return audio_ready, video_ready
 
 
@@ -292,6 +344,9 @@ async def process_lecture(lecture: dict):
     if not subject_name:
         raise RuntimeError(f"Subject {lecture['subject_id']} not found")
 
+    prompt_file = PROMPTS_DIR / f"{subject_name}.txt"
+    prompt_path = str(prompt_file) if prompt_file.exists() else None
+
     temp_dir = Path(tempfile.mkdtemp(prefix=f"lec_{lecture_id}_"))
     try:
         await ensure_session()
@@ -349,8 +404,6 @@ async def process_lecture(lecture: dict):
             # 2. Launch media generation in Google's cloud with rate-limit awareness
             set_stage(lecture_id, "processing",
                       "جاري توليد البودكاست والفيديو على سيرفرات جوجل + الكويز والملخص ☁️")
-            prompt_file = PROMPTS_DIR / f"{subject_name}.txt"
-            prompt_path = str(prompt_file) if prompt_file.exists() else None
 
             # Launch Audio
             audio_cmd = ["notebooklm", "generate", "audio", "--length", "long", "--retry", "3", "-n", nb_id]
@@ -425,7 +478,7 @@ async def process_lecture(lecture: dict):
         # 4. Zero-Download handover: wait for Google-side readiness only
         set_stage(lecture_id, "processing",
                   "النصوص جاهزة ✅ — جاري انتظار اكتمال البودكاست والفيديو على جوجل ثم التسليم للسحابة ☁️")
-        audio_ready, video_ready = await wait_for_media_ready(nb_id)
+        audio_ready, video_ready = await wait_for_media_ready(nb_id, prompt_path, lecture_id)
         if not audio_ready and not video_ready:
             raise RuntimeError("Media artifacts never became ready within timeout")
 
