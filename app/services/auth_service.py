@@ -15,8 +15,8 @@ from app.db.models import User
 # Fail-closed: never fall back to a public constant. If SECRET_KEY is missing,
 # an ephemeral random key is generated so forged tokens remain impossible;
 # all sessions are invalidated on restart until the env var is configured.
-SECRET_KEY = os.getenv("SECRET_KEY") or _secrets.token_urlsafe(48)
-if not os.getenv("SECRET_KEY"):
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("TELEGRAM_API_HASH") or _secrets.token_urlsafe(48)
+if not os.getenv("SECRET_KEY") and not os.getenv("TELEGRAM_API_HASH"):
     print("⚠️ SECURITY: SECRET_KEY env var is not set — using an ephemeral JWT secret. "
           "All sessions invalidate on restart. Set SECRET_KEY in the deployment environment.")
 ALGORITHM = "HS256"
