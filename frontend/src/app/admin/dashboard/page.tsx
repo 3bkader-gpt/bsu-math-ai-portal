@@ -1205,6 +1205,7 @@ export default function AdminDashboardPage() {
                     multiple
                     onChange={handleFileChange}
                     className="hidden"
+                    style={{ display: 'none' }}
                   />
 
                   <div
@@ -1275,8 +1276,8 @@ export default function AdminDashboardPage() {
                               >
                                 {badgeText}
                               </span>
-                              <span className="text-xs font-mono font-bold shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                ({(f.size / (1024*1024)).toFixed(2)} MB)
+                              <span dir="ltr" className="text-xs font-mono font-bold shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                {(f.size / (1024*1024)).toFixed(2)} MB
                               </span>
                               <button
                                 type="button"
