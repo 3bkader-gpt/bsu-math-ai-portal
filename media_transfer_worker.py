@@ -220,6 +220,12 @@ async def transfer(handoff: dict):
                 lec.error_message = None
                 db.commit()
         logger.info("Lecture %s marked completed", lecture_id)
+
+        try:
+            from app.services.notification_service import broadcast_new_lecture
+            await broadcast_new_lecture(lecture_id)
+        except Exception as n_exc:
+            logger.warning("Could not broadcast notification for lecture %s: %s", lecture_id, n_exc)
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
