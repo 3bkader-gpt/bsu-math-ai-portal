@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     NOTEBOOKLM_DEFAULT_LANG: str = "ar_eg"
     NOTEBOOKLM_PROFILE: str = "default"
 
+    # Web Push VAPID Settings
+    VAPID_PUBLIC_KEY: str = os.getenv("VAPID_PUBLIC_KEY", "BJics30vzT2o5f-L7eXIc1yANZExKb27eH5Hh6b8ZbLgx1jgSGorgiBIaPb12J7G5kinSC9GUB9xie6zDwI9J0o")
+    VAPID_PRIVATE_KEY: str = os.getenv("VAPID_PRIVATE_KEY", "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgJ+JkJg4tlMMDzZMC\n5hsm2wJc77uKHjnWJl6OHjUrE4KhRANCAASYnLN9L809qOX/i+3lyHNcgDWRMSm9\nu3h+R4em/GWy4MdY4EhqK4IgSGj29diexuZIp0gvRlAfcYnusw8CPSdK\n-----END PRIVATE KEY-----\n")
+    VAPID_CLAIMS_EMAIL: str = os.getenv("VAPID_CLAIMS_EMAIL", "mailto:medo.omar.salama@gmail.com")
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()

@@ -9,6 +9,7 @@ import StudyGuideViewer from '@/components/StudyGuideViewer';
 import FlashcardsViewer from '@/components/FlashcardsViewer';
 import ThemeToggle from '@/components/ThemeToggle';
 import { StudentGamificationPill } from '@/components/gamification/StudentGamificationPill';
+import NotificationBell from '@/components/NotificationBell';
 import content from '@/data/content.json';
 import {
   ArrowRight,
@@ -703,6 +704,7 @@ function LectureContent() {
               <span className="hidden sm:inline">كراسة الأخطاء</span>
             </button>
             <StudentGamificationPill isGirls={currentPersona === 'girls'} isDark={currentMode === 'dark'} />
+            <NotificationBell isGirls={currentPersona === 'girls'} isDark={currentMode === 'dark'} />
             <div className="hidden md:inline-flex">
               <ThemeToggle />
             </div>

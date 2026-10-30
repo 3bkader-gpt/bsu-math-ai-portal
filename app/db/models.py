@@ -64,3 +64,30 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(200), nullable=False)
     role: Mapped[str] = mapped_column(String(20), default="admin")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    lecture_id: Mapped[Optional[int]] = mapped_column(ForeignKey("lectures.id", ondelete="SET NULL"), nullable=True)
+    subject_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    lecture_num: Mapped[int] = mapped_column(nullable=False, default=1)
+    doctor: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    icon: Mapped[str] = mapped_column(String(20), default="🌸")
+    url: Mapped[str] = mapped_column(String(300), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True, index=True, nullable=False)
+    p256dh: Mapped[str] = mapped_column(String(200), nullable=False)
+    auth: Mapped[str] = mapped_column(String(100), nullable=False)
+    user_agent: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+

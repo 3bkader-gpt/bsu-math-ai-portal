@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
 import { StudentGamificationPill } from '@/components/gamification/StudentGamificationPill';
+import NotificationBell from '@/components/NotificationBell';
 import content from '@/data/content.json';
 import { 
   Sparkles, 
@@ -878,6 +879,7 @@ export default function Home() {
               <span>☕ استريح</span>
             </button>
             <StudentGamificationPill isGirls={isGirls} isDark={isDark} />
+            <NotificationBell isGirls={isGirls} isDark={isDark} />
             {studentName && (
               <button
                 type="button"
