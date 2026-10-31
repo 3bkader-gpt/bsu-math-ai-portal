@@ -32,6 +32,7 @@ interface MobileNavDrawerProps {
   onOpenHurdles?: () => void;
   onOpenExamBuilder?: () => void;
   onOpenFormulaSheet?: () => void;
+  onOpenRecoveryPlanner?: () => void;
 }
 
 export function MobileNavDrawer({
@@ -47,6 +48,7 @@ export function MobileNavDrawer({
   onOpenHurdles,
   onOpenExamBuilder,
   onOpenFormulaSheet,
+  onOpenRecoveryPlanner,
 }: MobileNavDrawerProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [studentName, setStudentName] = useState('');
@@ -402,6 +404,27 @@ export function MobileNavDrawer({
                   <div className="flex items-center gap-2">
                     <span className="text-base">📐</span>
                     <span>كشكول القوانين (جاهز للطباعة)</span>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 opacity-70" />
+                </button>
+              )}
+
+              {onOpenRecoveryPlanner && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(onOpenRecoveryPlanner, 150);
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-sm"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : 'rgba(250, 245, 255, 0.95)',
+                    borderColor: isDark ? 'rgba(168, 85, 247, 0.35)' : 'rgba(233, 213, 255, 0.8)',
+                    color: isDark ? '#D8B4FE' : '#7E22CE',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📅</span>
+                    <span>خطة الإنقاذ وسد التراكمات</span>
                   </div>
                   <ChevronLeft className="w-4 h-4 opacity-70" />
                 </button>
