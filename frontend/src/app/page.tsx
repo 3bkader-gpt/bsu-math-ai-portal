@@ -35,7 +35,13 @@ import RecoveryPlannerModal from '@/components/RecoveryPlannerModal';
 import FocusAmbienceModal from '@/components/FocusAmbienceModal';
 import MathScratchpadModal from '@/components/MathScratchpadModal';
 import StudentBinderModal from '@/components/StudentBinderModal';
-import { getStudentProfileLocal, shouldPromptOnboarding, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
+import { 
+  getStudentProfileLocal, 
+  shouldPromptOnboarding, 
+  PROFILE_UPDATED_EVENT,
+  isTestModeActive,
+  TEST_MODE_CHANGED_EVENT
+} from '@/lib/studentProfile';
 import { getApiUrl } from '@/lib/api';
 import { 
   getDirectSupabaseSubjects, 
@@ -487,6 +493,7 @@ const mergeSubjects = (backendSubjects: any[]): Subject[] => {
 export default function Home() {
   const [currentPersona, setCurrentPersona] = useState<'boys' | 'girls'>('boys');
   const [currentMode, setCurrentMode] = useState<'light' | 'dark'>('light');
+  const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
     try {
@@ -495,6 +502,7 @@ export default function Home() {
         (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       setCurrentPersona(p);
       setCurrentMode(m);
+      setIsTestMode(isTestModeActive());
     } catch {}
 
     const handleThemeChange = (e: any) => {
@@ -502,8 +510,19 @@ export default function Home() {
       if (e.detail?.mode) setCurrentMode(e.detail.mode);
     };
 
+    const handleTestModeChange = (e: any) => {
+      if (e.detail?.isTestMode !== undefined) setIsTestMode(e.detail.isTestMode);
+      else setIsTestMode(isTestModeActive());
+    };
+
     window.addEventListener('bsu_theme_changed', handleThemeChange);
-    return () => window.removeEventListener('bsu_theme_changed', handleThemeChange);
+    window.addEventListener(TEST_MODE_CHANGED_EVENT, handleTestModeChange);
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleTestModeChange);
+    return () => {
+      window.removeEventListener('bsu_theme_changed', handleThemeChange);
+      window.removeEventListener(TEST_MODE_CHANGED_EVENT, handleTestModeChange);
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleTestModeChange);
+    };
   }, []);
 
   const isGirls = currentPersona === 'girls';
@@ -864,6 +883,16 @@ export default function Home() {
                 >
                   {isGirls ? 'نسخة البنات 🌸' : 'نسخة الشباب'}
                 </span>
+                {isTestMode && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-full border bg-amber-500/15 border-amber-500/40 text-amber-500 shrink-0"
+                    title="وضع التجربة والاختبار مفعل: الإحصائيات معزولة تماماً عن الدفعة"
+                  >
+                    <span>🧪</span>
+                    <span className="hidden xs:inline">تجربة (معزول)</span>
+                    <span className="xs:hidden">معزول</span>
+                  </span>
+                )}
               </div>
               <p className="text-xs sm:text-sm font-medium mt-0.5 leading-snug truncate" style={{ color: 'var(--text-muted)' }}>
                 <span className="sm:hidden">تربية بني سويف • تانية رياضيات</span>

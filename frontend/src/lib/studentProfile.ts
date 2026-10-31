@@ -158,3 +158,39 @@ export function getStudentContextForAI(): StudentAIContext {
     generatedAt: new Date().toISOString(),
   };
 }
+
+export const TEST_MODE_KEY = 'bsu_portal_test_mode';
+export const TEST_MODE_CHANGED_EVENT = 'bsu_test_mode_changed';
+
+/**
+ * Returns true if the client is operating in Sandbox / Test Mode.
+ * Test actions are strictly isolated from real cohort statistics and leaderboards.
+ */
+export function isTestModeActive(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (localStorage.getItem(TEST_MODE_KEY) === 'true') return true;
+    const profile = getStudentProfileLocal();
+    if (
+      profile.name.includes('تجربة') ||
+      profile.name.toLowerCase().includes('test') ||
+      profile.name.includes('فرماو')
+    ) {
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+/**
+ * Enables or disables Sandbox / Test Mode for the current browser session.
+ */
+export function setTestMode(active: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(TEST_MODE_KEY, active ? 'true' : 'false');
+    window.dispatchEvent(
+      new CustomEvent(TEST_MODE_CHANGED_EVENT, { detail: { isTestMode: active } })
+    );
+  } catch {}
+}

@@ -45,7 +45,12 @@ import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
 import WelcomeStudentModal from '@/components/WelcomeStudentModal';
 import ExamTrapBadge from '@/components/ExamTrapBadge';
 import MathScratchpadModal from '@/components/MathScratchpadModal';
-import { getStudentProfileLocal, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
+import { 
+  getStudentProfileLocal, 
+  PROFILE_UPDATED_EVENT,
+  isTestModeActive,
+  TEST_MODE_CHANGED_EVENT 
+} from '@/lib/studentProfile';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
 import { AcademicLectureBundle, AcademicMediaAsset } from '@/types/academic';
@@ -195,16 +200,27 @@ function LectureContent() {
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
   const [isScratchpadOpen, setIsScratchpadOpen] = useState(false);
   const [studentName, setStudentName] = useState<string>('');
+  const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
     const profile = getStudentProfileLocal();
     if (profile.name) setStudentName(profile.name);
+    setIsTestMode(isTestModeActive());
 
     const handleProfileUpdate = (e: any) => {
       if (e.detail?.name !== undefined) setStudentName(e.detail.name);
+      setIsTestMode(isTestModeActive());
+    };
+    const handleTestModeChange = (e: any) => {
+      if (e.detail?.isTestMode !== undefined) setIsTestMode(e.detail.isTestMode);
+      else setIsTestMode(isTestModeActive());
     };
     window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
-    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
+    window.addEventListener(TEST_MODE_CHANGED_EVENT, handleTestModeChange);
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
+      window.removeEventListener(TEST_MODE_CHANGED_EVENT, handleTestModeChange);
+    };
   }, []);
 
   // Active Tab with immediate transition logging
@@ -702,6 +718,18 @@ function LectureContent() {
               </span>
             )}
           </div>
+
+          {/* Test Mode Badge */}
+          {isTestMode && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-full border bg-amber-500/15 border-amber-500/40 text-amber-500 shrink-0"
+              title="وضع التجربة والاختبار مفعل: الإحصائيات معزولة تماماً عن الدفعة"
+            >
+              <span>🧪</span>
+              <span className="hidden xs:inline">تجربة (معزول)</span>
+              <span className="xs:hidden">معزول</span>
+            </span>
+          )}
 
           {/* Theme & Persona Switcher */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
