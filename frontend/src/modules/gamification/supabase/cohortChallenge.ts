@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { CohortChallengeData } from '../core/cohortChallenge';
+import { isTestModeActive } from '@/lib/studentProfile';
 
 const FALLBACK_CHALLENGE: CohortChallengeData = {
   id: 'mock-weekly-challenge',
@@ -56,6 +57,10 @@ export async function recordCohortContribution(
   questionHash: string
 ): Promise<boolean> {
   try {
+    if (isTestModeActive()) {
+      // In sandbox / test mode, prevent polluting cohort challenge records
+      return true;
+    }
     const isValidUuid = typeof challengeId === 'string' && /^[0-9a-fA-F-]{36}$/.test(challengeId);
     const { data, error } = await supabase.rpc('record_cohort_contribution', {
       p_challenge_id: isValidUuid ? challengeId : null,

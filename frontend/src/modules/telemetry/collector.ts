@@ -1,5 +1,6 @@
 import { appEventBus, createAppEvent } from '@/shared/events/bus';
 import { AllAppEvents, AppEventName, SpecificAppEvent } from '@/shared/events/types';
+import { isTestModeActive } from '@/lib/studentProfile';
 
 /**
  * Universal event emitter helper.
@@ -10,7 +11,11 @@ export function emitTelemetryEvent<K extends AppEventName>(
   payload: AllAppEvents[K],
   lectureId?: number
 ): SpecificAppEvent<K> {
-  const event = createAppEvent(type, payload, lectureId);
+  const isTest = isTestModeActive();
+  const eventPayload = isTest
+    ? { ...(payload as any), is_test: true }
+    : payload;
+  const event = createAppEvent(type, eventPayload, lectureId);
   appEventBus.emit(type, event as any);
   return event;
 }
