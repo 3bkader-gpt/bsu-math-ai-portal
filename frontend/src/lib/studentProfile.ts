@@ -165,11 +165,28 @@ export const TEST_MODE_CHANGED_EVENT = 'bsu_test_mode_changed';
 /**
  * Returns true if the client is operating in Sandbox / Test Mode.
  * Test actions are strictly isolated from real cohort statistics and leaderboards.
+ * Operates 100% silently in the background with ZERO visible UI footprint for real students.
  */
 export function isTestModeActive(): boolean {
   if (typeof window === 'undefined') return false;
   try {
+    // 1. Manual dev flag in localStorage (developers/admins only)
     if (localStorage.getItem(TEST_MODE_KEY) === 'true') return true;
+
+    // 2. Automated browser test suites (Playwright / Puppeteer / Selenium)
+    if (typeof navigator !== 'undefined' && (navigator.webdriver || (window as any).__TEST_ENV__)) {
+      return true;
+    }
+
+    // 3. Secret URL query parameter ?test_mode=1 or ?sandbox=true
+    if (typeof window.location !== 'undefined' && window.location.search) {
+      const search = window.location.search;
+      if (search.includes('test_mode=1') || search.includes('sandbox=true')) {
+        return true;
+      }
+    }
+
+    // 4. Test nicknames used during testing
     const profile = getStudentProfileLocal();
     if (
       profile.name.includes('تجربة') ||

@@ -12,19 +12,12 @@ import {
   VolumeX, 
   Sparkles, 
   GraduationCap,
-  ChevronLeft,
-  FlaskConical
+  ChevronLeft
 } from 'lucide-react';
 import { isAudioMuted, setAudioMuted, playSound } from '@/lib/audio/soundEngine';
 import { THEME_PALETTES, PersonaType, ModeType } from './ThemeToggle';
 import DeveloperCreditsPill from './DeveloperCreditsPill';
-import { 
-  getStudentProfileLocal, 
-  PROFILE_UPDATED_EVENT, 
-  isTestModeActive, 
-  setTestMode, 
-  TEST_MODE_CHANGED_EVENT 
-} from '@/lib/studentProfile';
+import { getStudentProfileLocal, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -65,27 +58,17 @@ export function MobileNavDrawer({
 }: MobileNavDrawerProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [studentName, setStudentName] = useState('');
-  const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
     setIsMuted(isAudioMuted());
-    setIsTestMode(isTestModeActive());
     const profile = getStudentProfileLocal();
     setStudentName(profile.name);
 
     const handleProfileUpdate = (e: any) => {
       if (e.detail?.name !== undefined) setStudentName(e.detail.name);
     };
-    const handleTestModeChange = (e: any) => {
-      if (e.detail?.isTestMode !== undefined) setIsTestMode(e.detail.isTestMode);
-    };
-
     window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
-    window.addEventListener(TEST_MODE_CHANGED_EVENT, handleTestModeChange);
-    return () => {
-      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
-      window.removeEventListener(TEST_MODE_CHANGED_EVENT, handleTestModeChange);
-    };
+    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
   }, [isOpen]);
 
   // Bulletproof Body Scroll Lock when Drawer is open
@@ -194,13 +177,6 @@ export function MobileNavDrawer({
     if (!targetMuted) {
       playSound('xp_chime');
     }
-  };
-
-  const handleToggleTestMode = (active: boolean) => {
-    if (isTestMode === active) return;
-    setTestMode(active);
-    setIsTestMode(active);
-    playSound('xp_chime');
   };
 
   if (!isOpen) return null;
@@ -668,62 +644,6 @@ export function MobileNavDrawer({
                   <span>مكتومة</span>
                 </button>
               </div>
-            </div>
-
-            {/* 4. Sandbox / Test Mode Selector */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-bold flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
-                  <FlaskConical className="w-3.5 h-3.5 text-amber-500" />
-                  <span>وضع التجربة والاختبار (Sandbox)</span>
-                </span>
-                {isTestMode && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500">
-                    معزول
-                  </span>
-                )}
-              </div>
-              <div 
-                className="p-1 rounded-2xl border grid grid-cols-2 gap-1"
-                style={{
-                  backgroundColor: 'var(--bg-surface)',
-                  borderColor: isTestMode ? 'rgba(245, 158, 11, 0.4)' : 'var(--border-subtle)',
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => handleToggleTestMode(false)}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    !isTestMode ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
-                  }`}
-                  style={{
-                    backgroundColor: !isTestMode ? '#059669' : 'transparent',
-                    color: !isTestMode ? '#FFFFFF' : undefined,
-                  }}
-                >
-                  <span>طبيعي (حقيقي)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleToggleTestMode(true)}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    isTestMode ? 'shadow-sm text-white' : 'opacity-70 hover:opacity-100'
-                  }`}
-                  style={{
-                    backgroundColor: isTestMode ? '#D97706' : 'transparent',
-                    color: isTestMode ? '#FFFFFF' : undefined,
-                  }}
-                >
-                  <FlaskConical className={`w-3.5 h-3.5 ${isTestMode ? 'text-white' : 'text-amber-500'}`} />
-                  <span>وضع تجربة 🧪</span>
-                </button>
-              </div>
-              <p className="text-[10px] px-1 leading-tight" style={{ color: 'var(--text-muted)' }}>
-                {isTestMode 
-                  ? '⚠️ نشاطك واختباراتك معزولة تماماً ولن تؤثر على إحصائيات الدفعة أو تحدي الـ ٥٠٠ سؤال.'
-                  : '✅ نشاطك يُحسب تلقائياً في تقدم الدفعة ورصيد إنجازاتك.'}
-              </p>
             </div>
           </div>
 
