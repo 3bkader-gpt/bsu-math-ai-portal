@@ -165,8 +165,12 @@ export default function MathScratchpadModal({
       img.src = prevImage;
       img.onload = () => {
         const dpr = window.devicePixelRatio || 1;
-        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-        ctx.drawImage(img, 0, 0, canvas.width / dpr, canvas.height / dpr);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         setUndoStack(nextStack);
       };
     }
@@ -179,7 +183,11 @@ export default function MathScratchpadModal({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     drawCanvasGrid(ctx, rect.width, rect.height, isDark);
     setUndoStack([canvas.toDataURL()]);
   };
@@ -210,6 +218,10 @@ export default function MathScratchpadModal({
       // Safe Function evaluation
       const res = Function(`"use strict"; return (${expr});`)();
       if (typeof res === 'number' && !isNaN(res)) {
+        if (!isFinite(res)) {
+          setCalcResult('غير معرّف (∞)');
+          return;
+        }
         // Format to 6 decimal places if needed
         const formatted = Number.isInteger(res) ? res.toString() : parseFloat(res.toFixed(6)).toString();
         setCalcResult(formatted);

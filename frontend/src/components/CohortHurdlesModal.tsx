@@ -15,6 +15,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
+import MathRenderer from '@/components/MathRenderer';
 
 interface HurdleQuestion {
   question_hash: string;
@@ -165,7 +166,7 @@ export default function CohortHurdlesModal({ isOpen, onClose, isDark = true }: C
 
                   {/* Question Text */}
                   <h4 className="text-sm sm:text-base font-bold leading-relaxed mb-3" style={{ color: 'var(--text-primary)' }}>
-                    {h.question_text}
+                    <MathRenderer text={h.question_text} />
                   </h4>
 
                   {/* Controls & Answer Reveal */}
@@ -205,12 +206,14 @@ export default function CohortHurdlesModal({ isOpen, onClose, isDark = true }: C
                     >
                       <div className="flex items-center gap-1.5 font-bold text-emerald-400">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        <span>الإجابة النموذجية: {h.correct_answer}</span>
+                        <span>الإجابة النموذجية: </span>
+                        <MathRenderer text={h.correct_answer} />
                       </div>
                       {h.explanation && (
-                        <p className="leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                          💡 <strong>الشرح والتوضيح:</strong> {h.explanation}
-                        </p>
+                        <div className="leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                          💡 <strong>الشرح والتوضيح:</strong>{' '}
+                          <MathRenderer text={h.explanation} />
+                        </div>
                       )}
                     </div>
                   )}

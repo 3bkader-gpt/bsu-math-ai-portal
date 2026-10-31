@@ -824,18 +824,23 @@ export default function CustomExamBuilderModal({
                         <div className="space-y-1 text-xs pt-1 border-t" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-emerald-400">الإجابة النموذجية:</span>
-                            <span>{q.options[q.correctIndex]}</span>
+                            <MathRenderer text={q.options[q.correctIndex]} />
                           </div>
                           {!isCorrect && (
                             <div className="flex items-center gap-2 text-rose-400">
                               <span className="font-bold">إجابتك:</span>
-                              <span>{chosen !== undefined ? q.options[chosen] : 'لم تتم الإجابة'}</span>
+                              {chosen !== undefined ? (
+                                <MathRenderer text={q.options[chosen]} />
+                              ) : (
+                                <span>لم تتم الإجابة</span>
+                              )}
                             </div>
                           )}
                           {q.hint && (
-                            <p className="mt-1 leading-relaxed opacity-85" style={{ color: 'var(--text-muted)' }}>
-                              💡 <strong>التوضيح:</strong> {q.hint}
-                            </p>
+                            <div className="mt-1 leading-relaxed opacity-85" style={{ color: 'var(--text-muted)' }}>
+                              💡 <strong>التوضيح:</strong>{' '}
+                              <MathRenderer text={q.hint} />
+                            </div>
                           )}
                         </div>
                       </div>
