@@ -43,6 +43,7 @@ import StaplePin3D from '@/components/StaplePin3D';
 import DeveloperCreditsModal from '@/components/DeveloperCreditsModal';
 import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
 import WelcomeStudentModal from '@/components/WelcomeStudentModal';
+import ExamTrapBadge from '@/components/ExamTrapBadge';
 import { getStudentProfileLocal, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
@@ -250,6 +251,7 @@ function LectureContent() {
 
   // Quiz Engine
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [trapsMap, setTrapsMap] = useState<Record<string, { failure_rate_pct: number; total_attempts: number; is_trap: boolean }>>({});
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
   const [showHints, setShowHints] = useState<Record<number, boolean>>({});
   const [score, setScore] = useState<number | null>(null);
@@ -373,6 +375,16 @@ function LectureContent() {
         }
 
         setLectureBundle(bundle);
+
+        // Fetch Exam Traps for this lecture (Feature 1: Cohort Radar)
+        fetch(getApiUrl(`/api/stats/traps?lecture_id=${bundle.id}`))
+          .then((r) => r.ok ? r.json() : null)
+          .then((traps) => {
+            if (isMounted && traps) {
+              setTrapsMap(traps);
+            }
+          })
+          .catch(() => {});
 
         // Initialize Telemetry Detectors
         audioDetectorRef.current = createMediaDetector({
@@ -1756,6 +1768,30 @@ function LectureContent() {
                             </button>
                           )}
                         </div>
+
+                        {/* Exam Trap Badge (Feature 1: Cohort Radar) */}
+                        {(() => {
+                          let hashVal = 0;
+                          const cleanQ = q.question.trim().toLowerCase();
+                          for (let i = 0; i < cleanQ.length; i++) {
+                            hashVal = (hashVal << 5) - hashVal + cleanQ.charCodeAt(i);
+                            hashVal |= 0;
+                          }
+                          const qHash = 'q_' + Math.abs(hashVal).toString(36);
+                          const trap = trapsMap[qHash];
+                          if (trap && trap.is_trap) {
+                            return (
+                              <div className="pb-1.5 animate-in fade-in slide-in-from-top-1">
+                                <ExamTrapBadge
+                                  failureRatePct={trap.failure_rate_pct}
+                                  totalAttempts={trap.total_attempts}
+                                  isDark={isDark}
+                                />
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
 
                         {/* Question Statement */}
                         <div

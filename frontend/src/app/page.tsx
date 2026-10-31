@@ -28,6 +28,7 @@ import StaplePin3D from '@/components/StaplePin3D';
 import DeveloperCreditsModal from '@/components/DeveloperCreditsModal';
 import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
 import WelcomeStudentModal from '@/components/WelcomeStudentModal';
+import CohortHurdlesModal from '@/components/CohortHurdlesModal';
 import { getStudentProfileLocal, shouldPromptOnboarding, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl } from '@/lib/api';
 import { 
@@ -574,9 +575,27 @@ export default function Home() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isDevCreditsOpen, setIsDevCreditsOpen] = useState(false);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
+  const [isHurdlesModalOpen, setIsHurdlesModalOpen] = useState(false);
+  const [cohortMomentum, setCohortMomentum] = useState<Record<number, { weekly_activity_count: number; today_activity_count: number; badge: string | null }>>({});
   const [studentName, setStudentName] = useState<string>('');
   const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
   const isHeaderVisible = useSmartHeaderVisibility({ threshold: 12, topBoundary: 25 });
+
+  // Passive Cohort Momentum Fetch (Feature 1)
+  useEffect(() => {
+    let isMounted = true;
+    fetch(getApiUrl('/api/stats/momentum'))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data?.momentum) {
+          setCohortMomentum(data.momentum);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Load student profile & prompt onboarding if first visit
   useEffect(() => {
@@ -1281,10 +1300,26 @@ export default function Home() {
                     </h3>
                   </div>
                 </div>
-                <div className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 shrink-0 self-start sm:self-auto" style={{ color: 'var(--text-muted)' }}>
-                  {isGirls && <span>☕</span>}
-                  <span>متاح {displayedLectures.length} محاضرات</span>
-                  {isGirls && <span>بروقان</span>}
+                <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setIsHurdlesModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                    style={{
+                      backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 242, 242, 0.95)',
+                      borderColor: isDark ? 'rgba(239, 68, 68, 0.4)' : 'rgba(252, 165, 165, 0.8)',
+                      color: isDark ? '#FCA5A5' : '#B91C1C',
+                    }}
+                    title="استعراض أصعب أسئلة كويزات الدفعة مع الإجابات النموذجية والشرح"
+                  >
+                    <span>🎯</span>
+                    <span>معركة أصعب الفخاخ</span>
+                  </button>
+                  <div className="text-xs sm:text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+                    {isGirls && <span>☕</span>}
+                    <span>متاح {displayedLectures.length} محاضرات</span>
+                    {isGirls && <span>بروقان</span>}
+                  </div>
                 </div>
               </div>
 
@@ -1431,8 +1466,8 @@ export default function Home() {
                                 {isGirls ? `🌸 ${lec.lecture_num}` : lec.lecture_num}
                               </div>
                               <div className="min-w-0 flex-1 w-full space-y-1">
-                                {lec.doctor && (
-                                  <div className="mb-1">
+                                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                                  {lec.doctor && (
                                     <span
                                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs sm:text-sm font-bold border whitespace-nowrap"
                                       style={{
@@ -1443,8 +1478,21 @@ export default function Home() {
                                     >
                                       {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor} {isGirls ? '🌸' : ''}
                                     </span>
-                                  </div>
-                                )}
+                                  )}
+                                  {cohortMomentum[lec.id]?.badge && (
+                                    <span
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border whitespace-nowrap animate-pulse"
+                                      style={{
+                                        backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(254, 243, 199, 0.9)',
+                                        borderColor: isDark ? 'rgba(245, 158, 11, 0.4)' : 'rgba(245, 158, 11, 0.5)',
+                                        color: isDark ? '#FBBF24' : '#B45309',
+                                      }}
+                                      title={`نشاط طلاب الدفعة: ${cohortMomentum[lec.id].weekly_activity_count} تفاعل هذا الأسبوع`}
+                                    >
+                                      {cohortMomentum[lec.id].badge}
+                                    </span>
+                                  )}
+                                </div>
                                 <h4 className="font-extrabold text-sm sm:text-xl transition-colors group-hover:text-cyan-500 dark:group-hover:text-cyan-400 break-words leading-snug" style={{ color: 'var(--text-primary)' }}>
                                   {lec.title}
                                 </h4>
@@ -1609,6 +1657,7 @@ export default function Home() {
         onOpenWrapUp={() => setIsWrapUpOpen(true)}
         onOpenDevCredits={() => setIsDevCreditsOpen(true)}
         onOpenEditProfile={() => setIsWelcomeModalOpen(true)}
+        onOpenHurdles={() => setIsHurdlesModalOpen(true)}
       />
 
       {/* Developer Credits Modal */}
@@ -1623,6 +1672,13 @@ export default function Home() {
         isOpen={isWelcomeModalOpen}
         onClose={() => setIsWelcomeModalOpen(false)}
         isInitialOnboarding={!studentName}
+      />
+
+      {/* Cohort Hurdles Modal (Feature 1: Exam Trap Radar) */}
+      <CohortHurdlesModal
+        isOpen={isHurdlesModalOpen}
+        onClose={() => setIsHurdlesModalOpen(false)}
+        isDark={isDark}
       />
     </div>
   );
