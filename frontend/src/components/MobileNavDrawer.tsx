@@ -30,6 +30,8 @@ interface MobileNavDrawerProps {
   onOpenDevCredits?: () => void;
   onOpenEditProfile?: () => void;
   onOpenHurdles?: () => void;
+  onOpenExamBuilder?: () => void;
+  onOpenFormulaSheet?: () => void;
 }
 
 export function MobileNavDrawer({
@@ -43,6 +45,8 @@ export function MobileNavDrawer({
   onOpenDevCredits,
   onOpenEditProfile,
   onOpenHurdles,
+  onOpenExamBuilder,
+  onOpenFormulaSheet,
 }: MobileNavDrawerProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [studentName, setStudentName] = useState('');
@@ -356,6 +360,48 @@ export function MobileNavDrawer({
                   <div className="flex items-center gap-2">
                     <span className="text-base">🎯</span>
                     <span>معركة أصعب الفخاخ (رادار الدفعة)</span>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 opacity-70" />
+                </button>
+              )}
+
+              {onOpenExamBuilder && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(onOpenExamBuilder, 150);
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-sm"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(239, 246, 255, 0.95)',
+                    borderColor: isDark ? 'rgba(59, 130, 246, 0.35)' : 'rgba(191, 219, 254, 0.8)',
+                    color: isDark ? '#93C5FD' : '#1D4ED8',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">⚡</span>
+                    <span>محاكي الامتحانات (ميدترم مخصص)</span>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 opacity-70" />
+                </button>
+              )}
+
+              {onOpenFormulaSheet && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(onOpenFormulaSheet, 150);
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-sm"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(236, 253, 245, 0.95)',
+                    borderColor: isDark ? 'rgba(16, 185, 129, 0.35)' : 'rgba(167, 243, 208, 0.8)',
+                    color: isDark ? '#6EE7B7' : '#047857',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📐</span>
+                    <span>كشكول القوانين (جاهز للطباعة)</span>
                   </div>
                   <ChevronLeft className="w-4 h-4 opacity-70" />
                 </button>

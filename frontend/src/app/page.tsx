@@ -29,6 +29,8 @@ import DeveloperCreditsModal from '@/components/DeveloperCreditsModal';
 import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
 import WelcomeStudentModal from '@/components/WelcomeStudentModal';
 import CohortHurdlesModal from '@/components/CohortHurdlesModal';
+import CustomExamBuilderModal from '@/components/CustomExamBuilderModal';
+import FormulaSheetModal from '@/components/FormulaSheetModal';
 import { getStudentProfileLocal, shouldPromptOnboarding, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl } from '@/lib/api';
 import { 
@@ -576,6 +578,8 @@ export default function Home() {
   const [isDevCreditsOpen, setIsDevCreditsOpen] = useState(false);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
   const [isHurdlesModalOpen, setIsHurdlesModalOpen] = useState(false);
+  const [isExamBuilderOpen, setIsExamBuilderOpen] = useState(false);
+  const [isFormulaSheetOpen, setIsFormulaSheetOpen] = useState(false);
   const [cohortMomentum, setCohortMomentum] = useState<Record<string | number, { weekly_activity_count: number; today_activity_count: number; badge?: string | null; badge_text?: string | null }>>({});
   const [studentName, setStudentName] = useState<string>('');
   const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
@@ -1301,7 +1305,40 @@ export default function Home() {
                     </h3>
                   </div>
                 </div>
-                <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto flex-wrap">
+                <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 self-start sm:self-auto flex-wrap">
+                  {/* Custom Exam Builder Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsExamBuilderOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                    style={{
+                      backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(239, 246, 255, 0.95)',
+                      borderColor: isDark ? 'rgba(59, 130, 246, 0.4)' : 'rgba(191, 219, 254, 0.8)',
+                      color: isDark ? '#93C5FD' : '#1D4ED8',
+                    }}
+                    title="توليف امتحان مخصص ومحاكاة ميدترم بنطاق محاضرات مرن"
+                  >
+                    <span>⚡</span>
+                    <span>محاكي الامتحانات</span>
+                  </button>
+
+                  {/* Formula Sheet Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsFormulaSheetOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                    style={{
+                      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(236, 253, 245, 0.95)',
+                      borderColor: isDark ? 'rgba(16, 185, 129, 0.4)' : 'rgba(167, 243, 208, 0.8)',
+                      color: isDark ? '#6EE7B7' : '#047857',
+                    }}
+                    title="استعراض بنك القوانين والنظريات وتصديرها كـ PDF للطباعة الورقية"
+                  >
+                    <span>📐</span>
+                    <span>كشكول القوانين</span>
+                  </button>
+
+                  {/* Cohort Hurdles Button */}
                   <button
                     type="button"
                     onClick={() => setIsHurdlesModalOpen(true)}
@@ -1314,8 +1351,9 @@ export default function Home() {
                     title="استعراض أصعب أسئلة كويزات الدفعة مع الإجابات النموذجية والشرح"
                   >
                     <span>🎯</span>
-                    <span>معركة أصعب الفخاخ</span>
+                    <span>أصعب الفخاخ</span>
                   </button>
+
                   <div className="text-xs sm:text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
                     {isGirls && <span>☕</span>}
                     <span>متاح {displayedLectures.length} محاضرات</span>
@@ -1664,6 +1702,8 @@ export default function Home() {
         onOpenDevCredits={() => setIsDevCreditsOpen(true)}
         onOpenEditProfile={() => setIsWelcomeModalOpen(true)}
         onOpenHurdles={() => setIsHurdlesModalOpen(true)}
+        onOpenExamBuilder={() => setIsExamBuilderOpen(true)}
+        onOpenFormulaSheet={() => setIsFormulaSheetOpen(true)}
       />
 
       {/* Developer Credits Modal */}
@@ -1685,6 +1725,24 @@ export default function Home() {
         isOpen={isHurdlesModalOpen}
         onClose={() => setIsHurdlesModalOpen(false)}
         isDark={isDark}
+      />
+
+      {/* Feature 2: Custom Exam Builder & Formula Sheet Modals */}
+      <CustomExamBuilderModal
+        isOpen={isExamBuilderOpen}
+        onClose={() => setIsExamBuilderOpen(false)}
+        activeSubject={activeSubject}
+        subjectLectures={displayedLectures}
+        isDark={isDark}
+        isGirls={isGirls}
+      />
+      <FormulaSheetModal
+        isOpen={isFormulaSheetOpen}
+        onClose={() => setIsFormulaSheetOpen(false)}
+        activeSubject={activeSubject}
+        subjectLectures={displayedLectures}
+        isDark={isDark}
+        isGirls={isGirls}
       />
     </div>
   );
