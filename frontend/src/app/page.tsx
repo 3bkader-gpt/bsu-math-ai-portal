@@ -31,6 +31,7 @@ import WelcomeStudentModal from '@/components/WelcomeStudentModal';
 import CohortHurdlesModal from '@/components/CohortHurdlesModal';
 import CustomExamBuilderModal from '@/components/CustomExamBuilderModal';
 import FormulaSheetModal from '@/components/FormulaSheetModal';
+import RecoveryPlannerModal from '@/components/RecoveryPlannerModal';
 import { getStudentProfileLocal, shouldPromptOnboarding, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl } from '@/lib/api';
 import { 
@@ -580,6 +581,7 @@ export default function Home() {
   const [isHurdlesModalOpen, setIsHurdlesModalOpen] = useState(false);
   const [isExamBuilderOpen, setIsExamBuilderOpen] = useState(false);
   const [isFormulaSheetOpen, setIsFormulaSheetOpen] = useState(false);
+  const [isRecoveryPlannerOpen, setIsRecoveryPlannerOpen] = useState(false);
   const [cohortMomentum, setCohortMomentum] = useState<Record<string | number, { weekly_activity_count: number; today_activity_count: number; badge?: string | null; badge_text?: string | null }>>({});
   const [studentName, setStudentName] = useState<string>('');
   const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
@@ -1354,6 +1356,22 @@ export default function Home() {
                     <span>أصعب الفخاخ</span>
                   </button>
 
+                  {/* Recovery Planner Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsRecoveryPlannerOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                    style={{
+                      backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : 'rgba(250, 245, 255, 0.95)',
+                      borderColor: isDark ? 'rgba(168, 85, 247, 0.4)' : 'rgba(233, 213, 255, 0.8)',
+                      color: isDark ? '#D8B4FE' : '#7E22CE',
+                    }}
+                    title="توليف خطة إنقاذ وسد التراكمات اليومية وحصد نقاط XP"
+                  >
+                    <span>📅</span>
+                    <span>خطة الإنقاذ</span>
+                  </button>
+
                   <div className="text-xs sm:text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
                     {isGirls && <span>☕</span>}
                     <span>متاح {displayedLectures.length} محاضرات</span>
@@ -1704,6 +1722,7 @@ export default function Home() {
         onOpenHurdles={() => setIsHurdlesModalOpen(true)}
         onOpenExamBuilder={() => setIsExamBuilderOpen(true)}
         onOpenFormulaSheet={() => setIsFormulaSheetOpen(true)}
+        onOpenRecoveryPlanner={() => setIsRecoveryPlannerOpen(true)}
       />
 
       {/* Developer Credits Modal */}
@@ -1739,6 +1758,16 @@ export default function Home() {
       <FormulaSheetModal
         isOpen={isFormulaSheetOpen}
         onClose={() => setIsFormulaSheetOpen(false)}
+        activeSubject={activeSubject}
+        subjectLectures={displayedLectures}
+        isDark={isDark}
+        isGirls={isGirls}
+      />
+
+      {/* Feature 3: Automated Recovery Planner Modal */}
+      <RecoveryPlannerModal
+        isOpen={isRecoveryPlannerOpen}
+        onClose={() => setIsRecoveryPlannerOpen(false)}
         activeSubject={activeSubject}
         subjectLectures={displayedLectures}
         isDark={isDark}
