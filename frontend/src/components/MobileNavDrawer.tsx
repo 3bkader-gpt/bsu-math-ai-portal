@@ -33,6 +33,9 @@ interface MobileNavDrawerProps {
   onOpenExamBuilder?: () => void;
   onOpenFormulaSheet?: () => void;
   onOpenRecoveryPlanner?: () => void;
+  onOpenFocusAmbience?: () => void;
+  onOpenMathScratchpad?: () => void;
+  onOpenStudentBinder?: () => void;
 }
 
 export function MobileNavDrawer({
@@ -49,6 +52,9 @@ export function MobileNavDrawer({
   onOpenExamBuilder,
   onOpenFormulaSheet,
   onOpenRecoveryPlanner,
+  onOpenFocusAmbience,
+  onOpenMathScratchpad,
+  onOpenStudentBinder,
 }: MobileNavDrawerProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [studentName, setStudentName] = useState('');
@@ -425,6 +431,69 @@ export function MobileNavDrawer({
                   <div className="flex items-center gap-2">
                     <span className="text-base">📅</span>
                     <span>خطة الإنقاذ وسد التراكمات</span>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 opacity-70" />
+                </button>
+              )}
+
+              {onOpenFocusAmbience && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(onOpenFocusAmbience, 150);
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-sm"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(254, 252, 232, 0.95)',
+                    borderColor: isDark ? 'rgba(234, 179, 8, 0.35)' : 'rgba(254, 240, 138, 0.8)',
+                    color: isDark ? '#FDE047' : '#A16207',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🧘</span>
+                    <span>ركن التركيز ومؤقت بومودورو</span>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 opacity-70" />
+                </button>
+              )}
+
+              {onOpenMathScratchpad && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(onOpenMathScratchpad, 150);
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-sm"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(6, 182, 212, 0.15)' : 'rgba(236, 254, 255, 0.95)',
+                    borderColor: isDark ? 'rgba(6, 182, 212, 0.35)' : 'rgba(165, 243, 252, 0.8)',
+                    color: isDark ? '#67E8F9' : '#0E7490',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">✏️</span>
+                    <span>مسودة الرياضيات التفاعلية والحاسبة</span>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 opacity-70" />
+                </button>
+              )}
+
+              {onOpenStudentBinder && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(onOpenStudentBinder, 150);
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-sm"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 247, 237, 0.95)',
+                    borderColor: isDark ? 'rgba(249, 115, 22, 0.35)' : 'rgba(254, 215, 170, 0.8)',
+                    color: isDark ? '#FDBA74' : '#C2410C',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📌</span>
+                    <span>كشكول ملاحظاتي وقوانيني الشخصية</span>
                   </div>
                   <ChevronLeft className="w-4 h-4 opacity-70" />
                 </button>

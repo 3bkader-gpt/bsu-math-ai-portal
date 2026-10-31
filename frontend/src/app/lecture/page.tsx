@@ -44,6 +44,7 @@ import DeveloperCreditsModal from '@/components/DeveloperCreditsModal';
 import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
 import WelcomeStudentModal from '@/components/WelcomeStudentModal';
 import ExamTrapBadge from '@/components/ExamTrapBadge';
+import MathScratchpadModal from '@/components/MathScratchpadModal';
 import { getStudentProfileLocal, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
@@ -192,6 +193,7 @@ function LectureContent() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isDevCreditsOpen, setIsDevCreditsOpen] = useState(false);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
+  const [isScratchpadOpen, setIsScratchpadOpen] = useState(false);
   const [studentName, setStudentName] = useState<string>('');
 
   useEffect(() => {
@@ -2457,6 +2459,24 @@ function LectureContent() {
         </div>
       </footer>
 
+      {/* Floating Quick Scratchpad FAB (Feature 4) */}
+      <button
+        type="button"
+        onClick={() => setIsScratchpadOpen(true)}
+        className="fixed bottom-6 left-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-xl border font-bold text-xs sm:text-sm transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
+        style={{
+          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+          borderColor: isDark ? 'rgba(6, 182, 212, 0.4)' : 'rgba(6, 182, 212, 0.3)',
+          color: isDark ? '#67E8F9' : '#0891B2',
+          boxShadow: '0 10px 25px -5px rgba(6, 182, 212, 0.3)',
+        }}
+        title="فتح مسودة الرياضيات التفاعلية والحاسبة العلمية للمسائل"
+        aria-label="مسودة الحل والحاسبة"
+      >
+        <span className="text-base">✏️</span>
+        <span className="hidden sm:inline">مسودة الحل والحاسبة</span>
+      </button>
+
       {/* Mobile Drawer Navigation with Background Scroll Lock */}
       <MobileNavDrawer
         isOpen={isMobileNavOpen}
@@ -2465,6 +2485,7 @@ function LectureContent() {
         isDark={isDark}
         onOpenDevCredits={() => setIsDevCreditsOpen(true)}
         onOpenEditProfile={() => setIsWelcomeModalOpen(true)}
+        onOpenMathScratchpad={() => setIsScratchpadOpen(true)}
       />
 
       {/* Developer Credits Modal */}
@@ -2479,6 +2500,13 @@ function LectureContent() {
         isOpen={isWelcomeModalOpen}
         onClose={() => setIsWelcomeModalOpen(false)}
         isInitialOnboarding={false}
+      />
+
+      {/* Feature 4: Math Scratchpad Modal */}
+      <MathScratchpadModal
+        isOpen={isScratchpadOpen}
+        onClose={() => setIsScratchpadOpen(false)}
+        isDark={isDark}
       />
     </div>
   );
