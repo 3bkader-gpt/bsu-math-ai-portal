@@ -32,6 +32,9 @@ import CohortHurdlesModal from '@/components/CohortHurdlesModal';
 import CustomExamBuilderModal from '@/components/CustomExamBuilderModal';
 import FormulaSheetModal from '@/components/FormulaSheetModal';
 import RecoveryPlannerModal from '@/components/RecoveryPlannerModal';
+import FocusAmbienceModal from '@/components/FocusAmbienceModal';
+import MathScratchpadModal from '@/components/MathScratchpadModal';
+import StudentBinderModal from '@/components/StudentBinderModal';
 import { getStudentProfileLocal, shouldPromptOnboarding, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl } from '@/lib/api';
 import { 
@@ -582,6 +585,9 @@ export default function Home() {
   const [isExamBuilderOpen, setIsExamBuilderOpen] = useState(false);
   const [isFormulaSheetOpen, setIsFormulaSheetOpen] = useState(false);
   const [isRecoveryPlannerOpen, setIsRecoveryPlannerOpen] = useState(false);
+  const [isFocusAmbienceOpen, setIsFocusAmbienceOpen] = useState(false);
+  const [isMathScratchpadOpen, setIsMathScratchpadOpen] = useState(false);
+  const [isStudentBinderOpen, setIsStudentBinderOpen] = useState(false);
   const [cohortMomentum, setCohortMomentum] = useState<Record<string | number, { weekly_activity_count: number; today_activity_count: number; badge?: string | null; badge_text?: string | null }>>({});
   const [studentName, setStudentName] = useState<string>('');
   const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
@@ -1372,6 +1378,54 @@ export default function Home() {
                     <span>خطة الإنقاذ</span>
                   </button>
 
+                  {/* Focus & Pomodoro Ambience Button (Feature 4) */}
+                  <button
+                    type="button"
+                    onClick={() => setIsFocusAmbienceOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                    style={{
+                      backgroundColor: isDark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(254, 252, 232, 0.95)',
+                      borderColor: isDark ? 'rgba(234, 179, 8, 0.4)' : 'rgba(254, 240, 138, 0.8)',
+                      color: isDark ? '#FDE047' : '#A16207',
+                    }}
+                    title="بيئة صوتية طبيعية ومؤقت بومودورو للتركيز وحصد XP"
+                  >
+                    <span>🧘</span>
+                    <span>ركن التركيز</span>
+                  </button>
+
+                  {/* Math Scratchpad Button (Feature 4) */}
+                  <button
+                    type="button"
+                    onClick={() => setIsMathScratchpadOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                    style={{
+                      backgroundColor: isDark ? 'rgba(6, 182, 212, 0.15)' : 'rgba(236, 254, 255, 0.95)',
+                      borderColor: isDark ? 'rgba(6, 182, 212, 0.4)' : 'rgba(165, 243, 252, 0.8)',
+                      color: isDark ? '#67E8F9' : '#0E7490',
+                    }}
+                    title="مسودة بيضاء تفاعلية وحاسبة علمية لحل المعادلات والمسائل"
+                  >
+                    <span>✏️</span>
+                    <span>مسودة الرياضيات</span>
+                  </button>
+
+                  {/* Student Binder Button (Feature 4) */}
+                  <button
+                    type="button"
+                    onClick={() => setIsStudentBinderOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                    style={{
+                      backgroundColor: isDark ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 247, 237, 0.95)',
+                      borderColor: isDark ? 'rgba(249, 115, 22, 0.4)' : 'rgba(254, 215, 170, 0.8)',
+                      color: isDark ? '#FDBA74' : '#C2410C',
+                    }}
+                    title="كشكول ملاحظاتي الشخصية وقوانيني وقوالب المذاكرة"
+                  >
+                    <span>📌</span>
+                    <span>كشكول ملاحظاتي</span>
+                  </button>
+
                   <div className="text-xs sm:text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
                     {isGirls && <span>☕</span>}
                     <span>متاح {displayedLectures.length} محاضرات</span>
@@ -1723,6 +1777,9 @@ export default function Home() {
         onOpenExamBuilder={() => setIsExamBuilderOpen(true)}
         onOpenFormulaSheet={() => setIsFormulaSheetOpen(true)}
         onOpenRecoveryPlanner={() => setIsRecoveryPlannerOpen(true)}
+        onOpenFocusAmbience={() => setIsFocusAmbienceOpen(true)}
+        onOpenMathScratchpad={() => setIsMathScratchpadOpen(true)}
+        onOpenStudentBinder={() => setIsStudentBinderOpen(true)}
       />
 
       {/* Developer Credits Modal */}
@@ -1770,6 +1827,29 @@ export default function Home() {
         onClose={() => setIsRecoveryPlannerOpen(false)}
         activeSubject={activeSubject}
         subjectLectures={displayedLectures}
+        isDark={isDark}
+        isGirls={isGirls}
+      />
+
+      {/* Feature 4: Focus Ambience & Pomodoro Modal */}
+      <FocusAmbienceModal
+        isOpen={isFocusAmbienceOpen}
+        onClose={() => setIsFocusAmbienceOpen(false)}
+        isDark={isDark}
+        isGirls={isGirls}
+      />
+
+      {/* Feature 4: Math Scratchpad & Scientific Calculator Modal */}
+      <MathScratchpadModal
+        isOpen={isMathScratchpadOpen}
+        onClose={() => setIsMathScratchpadOpen(false)}
+        isDark={isDark}
+      />
+
+      {/* Feature 4: Personal Student Binder Modal */}
+      <StudentBinderModal
+        isOpen={isStudentBinderOpen}
+        onClose={() => setIsStudentBinderOpen(false)}
         isDark={isDark}
         isGirls={isGirls}
       />
