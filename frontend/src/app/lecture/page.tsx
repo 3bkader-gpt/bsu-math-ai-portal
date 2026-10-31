@@ -379,9 +379,10 @@ function LectureContent() {
         // Fetch Exam Traps for this lecture (Feature 1: Cohort Radar)
         fetch(getApiUrl(`/api/stats/traps?lecture_id=${bundle.id}`))
           .then((r) => r.ok ? r.json() : null)
-          .then((traps) => {
-            if (isMounted && traps) {
-              setTrapsMap(traps);
+          .then((data) => {
+            if (isMounted && data) {
+              const map = data.traps || data;
+              setTrapsMap(map);
             }
           })
           .catch(() => {});
