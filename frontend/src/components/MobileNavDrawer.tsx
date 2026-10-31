@@ -29,6 +29,7 @@ interface MobileNavDrawerProps {
   onOpenWrapUp?: () => void;
   onOpenDevCredits?: () => void;
   onOpenEditProfile?: () => void;
+  onOpenHurdles?: () => void;
 }
 
 export function MobileNavDrawer({
@@ -41,6 +42,7 @@ export function MobileNavDrawer({
   onOpenWrapUp,
   onOpenDevCredits,
   onOpenEditProfile,
+  onOpenHurdles,
 }: MobileNavDrawerProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [studentName, setStudentName] = useState('');
@@ -335,6 +337,27 @@ export function MobileNavDrawer({
                     <span>أنهيت مذاكرتي لليوم</span>
                   </div>
                   <ChevronLeft className="w-4 h-4 opacity-50" />
+                </button>
+              )}
+
+              {onOpenHurdles && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(onOpenHurdles, 150);
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-sm"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 242, 242, 0.95)',
+                    borderColor: isDark ? 'rgba(239, 68, 68, 0.35)' : 'rgba(252, 165, 165, 0.8)',
+                    color: isDark ? '#FCA5A5' : '#B91C1C',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🎯</span>
+                    <span>معركة أصعب الفخاخ (رادار الدفعة)</span>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 opacity-70" />
                 </button>
               )}
             </div>
