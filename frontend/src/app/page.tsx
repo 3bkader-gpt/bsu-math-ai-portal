@@ -576,7 +576,7 @@ export default function Home() {
   const [isDevCreditsOpen, setIsDevCreditsOpen] = useState(false);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
   const [isHurdlesModalOpen, setIsHurdlesModalOpen] = useState(false);
-  const [cohortMomentum, setCohortMomentum] = useState<Record<number, { weekly_activity_count: number; today_activity_count: number; badge: string | null }>>({});
+  const [cohortMomentum, setCohortMomentum] = useState<Record<string | number, { weekly_activity_count: number; today_activity_count: number; badge?: string | null; badge_text?: string | null }>>({});
   const [studentName, setStudentName] = useState<string>('');
   const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
   const isHeaderVisible = useSmartHeaderVisibility({ threshold: 12, topBoundary: 25 });
@@ -587,8 +587,9 @@ export default function Home() {
     fetch(getApiUrl('/api/stats/momentum'))
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (isMounted && data?.momentum) {
-          setCohortMomentum(data.momentum);
+        if (isMounted && data) {
+          const map = data.momentum || data;
+          setCohortMomentum(map);
         }
       })
       .catch(() => {});
@@ -1479,19 +1480,24 @@ export default function Home() {
                                       {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor} {isGirls ? '🌸' : ''}
                                     </span>
                                   )}
-                                  {cohortMomentum[lec.id]?.badge && (
-                                    <span
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border whitespace-nowrap animate-pulse"
-                                      style={{
-                                        backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(254, 243, 199, 0.9)',
-                                        borderColor: isDark ? 'rgba(245, 158, 11, 0.4)' : 'rgba(245, 158, 11, 0.5)',
-                                        color: isDark ? '#FBBF24' : '#B45309',
-                                      }}
-                                      title={`نشاط طلاب الدفعة: ${cohortMomentum[lec.id].weekly_activity_count} تفاعل هذا الأسبوع`}
-                                    >
-                                      {cohortMomentum[lec.id].badge}
-                                    </span>
-                                  )}
+                                  {(() => {
+                                    const mInfo = cohortMomentum[lec.id] || (cohortMomentum as any)[String(lec.id)];
+                                    const badge = mInfo?.badge || mInfo?.badge_text;
+                                    if (!badge) return null;
+                                    return (
+                                      <span
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border whitespace-nowrap animate-pulse"
+                                        style={{
+                                          backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(254, 243, 199, 0.9)',
+                                          borderColor: isDark ? 'rgba(245, 158, 11, 0.4)' : 'rgba(245, 158, 11, 0.5)',
+                                          color: isDark ? '#FBBF24' : '#B45309',
+                                        }}
+                                        title={`نشاط طلاب الدفعة: ${mInfo.weekly_activity_count} تفاعل هذا الأسبوع`}
+                                      >
+                                        {badge}
+                                      </span>
+                                    );
+                                  })()}
                                 </div>
                                 <h4 className="font-extrabold text-sm sm:text-xl transition-colors group-hover:text-cyan-500 dark:group-hover:text-cyan-400 break-words leading-snug" style={{ color: 'var(--text-primary)' }}>
                                   {lec.title}

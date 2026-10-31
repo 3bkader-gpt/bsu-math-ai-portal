@@ -26,7 +26,8 @@ def test_stats():
     r_mom = client.get('/api/stats/momentum')
     print(f'Momentum endpoint status: {r_mom.status_code}')
     assert r_mom.status_code == 200
-    mom = r_mom.json()
+    mom_res = r_mom.json()
+    mom = mom_res.get('momentum', mom_res)
     print('Momentum lectures count:', len(mom))
     for k, v in list(mom.items())[:3]:
         print(f"  Lec {k}: {v['badge_text']} ({v['weekly_activity_count']} weekly)")

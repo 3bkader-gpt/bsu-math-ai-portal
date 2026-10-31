@@ -128,9 +128,12 @@ def get_cohort_momentum(db: Session = Depends(get_db)):
             momentum[lid] = {
                 "weekly_activity_count": weekly,
                 "today_activity_count": today,
+                "badge": badge_text,
                 "badge_text": badge_text
             }
-        return momentum
+        return {
+            "momentum": momentum
+        }
     except Exception as exc:
         logger.warning(f"Failed fetching cohort momentum: {exc}")
-        return {}
+        return {"momentum": {}}
