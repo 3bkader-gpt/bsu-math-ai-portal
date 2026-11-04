@@ -41,6 +41,32 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 }
 
+/**
+ * Safely retrieves local student identification details without blocking.
+ */
+function getLocalStudentIdentity(): { userId: string | null; studentName: string | null } {
+  if (typeof window === 'undefined') return { userId: null, studentName: null };
+
+  let studentName: string | null = null;
+  try {
+    const rawName = localStorage.getItem('bsu_portal_student_nickname');
+    if (rawName && rawName !== 'عاشق الرياضيات' && rawName !== 'عاشقة الرياضيات') {
+      studentName = rawName.trim();
+    }
+  } catch {}
+
+  let userId: string | null = null;
+  try {
+    const rawAuth = localStorage.getItem('bsu_portal_guest_auth');
+    if (rawAuth) {
+      const parsed = JSON.parse(rawAuth);
+      if (parsed?.userId) userId = parsed.userId;
+    }
+  } catch {}
+
+  return { userId, studentName };
+}
+
 export async function subscribeToPushNotifications(): Promise<{ success: boolean; message?: string }> {
   if (!isPushNotificationSupported()) {
     return { success: false, message: 'المتصفح لا يدعم إشعارات الويب' };
@@ -80,6 +106,8 @@ export async function subscribeToPushNotifications(): Promise<{ success: boolean
       return { success: false, message: 'بيانات الاشتراك غير مكتملة' };
     }
 
+    const { userId, studentName } = getLocalStudentIdentity();
+
     const payload = {
       endpoint: rawSub.endpoint,
       keys: {
@@ -87,6 +115,8 @@ export async function subscribeToPushNotifications(): Promise<{ success: boolean
         auth: rawSub.keys.auth,
       },
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      userId,
+      studentName,
     };
 
     const saveRes = await fetch(getApiUrl('/api/notifications/subscribe'), {
@@ -107,6 +137,45 @@ export async function subscribeToPushNotifications(): Promise<{ success: boolean
   } catch (err: any) {
     console.error('[Push] Subscription failed:', err);
     return { success: false, message: err?.message || 'حدث خطأ أثناء الاشتراك' };
+  }
+}
+
+/**
+ * Silently synchronizes the student's name and user_id to their active push subscription.
+ */
+export async function syncPushSubscriptionProfile(customName?: string): Promise<void> {
+  if (!isPushNotificationSupported()) return;
+  if (getPushPermissionState() !== 'granted') return;
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) return;
+
+    const rawSub = sub.toJSON();
+    if (!rawSub.endpoint || !rawSub.keys?.p256dh || !rawSub.keys?.auth) return;
+
+    const { userId, studentName } = getLocalStudentIdentity();
+    const finalName = customName?.trim() || studentName;
+
+    const payload = {
+      endpoint: rawSub.endpoint,
+      keys: {
+        p256dh: rawSub.keys.p256dh,
+        auth: rawSub.keys.auth,
+      },
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      userId,
+      studentName: finalName,
+    };
+
+    await fetch(getApiUrl('/api/notifications/subscribe'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.debug('[Push] Silent sync push subscription error:', err);
   }
 }
 

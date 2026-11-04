@@ -7,6 +7,7 @@
 
 import { getOrCreateDeviceId, updateStudentProfile as updateSupabaseProfile } from '@/modules/gamification/supabase/auth';
 import { getLocalResumeState } from '@/modules/gamification/resume';
+import { syncPushSubscriptionProfile } from './pushNotifications';
 
 export const STUDENT_NAME_KEY = 'bsu_portal_student_nickname';
 export const STUDENT_PERSONA_KEY = 'bsu_portal_persona';
@@ -88,6 +89,13 @@ export function saveStudentProfileLocal(name: string, persona: 'boys' | 'girls' 
       updateSupabaseProfile({ nickname: cleanName || undefined, persona });
     } catch (e) {
       console.warn('Silent Supabase profile sync error:', e);
+    }
+
+    // Sync active Web Push subscription with student name
+    try {
+      syncPushSubscriptionProfile(cleanName);
+    } catch (e) {
+      console.debug('Silent push sync error:', e);
     }
 
     // Broadcast change to all mounted components
