@@ -186,6 +186,7 @@ def dispatch_web_push_payload(sub: PushSubscription, payload: dict) -> bool:
     """Dispatches a single Web Push notification synchronously using pywebpush."""
     try:
         from pywebpush import webpush, WebPushException
+        from py_vapid import Vapid
 
         sub_info = {
             "endpoint": sub.endpoint,
@@ -194,10 +195,15 @@ def dispatch_web_push_payload(sub: PushSubscription, payload: dict) -> bool:
                 "auth": sub.auth,
             },
         }
+
+        vapid_key = settings.VAPID_PRIVATE_KEY
+        if isinstance(vapid_key, str) and vapid_key.strip().startswith("-----BEGIN"):
+            vapid_key = Vapid.from_pem(vapid_key.strip().encode("utf-8"))
+
         res = webpush(
             subscription_info=sub_info,
             data=json.dumps(payload),
-            vapid_private_key=settings.VAPID_PRIVATE_KEY,
+            vapid_private_key=vapid_key,
             vapid_claims={"sub": settings.VAPID_CLAIMS_EMAIL},
             timeout=10,
         )
