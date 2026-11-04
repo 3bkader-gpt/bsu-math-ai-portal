@@ -89,5 +89,7 @@ class PushSubscription(Base):
     p256dh: Mapped[str] = mapped_column(String(200), nullable=False)
     auth: Mapped[str] = mapped_column(String(100), nullable=False)
     user_agent: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
+    user_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
+    student_name: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 

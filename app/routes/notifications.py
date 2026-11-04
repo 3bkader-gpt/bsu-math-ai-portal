@@ -1,7 +1,7 @@
 """API Routes for In-App & Web Push Notifications."""
 
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Union
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -22,6 +22,21 @@ class PushSubscriptionRequest(BaseModel):
     endpoint: str
     keys: PushSubscriptionKeys
     userAgent: Optional[str] = None
+    userId: Optional[str] = None
+    studentName: Optional[str] = None
+
+
+from uuid import UUID
+
+
+class SubscriberInfo(BaseModel):
+    model_config = {"from_attributes": True}
+
+    id: int
+    user_id: Optional[Union[UUID, str]] = None
+    student_name: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: datetime
 
 
 class UnsubscribeRequest(BaseModel):
@@ -66,7 +81,7 @@ def get_vapid_public_key():
 
 @router.post("/subscribe")
 def subscribe_push(req: PushSubscriptionRequest, db: Session = Depends(get_db)):
-    """Registers or updates a student browser/mobile Web Push subscription."""
+    """Registers or updates a student browser/mobile Web Push subscription, linking student identity if available."""
     endpoint = req.endpoint.strip()
     if not endpoint:
         raise HTTPException(status_code=400, detail="Invalid endpoint")
@@ -75,19 +90,33 @@ def subscribe_push(req: PushSubscriptionRequest, db: Session = Depends(get_db)):
     if existing:
         existing.p256dh = req.keys.p256dh
         existing.auth = req.keys.auth
-        existing.user_agent = req.userAgent
+        if req.userAgent:
+            existing.user_agent = req.userAgent
+        if req.userId:
+            existing.user_id = req.userId
+        if req.studentName:
+            existing.student_name = req.studentName
         db.commit()
-        return {"success": True, "message": "تم تحديث اشتراك الإشعارات"}
+        return {"success": True, "message": "تم تحديث اشتراك الإشعارات وربطه بالبروفايل"}
 
     new_sub = PushSubscription(
         endpoint=endpoint,
         p256dh=req.keys.p256dh,
         auth=req.keys.auth,
         user_agent=req.userAgent,
+        user_id=req.userId,
+        student_name=req.studentName,
     )
     db.add(new_sub)
     db.commit()
-    return {"success": True, "message": "تم تفعيل الإشعارات بنجاح"}
+    return {"success": True, "message": "تم تفعيل الإشعارات بنجاح وربطها بالبروفايل"}
+
+
+@router.get("/subscribers", response_model=List[SubscriberInfo])
+def get_subscribers(db: Session = Depends(get_db)):
+    """Returns all active push subscribers with their linked student identities."""
+    subs = db.query(PushSubscription).order_by(PushSubscription.created_at.desc()).all()
+    return subs
 
 
 @router.post("/unsubscribe")

@@ -9,6 +9,7 @@ import {
   isPushNotificationSupported,
   getPushPermissionState,
   subscribeToPushNotifications,
+  syncPushSubscriptionProfile,
 } from '@/lib/pushNotifications';
 
 export interface NotificationItem {
@@ -86,6 +87,8 @@ export default function NotificationBell({ isGirls = false, isDark = true }: Not
 
   useEffect(() => {
     fetchNotifications();
+    // Silently associate push subscription token with student profile if permission was previously granted
+    syncPushSubscriptionProfile();
     // Poll every 60 seconds
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
