@@ -2,12 +2,13 @@
 
 from datetime import datetime
 from typing import Optional, List, Union
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.config import settings
 from app.db.database import get_db
-from app.db.models import Notification, PushSubscription
+from app.db.models import Notification, PushSubscription, User
+from app.services.auth_service import get_current_user
 from app.services.notification_service import dispatch_web_push_payload
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
@@ -113,8 +114,16 @@ def subscribe_push(req: PushSubscriptionRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/subscribers", response_model=List[SubscriberInfo])
-def get_subscribers(db: Session = Depends(get_db)):
-    """Returns all active push subscribers with their linked student identities."""
+def get_subscribers(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Returns all active push subscribers with their linked student identities. Restricted to admins."""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="غير مصرح: عرض المشتركين مقتصر على المشرفين فقط"
+        )
     subs = db.query(PushSubscription).order_by(PushSubscription.created_at.desc()).all()
     return subs
 
@@ -128,8 +137,17 @@ def unsubscribe_push(req: UnsubscribeRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/test-push")
-def test_push_notification(endpoint: Optional[str] = None, db: Session = Depends(get_db)):
-    """Sends a friendly test push notification to verify connectivity."""
+def test_push_notification(
+    endpoint: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Sends a friendly test push notification to verify connectivity. Restricted to admins."""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="غير مصرح: إرسال الإشعارات التجريبية مقتصر على المشرفين فقط"
+        )
     query = db.query(PushSubscription)
     if endpoint:
         query = query.filter(PushSubscription.endpoint == endpoint.strip())

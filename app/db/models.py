@@ -16,6 +16,10 @@ class Subject(Base):
     folder_path: Mapped[str] = mapped_column(String(500), nullable=False)
     prompt_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     semester: Mapped[int] = mapped_column(default=1, server_default="1", nullable=False)
+    year_level: Mapped[int] = mapped_column(default=2, server_default="2", nullable=False)
+    icon: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, default="📚")
+    doctors_json: Mapped[Optional[str]] = mapped_column("doctors", Text, nullable=True)
+    theme_config_json: Mapped[Optional[str]] = mapped_column("theme_config", Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     lectures: Mapped[List["Lecture"]] = relationship("Lecture", back_populates="subject", cascade="all, delete-orphan")

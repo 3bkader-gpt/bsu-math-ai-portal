@@ -21,6 +21,15 @@ logger = logging.getLogger("notebooklm_pipeline")
 run_cmd = run_notebooklm_cmd
 run_cmd_async = run_notebooklm_cmd_async
 
+# Shared academic generation prompt instructions used across both local and Split-Plane pipelines
+QUIZ_PROMPT_INSTRUCTIONS = (
+    "اختبار شامل مع تلميحات وشرح الإجابات. "
+    "لكل سؤال أضف بعد الخيارات سطر Hint بإجابة صغيرة، "
+    "وأسفل الهينت بلوك Steps فيه خطوات الحل النموذجي مرقمة (3 إلى 5 خطوات) "
+    "بحيث يتعلم الطالب من التدرج خطوة خطوة"
+)
+FLASHCARDS_PROMPT_INSTRUCTIONS = "أهم المفاهيم والقوانين والتعريفات"
+
 def make_telegram_caption(subject_name: str, lecture_num: int, title: str, doctor: str | None, asset_label: str, filename: str = "") -> str:
     """Formats structured, readable captions for Telegram storage channel."""
     doc_str = f" | 👨‍🏫 {doctor}" if doctor else ""
@@ -152,9 +161,9 @@ class NotebookLMPipeline:
             db.commit()
             db.close()
 
-            quiz_cmd = ["notebooklm", "generate", "quiz", "اختبار شامل مع تلميحات وشرح الإجابات", "--quantity", "more", "--wait", "--retry", "3", "-n", nb_id]
+            quiz_cmd = ["notebooklm", "generate", "quiz", QUIZ_PROMPT_INSTRUCTIONS, "--quantity", "more", "--wait", "--retry", "3", "-n", nb_id]
             report_cmd = ["notebooklm", "generate", "report", "--format", "study-guide", "--wait", "--retry", "3", "-n", nb_id]
-            cards_cmd = ["notebooklm", "generate", "flashcards", "أهم المفاهيم والقوانين والتعريفات", "--quantity", "more", "--retry", "3", "-n", nb_id]
+            cards_cmd = ["notebooklm", "generate", "flashcards", FLASHCARDS_PROMPT_INSTRUCTIONS, "--quantity", "more", "--retry", "3", "-n", nb_id]
             map_cmd = ["notebooklm", "generate", "mind-map", "--kind", "note-backed", "-n", nb_id]
 
             await asyncio.gather(

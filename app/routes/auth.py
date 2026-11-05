@@ -1,6 +1,9 @@
 import hashlib
+import threading
+import time
+from collections import defaultdict
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.config import settings
@@ -9,6 +12,29 @@ from app.db.models import User
 from app.services.auth_service import verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+# Sliding-window per-IP rate limiter for anonymous guest session provisioning
+_ANON_RATE_LIMIT_MAX_REQUESTS = 10
+_ANON_RATE_LIMIT_WINDOW_SECONDS = 60.0
+_anon_session_tracker: dict[str, list[float]] = defaultdict(list)
+_anon_rate_limit_lock = threading.Lock()
+
+def check_anon_session_rate_limit(client_ip: str) -> bool:
+    now = time.time()
+    cutoff = now - _ANON_RATE_LIMIT_WINDOW_SECONDS
+    with _anon_rate_limit_lock:
+        timestamps = _anon_session_tracker[client_ip]
+        valid_timestamps = [t for t in timestamps if t > cutoff]
+        if len(valid_timestamps) >= _ANON_RATE_LIMIT_MAX_REQUESTS:
+            _anon_session_tracker[client_ip] = valid_timestamps
+            return False
+        valid_timestamps.append(now)
+        _anon_session_tracker[client_ip] = valid_timestamps
+        if len(_anon_session_tracker) > 1000:
+            for ip in list(_anon_session_tracker.keys()):
+                if not _anon_session_tracker[ip] or _anon_session_tracker[ip][-1] < cutoff:
+                    _anon_session_tracker.pop(ip, None)
+        return True
 
 class LoginRequest(BaseModel):
     username: str
@@ -67,11 +93,19 @@ def get_me(current_user: User = Depends(get_current_user)):
     }
 
 @router.post("/anonymous-session", response_model=AnonymousSessionResponse)
-def get_or_create_anonymous_session(req: AnonymousSessionRequest):
+def get_or_create_anonymous_session(req: AnonymousSessionRequest, request: Request):
     """
     Provisions a confirmed student guest account in Supabase without sending emails,
     granting an immediate, authenticated session with strict RLS tenant isolation.
+    Protected by per-IP sliding window rate limiting against automated Sybil floods.
     """
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_anon_session_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="تم تجاوز الحد المسموح لإنشاء الجلسات، يرجى المحاولة بعد دقيقة"
+        )
+
     raw_id = (req.deviceId or "default-device").strip()
     id_hash = hashlib.sha256(raw_id.encode("utf-8")).hexdigest()[:12]
     

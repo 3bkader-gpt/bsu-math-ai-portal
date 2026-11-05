@@ -223,3 +223,165 @@ def test_cors_untrusted_origin_rejected():
     # The untrusted origin must NOT be reflected in access-control-allow-origin
     allow_origin = resp.headers.get("access-control-allow-origin")
     assert allow_origin != "https://malicious-attacker-site.com"
+
+
+# ==============================================================================
+# 5. P0-SEC-05: Notifications Admin-Only Access & Anonymous Session Rate Limit
+# ==============================================================================
+
+def test_notifications_admin_endpoints_reject_unauthenticated_and_students(setup_test_users):
+    """Verify /api/notifications/subscribers and /api/notifications/test-push require admin auth."""
+    # Unauthenticated -> 401
+    assert client.get("/api/notifications/subscribers").status_code == 401
+    assert client.post("/api/notifications/test-push").status_code == 401
+
+    # Non-admin student -> 403
+    student_token = create_access_token({"sub": "sec_test_student", "role": "student"})
+    headers = {"Authorization": f"Bearer {student_token}"}
+    assert client.get("/api/notifications/subscribers", headers=headers).status_code == 403
+    assert client.post("/api/notifications/test-push", headers=headers).status_code == 403
+
+    # Admin -> 200 on subscribers list
+    admin_token = create_access_token({"sub": "sec_test_admin", "role": "admin"})
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+    r_subs = client.get("/api/notifications/subscribers", headers=admin_headers)
+    assert r_subs.status_code == 200
+    assert isinstance(r_subs.json(), list)
+
+
+def test_anonymous_session_rate_limiting():
+    """Verify rapid bursts of /api/auth/anonymous-session trigger 429 Too Many Requests."""
+    from app.routes.auth import _anon_session_tracker
+    _anon_session_tracker.clear()
+
+    statuses = []
+    for i in range(13):
+        r = client.post("/api/auth/anonymous-session", json={"deviceId": f"test-burst-{i}"})
+        statuses.append(r.status_code)
+
+    assert 429 in statuses, "Rapid anonymous session requests should trigger 429 rate limiting"
+    _anon_session_tracker.clear()
+
+
+# ==============================================================================
+# 6. Phase 2 Pipeline Unblocking & Shared Prompt Parity Tests
+# ==============================================================================
+
+def test_shared_prompt_constants_parity():
+    """Verify home_worker and notebooklm_service share identical quiz and flashcard prompt instructions."""
+    import home_worker
+    from app.services import notebooklm_service
+
+    assert home_worker.QUIZ_PROMPT_INSTRUCTIONS == notebooklm_service.QUIZ_PROMPT_INSTRUCTIONS
+    assert "Hint" in home_worker.QUIZ_PROMPT_INSTRUCTIONS
+    assert "Steps" in home_worker.QUIZ_PROMPT_INSTRUCTIONS
+    assert home_worker.FLASHCARDS_PROMPT_INSTRUCTIONS == notebooklm_service.FLASHCARDS_PROMPT_INSTRUCTIONS
+
+
+def test_on_demand_notebook_sharing_caches_and_skips_creator(monkeypatch):
+    """Verify ensure_notebook_shared_with_profile skips creator profile and caches shared profiles."""
+    import asyncio
+    import home_worker
+
+    calls = []
+
+    async def fake_run_cmd(cmd, *args, **kwargs):
+        calls.append(cmd)
+        return 0, "Shared"
+
+    monkeypatch.setattr(home_worker, "run_cmd_async", fake_run_cmd)
+    home_worker._SHARED_NOTEBOOK_PROFILES.clear()
+
+    # 1. Sharing with creator profile ('default') should be a no-op (0 CLI calls)
+    res_creator = asyncio.run(home_worker.ensure_notebook_shared_with_profile("nb-123", "default", "default"))
+    assert res_creator is True
+    assert len(calls) == 0
+
+    # 2. Sharing with 'acc_mo' should invoke CLI exactly once, then hit cache on second call
+    res1 = asyncio.run(home_worker.ensure_notebook_shared_with_profile("nb-123", "acc_mo", "default"))
+    res2 = asyncio.run(home_worker.ensure_notebook_shared_with_profile("nb-123", "acc_mo", "default"))
+    assert res1 is True and res2 is True
+    assert len(calls) == 1
+    assert "mo2949042@gmail.com" in calls[0]
+
+
+def test_spawn_media_watcher_is_non_blocking_and_deduplicated(monkeypatch):
+    """Verify spawn_media_watcher schedules background media watching without blocking and deduplicates by lecture_id."""
+    import asyncio
+    import home_worker
+
+    home_worker._ACTIVE_MEDIA_WATCHERS.clear()
+    executed = []
+
+    async def fake_watch(lecture, nb_id, prompt_path, subject_name):
+        await asyncio.sleep(0.05)
+        executed.append(lecture["id"])
+        home_worker._ACTIVE_MEDIA_WATCHERS.pop(lecture["id"], None)
+
+    monkeypatch.setattr(home_worker, "_watch_and_handoff_media", fake_watch)
+
+    async def run_check():
+        lec = {"id": 999, "lecture_num": 1, "title": "Test", "doctor": None}
+        t1 = home_worker.spawn_media_watcher(lec, "nb-999", None, "هندسة تفاضلية")
+        t2 = home_worker.spawn_media_watcher(lec, "nb-999", None, "هندسة تفاضلية")
+        # Both calls return the exact same in-flight task
+        assert t1 is t2
+        assert 999 in home_worker._ACTIVE_MEDIA_WATCHERS
+        await t1
+        assert executed == [999]
+        assert 999 not in home_worker._ACTIVE_MEDIA_WATCHERS
+
+    asyncio.run(run_check())
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 10. Phase 3 — Multi-Cohort Subject Metadata, Indexes & Modularity Tests
+# ──────────────────────────────────────────────────────────────────────────────
+
+def test_subject_dynamic_metadata_and_year_level_filtering():
+    """Verify Subject model & get_subject_doctors support dynamic DB metadata (icon, doctors_json, theme_config_json, year_level)."""
+    from app.db.models import Subject
+    from app.routes.lectures import get_subject_doctors, _parse_json_field
+    from app.services.notification_service import get_subject_theme
+
+    sub = Subject(
+        id=777,
+        name="تحليل دالي متقدم",
+        folder_path="/tmp/nonexistent",
+        semester=2,
+        year_level=3,
+        icon="🧬",
+        doctors_json='["د/ طارق", "د/ سلمى"]',
+        theme_config_json='{"charm": "🧬", "vibe": "تحليل دالي وفضاءات باناخ بروقان 🌟"}',
+    )
+    sub.lectures = []
+
+    docs = get_subject_doctors(sub, include_db_doctors=True)
+    assert "د/ طارق" in docs
+    assert "د/ سلمى" in docs
+
+    theme = get_subject_theme(sub.name, sub)
+    assert theme["icon"] == "🧬"
+    assert "باناخ" in theme["vibe"]
+    assert _parse_json_field(sub.theme_config_json, {}).get("charm") == "🧬"
+
+
+def test_phase3_migrations_exist_and_define_expression_indexes():
+    """Verify Phase 3 SQL migrations for activity_events indexes and subject metadata exist and are valid."""
+    from pathlib import Path
+
+    idx_mig = Path("supabase/migrations/20261105_phase3_activity_events_indexes.sql")
+    meta_mig = Path("supabase/migrations/20261105_phase3_dynamic_subject_metadata.sql")
+
+    assert idx_mig.exists()
+    assert meta_mig.exists()
+
+    idx_sql = idx_mig.read_text(encoding="utf-8")
+    assert "idx_activity_events_quiz_qhash_lecture" in idx_sql
+    assert "idx_activity_events_lecture_server_ts" in idx_sql
+    assert "NOT EXISTS" in idx_sql
+
+    meta_sql = meta_mig.read_text(encoding="utf-8")
+    assert "year_level" in meta_sql
+    assert "theme_config" in meta_sql
+    assert "idx_subjects_year_semester" in meta_sql
