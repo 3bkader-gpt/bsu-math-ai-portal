@@ -2,16 +2,21 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Read page.tsx and extract CANONICAL_COURSES and mergeSubjects function logic
+// Read page.tsx and subjectMeta.ts and extract CANONICAL_COURSES and mergeSubjects function logic
 const pagePath = path.resolve('frontend/src/app/page.tsx');
+const metaPath = path.resolve('frontend/src/lib/subjectMeta.ts');
+const lectureUtilsPath = path.resolve('frontend/src/lib/lecture-utils.ts');
 const pageCode = fs.readFileSync(pagePath, 'utf8');
+const metaCode = fs.existsSync(metaPath) ? fs.readFileSync(metaPath, 'utf8') : pageCode;
+const lectureUtilsCode = fs.existsSync(lectureUtilsPath) ? fs.readFileSync(lectureUtilsPath, 'utf8') : '';
+const combinedCode = `${metaCode}\n${lectureUtilsCode}\n${pageCode}`;
 
-// Ensure CANONICAL_COURSES and mergeSubjects exist in page.tsx
-assert(pageCode.includes('export const CANONICAL_COURSES: CanonicalCourse[] = ['), 'CANONICAL_COURSES must exist');
-assert(pageCode.includes('// Build Unified Courses from Backend + Canonical Registry'), 'Dynamic mergeSubjects header must exist');
+// Ensure CANONICAL_COURSES and mergeSubjects exist
+assert(combinedCode.includes('export const CANONICAL_COURSES: CanonicalCourse[] = ['), 'CANONICAL_COURSES must exist');
+assert(combinedCode.includes('mergeSubjects'), 'Dynamic mergeSubjects must exist');
 
 // Extract CANONICAL_COURSES
-const canonicalMatch = pageCode.match(/export const CANONICAL_COURSES: CanonicalCourse\[\] = (\[[\s\S]*?\n\];)/);
+const canonicalMatch = combinedCode.match(/export const CANONICAL_COURSES: CanonicalCourse\[\] = (\[[\s\S]*?\n\];)/);
 assert(canonicalMatch, 'Failed to extract CANONICAL_COURSES');
 const CANONICAL_COURSES = eval(canonicalMatch[1]);
 assert.strictEqual(CANONICAL_COURSES.length, 12, 'Must have 12 canonical courses');
@@ -246,8 +251,8 @@ console.log('  ✓ Test 9 Passed: Search works accurately within the active seme
 // Phase 1 PDF Availability Regression Tests
 // ==========================================
 
-// Verify isAssetStorageAvailable exists in page.tsx
-assert(pageCode.includes('export const isAssetStorageAvailable = (a: LectureAsset): boolean =>'), 'isAssetStorageAvailable must exist in page.tsx');
+// Verify isAssetStorageAvailable exists in page.tsx or lecture-utils.ts
+assert(combinedCode.includes('export const isAssetStorageAvailable ='), 'isAssetStorageAvailable must exist');
 
 function isAssetStorageAvailable(a) {
   if (typeof a.is_available === 'boolean') {

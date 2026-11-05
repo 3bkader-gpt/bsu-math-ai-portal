@@ -13,11 +13,13 @@ export interface AcademicSubject {
   id: number;
   name: string;
   semester?: number; // 1 for First Semester, 2 for Second Semester (defaults to 1 for legacy records)
+  year_level?: number; // Academic Year Level (1..4, defaults to 2 for current BSU 2nd-year cohort)
   has_prompt: boolean;
   lecture_count: number;
   doctors?: string[];
   canonicalDoctor?: string;
   icon?: string;
+  theme_config?: Record<string, any>;
 }
 
 /**

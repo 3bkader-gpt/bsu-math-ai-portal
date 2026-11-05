@@ -21,6 +21,9 @@ import {
   AcademicMediaAsset, 
   AcademicLectureBundle 
 } from '@/types/academic';
+import { OFFICIAL_SUBJECT_DOCTORS } from '@/lib/subjectMeta';
+
+export { OFFICIAL_SUBJECT_DOCTORS };
 
 export interface SupabaseSubject extends AcademicSubject {
   doctors: string[];
@@ -42,36 +45,18 @@ export interface SupabaseLectureItem extends AcademicLecture {
 export type SupabaseMediaAsset = AcademicMediaAsset;
 export type SupabaseLectureBundle = AcademicLectureBundle;
 
-export const OFFICIAL_SUBJECT_DOCTORS: Record<string, string[]> = {
-  'هندسه تفاضلية': ['د/ سيد'],
-  'هندسة تفاضلية': ['د/ سيد'],
-  'عملي فيزياء': ['د/ سيد'],
-  'نظريه عدد ومنطق': ['د/ محمد حسين'],
-  'مقدمة في نظرية العدد والمنطق': ['د/ محمد حسين'],
-  'تدريس مصغر': ['د/ عبدالرحمن برعي'],
-  'معادلات تفاضلية': ['د/ حسين'],
-  'فلسفه وتاريخ رياضيات': ['د/ طه ابراهيم'],
-  'فلسفة وتاريخ الرياضيات': ['د/ طه ابراهيم'],
-  'ديناميكا 2': ['د/ مروة ذكري'],
-  'ديناميكا (٢)': ['د/ مروة ذكري'],
-  'اداره معرفه': ['د/ عزام'],
-  'إدارة المعرفة': ['د/ عزام'],
-  'تكنولوجيا والتحول الرقمي': ['د/ ايمان', 'د/ ايه'],
-  'تكنولوجيا التعليم': ['د/ ايمان', 'د/ ايه'],
-  'تعليم ورياده اعمال': ['د/ مروة', 'د/ وليد'],
-  'التعليم وريادة الأعمال': ['د/ مروة', 'د/ وليد'],
-  'استاتيكا2': ['د/ ايه'],
-  'استاتيكا (٢)': ['د/ ايه'],
-  'كهربيه مغناطيسية وتيار متردد': ['د/ حسن سيد'],
-  'كهربية ومغناطيسية وتيار متردد': ['د/ حسن سيد'],
-};
-
 /**
  * Fetches all academic subjects directly from Supabase edge CDN.
  */
 export async function getDirectSupabaseSubjects(): Promise<SupabaseSubject[]> {
   const fetchSub = async () => {
-    let subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path,semester`, { headers: HEADERS });
+    let subRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path,semester,year_level,icon,doctors,theme_config`,
+      { headers: HEADERS }
+    );
+    if (!subRes.ok && subRes.status === 400) {
+      subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path,semester`, { headers: HEADERS });
+    }
     if (!subRes.ok && subRes.status === 400) {
       subRes = await fetch(`${SUPABASE_URL}/rest/v1/subjects?select=id,name,prompt_path`, { headers: HEADERS });
     }
@@ -96,17 +81,26 @@ export async function getDirectSupabaseSubjects(): Promise<SupabaseSubject[]> {
 
   return validSubjects.map((s: any) => {
     const subLecs = (lectures as any[]).filter((l: any) => l.subject_id === s.id);
+    const dbDoctors = Array.isArray(s.doctors)
+      ? s.doctors.filter((d: any) => typeof d === 'string' && d.trim())
+      : [];
     const officialDocs = OFFICIAL_SUBJECT_DOCTORS[s.name] || [];
-    const docs = officialDocs.length > 0 
-      ? officialDocs 
-      : (Array.from(new Set(subLecs.map((l: any) => l.doctor).filter(Boolean))) as string[]);
+    const docs = dbDoctors.length > 0
+      ? dbDoctors
+      : officialDocs.length > 0
+        ? officialDocs
+        : (Array.from(new Set(subLecs.map((l: any) => l.doctor).filter(Boolean))) as string[]);
 
     const sem = (typeof s.semester === 'number' && (s.semester === 1 || s.semester === 2)) ? s.semester : 1;
+    const yr = (typeof s.year_level === 'number' && s.year_level >= 1 && s.year_level <= 6) ? s.year_level : 2;
 
     return {
       id: s.id,
       name: s.name,
       semester: sem,
+      year_level: yr,
+      icon: typeof s.icon === 'string' && s.icon.trim() ? s.icon.trim() : undefined,
+      theme_config: (s.theme_config && typeof s.theme_config === 'object') ? s.theme_config : undefined,
       has_prompt: Boolean(s.prompt_path),
       lecture_count: subLecs.length,
       doctors: docs,

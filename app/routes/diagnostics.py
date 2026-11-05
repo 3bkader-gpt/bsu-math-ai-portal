@@ -92,7 +92,8 @@ async def get_system_diagnostics(db: Session = Depends(get_db)):
         )
         db_latency_ms = round((time.time() - t0) * 1000, 2)
     except Exception as e:
-        db_status = f"unhealthy: {e}"
+        logger.error(f"Diagnostics database check failed: {e}", exc_info=True)
+        db_status = "unhealthy"
         db_latency_ms = -1
         lectures = []
 

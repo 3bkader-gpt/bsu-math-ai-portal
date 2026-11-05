@@ -122,20 +122,41 @@ DEFAULT_THEME = {
 }
 
 
-def get_subject_theme(subject_name: str) -> Dict[str, str]:
+def get_subject_theme(subject_name: str, subject_obj: Optional[ Any ] = None) -> Dict[str, str]:
     norm = subject_name.strip()
+    base = dict(DEFAULT_THEME)
     if norm in SUBJECT_THEMES:
-        return SUBJECT_THEMES[norm]
-    for key, val in SUBJECT_THEMES.items():
-        if key in norm or norm in key:
-            return val
-    return DEFAULT_THEME
+        base.update(SUBJECT_THEMES[norm])
+    else:
+        for key, val in SUBJECT_THEMES.items():
+            if key in norm or norm in key:
+                base.update(val)
+                break
+
+    if subject_obj is not None:
+        db_icon = getattr(subject_obj, "icon", None)
+        if isinstance(db_icon, str) and db_icon.strip():
+            base["icon"] = db_icon.strip()
+
+        raw_cfg = getattr(subject_obj, "theme_config_json", None)
+        if raw_cfg:
+            try:
+                cfg = json.loads(raw_cfg) if isinstance(raw_cfg, str) else raw_cfg
+                if isinstance(cfg, dict):
+                    if cfg.get("charm"):
+                        base["charm"] = str(cfg["charm"])
+                    if cfg.get("vibe"):
+                        base["vibe"] = str(cfg["vibe"])
+            except Exception:
+                pass
+
+    return base
 
 
 def compose_lecture_notification(lecture: Lecture) -> Dict[str, Any]:
     """Generates an aesthetic, friendly, motivational notification object."""
     subject_name = lecture.subject.name if lecture.subject else "رياضيات"
-    theme = get_subject_theme(subject_name)
+    theme = get_subject_theme(subject_name, getattr(lecture, "subject", None))
     icon = theme["icon"]
     doctor_label = f"مع {lecture.doctor}" if lecture.doctor else ""
 
@@ -196,9 +217,12 @@ def dispatch_web_push_payload(sub: PushSubscription, payload: dict) -> bool:
             },
         }
 
-        vapid_key = settings.VAPID_PRIVATE_KEY
-        if isinstance(vapid_key, str) and vapid_key.strip().startswith("-----BEGIN"):
-            vapid_key = Vapid.from_pem(vapid_key.strip().encode("utf-8"))
+        vapid_key = (settings.VAPID_PRIVATE_KEY or "").replace("\\n", "\n").strip()
+        if not vapid_key:
+            logger.warning("VAPID_PRIVATE_KEY is not configured; skipping Web Push delivery.")
+            return False
+        if vapid_key.startswith("-----BEGIN"):
+            vapid_key = Vapid.from_pem(vapid_key.encode("utf-8"))
 
         res = webpush(
             subscription_info=sub_info,
@@ -253,10 +277,13 @@ async def broadcast_new_lecture(lecture_id: int):
     }
 
     loop = asyncio.get_event_loop()
-    tasks = [
-        loop.run_in_executor(None, dispatch_web_push_payload, sub, push_payload)
-        for sub in subscriptions
-    ]
+    sem = asyncio.Semaphore(20)
+
+    async def _bounded_push(sub):
+        async with sem:
+            return await loop.run_in_executor(None, dispatch_web_push_payload, sub, push_payload)
+
+    tasks = [_bounded_push(sub) for sub in subscriptions]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     delivered = sum(1 for r in results if r is True)
     logger.info("Web Push broadcast for lecture %s completed: %d/%d delivered",

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, defer
@@ -7,9 +8,31 @@ from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/api", tags=["Lectures & Subjects"])
 
-def get_subject_doctors(subject: Subject) -> list[str]:
-    """Detects doctor/professor tracks for a subject from DB and filesystem."""
+def _parse_json_field(raw_val, default):
+    if raw_val is None:
+        return default
+    if isinstance(raw_val, (list, dict)):
+        return raw_val
+    if isinstance(raw_val, str) and raw_val.strip():
+        try:
+            return json.loads(raw_val)
+        except Exception:
+            return default
+    return default
+
+def get_subject_doctors(subject: Subject, include_db_doctors: bool = True) -> list[str]:
+    """Detects doctor/professor tracks for a subject from DB metadata, lectures, and filesystem."""
     doctors = set()
+    if include_db_doctors:
+        try:
+            db_docs = _parse_json_field(getattr(subject, "doctors_json", None), [])
+            if isinstance(db_docs, list):
+                for d in db_docs:
+                    if isinstance(d, str) and d.strip():
+                        doctors.add(d.strip())
+        except Exception:
+            pass
+
     for l in subject.lectures:
         if l.doctor:
             doctors.add(l.doctor)
@@ -23,15 +46,36 @@ def get_subject_doctors(subject: Subject) -> list[str]:
     return sorted(list(doctors))
 
 @router.get("/subjects")
-def list_subjects(db: Session = Depends(get_db)):
-    """Returns all subjects registered in the system with their doctor tracks and semester."""
+def list_subjects(
+    year_level: int | None = Query(None, ge=1, le=6),
+    semester: int | None = Query(None, ge=1, le=2),
+    db: Session = Depends(get_db),
+):
+    """Returns all subjects registered in the system with their doctor tracks, semester, year_level, icon, and theme_config."""
+    has_extended_cols = True
+    has_semester = True
     try:
         subjects = db.query(Subject).all()
-        has_semester = True
     except Exception:
         db.rollback()
-        subjects = db.query(Subject).options(defer(Subject.semester)).all()
-        has_semester = False
+        has_extended_cols = False
+        try:
+            subjects = db.query(Subject).options(
+                defer(Subject.year_level),
+                defer(Subject.icon),
+                defer(Subject.doctors_json),
+                defer(Subject.theme_config_json),
+            ).all()
+        except Exception:
+            db.rollback()
+            has_semester = False
+            subjects = db.query(Subject).options(
+                defer(Subject.semester),
+                defer(Subject.year_level),
+                defer(Subject.icon),
+                defer(Subject.doctors_json),
+                defer(Subject.theme_config_json),
+            ).all()
 
     res = []
     for s in subjects:
@@ -41,13 +85,35 @@ def list_subjects(db: Session = Depends(get_db)):
                 sem = int(getattr(s, "semester", 1) or 1)
             except Exception:
                 sem = 1
+
+        yr = 2
+        icon_val = None
+        theme_cfg = {}
+        if has_extended_cols:
+            try:
+                yr = int(getattr(s, "year_level", 2) or 2)
+                icon_val = getattr(s, "icon", None)
+                theme_cfg = _parse_json_field(getattr(s, "theme_config_json", None), {})
+            except Exception:
+                yr = 2
+                icon_val = None
+                theme_cfg = {}
+
+        if year_level is not None and yr != year_level:
+            continue
+        if semester is not None and sem != semester:
+            continue
+
         res.append({
             "id": s.id,
             "name": s.name,
             "semester": sem,
+            "year_level": yr,
+            "icon": icon_val,
+            "theme_config": theme_cfg if isinstance(theme_cfg, dict) else {},
             "has_prompt": bool(s.prompt_path),
             "lecture_count": len(s.lectures),
-            "doctors": get_subject_doctors(s)
+            "doctors": get_subject_doctors(s, include_db_doctors=has_extended_cols)
         })
     return res
 
