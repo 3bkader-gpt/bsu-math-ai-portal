@@ -919,125 +919,136 @@ export default function Home() {
                     </h3>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 self-start sm:self-auto flex-wrap">
-                  {/* Custom Exam Builder Button */}
-                  <button
-                    type="button"
-                    onClick={() => setIsExamBuilderOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-                    style={{
-                      backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(239, 246, 255, 0.95)',
-                      borderColor: isDark ? 'rgba(59, 130, 246, 0.4)' : 'rgba(191, 219, 254, 0.8)',
-                      color: isDark ? '#93C5FD' : '#1D4ED8',
-                    }}
-                    title="توليف امتحان مخصص ومحاكاة ميدترم بنطاق محاضرات مرن"
-                  >
-                    <span>⚡</span>
-                    <span>محاكي الامتحانات</span>
-                  </button>
 
-                  {/* Formula Sheet Button */}
-                  <button
-                    type="button"
-                    onClick={() => setIsFormulaSheetOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-                    style={{
-                      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(236, 253, 245, 0.95)',
-                      borderColor: isDark ? 'rgba(16, 185, 129, 0.4)' : 'rgba(167, 243, 208, 0.8)',
-                      color: isDark ? '#6EE7B7' : '#047857',
-                    }}
-                    title="استعراض بنك القوانين والنظريات وتصديرها كـ PDF للطباعة الورقية"
-                  >
-                    <span>📐</span>
-                    <span>كشكول القوانين</span>
-                  </button>
-
-                  {/* Cohort Hurdles Button */}
-                  <button
-                    type="button"
-                    onClick={() => setIsHurdlesModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-                    style={{
-                      backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 242, 242, 0.95)',
-                      borderColor: isDark ? 'rgba(239, 68, 68, 0.4)' : 'rgba(252, 165, 165, 0.8)',
-                      color: isDark ? '#FCA5A5' : '#B91C1C',
-                    }}
-                    title="استعراض أصعب أسئلة كويزات الدفعة مع الإجابات النموذجية والشرح"
-                  >
-                    <span>🎯</span>
-                    <span>أصعب الفخاخ</span>
-                  </button>
-
-                  {/* Recovery Planner Button */}
-                  <button
-                    type="button"
-                    onClick={() => setIsRecoveryPlannerOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-                    style={{
-                      backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : 'rgba(250, 245, 255, 0.95)',
-                      borderColor: isDark ? 'rgba(168, 85, 247, 0.4)' : 'rgba(233, 213, 255, 0.8)',
-                      color: isDark ? '#D8B4FE' : '#7E22CE',
-                    }}
-                    title="توليف خطة إنقاذ وسد التراكمات اليومية وحصد نقاط XP"
-                  >
-                    <span>📅</span>
-                    <span>خطة الإنقاذ</span>
-                  </button>
-
-                  {/* Focus & Pomodoro Ambience Button (Feature 4) */}
-                  <button
-                    type="button"
-                    onClick={() => setIsFocusAmbienceOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-                    style={{
-                      backgroundColor: isDark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(254, 252, 232, 0.95)',
-                      borderColor: isDark ? 'rgba(234, 179, 8, 0.4)' : 'rgba(254, 240, 138, 0.8)',
-                      color: isDark ? '#FDE047' : '#A16207',
-                    }}
-                    title="بيئة صوتية طبيعية ومؤقت بومودورو للتركيز وحصد XP"
-                  >
-                    <span>🧘</span>
-                    <span>ركن التركيز</span>
-                  </button>
-
-                  {/* Math Scratchpad Button (Feature 4) */}
-                  <button
-                    type="button"
-                    onClick={() => setIsMathScratchpadOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-                    style={{
-                      backgroundColor: isDark ? 'rgba(6, 182, 212, 0.15)' : 'rgba(236, 254, 255, 0.95)',
-                      borderColor: isDark ? 'rgba(6, 182, 212, 0.4)' : 'rgba(165, 243, 252, 0.8)',
-                      color: isDark ? '#67E8F9' : '#0E7490',
-                    }}
-                    title="مسودة بيضاء تفاعلية وحاسبة علمية لحل المعادلات والمسائل"
-                  >
-                    <span>✏️</span>
-                    <span>مسودة الرياضيات</span>
-                  </button>
-
-                  {/* Student Binder Button (Feature 4) */}
-                  <button
-                    type="button"
-                    onClick={() => setIsStudentBinderOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-                    style={{
-                      backgroundColor: isDark ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 247, 237, 0.95)',
-                      borderColor: isDark ? 'rgba(249, 115, 22, 0.4)' : 'rgba(254, 215, 170, 0.8)',
-                      color: isDark ? '#FDBA74' : '#C2410C',
-                    }}
-                    title="كشكول ملاحظاتي الشخصية وقوانيني وقوالب المذاكرة"
-                  >
-                    <span>📌</span>
-                    <span>كشكول ملاحظاتي</span>
-                  </button>
-
-                  <div className="text-xs sm:text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
-                    {isGirls && <span>☕</span>}
-                    <span>متاح {displayedLectures.length} محاضرات</span>
-                    {isGirls && <span>بروقان</span>}
-                  </div>
+                {/* Available Lectures Count Badge */}
+                <div 
+                  className="text-xs sm:text-sm font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-xl border shrink-0 shadow-xs self-start sm:self-auto" 
+                  style={{ 
+                    backgroundColor: 'var(--bg-surface-elevated)',
+                    borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-muted)' 
+                  }}
+                >
+                  {isGirls ? <span>☕</span> : <span>🔥</span>}
+                  <span>متاح {displayedLectures.length} محاضرات</span>
+                  {isGirls ? <span>بروقان</span> : <span>جاهزة للفرم</span>}
                 </div>
+              </div>
+
+              {/* Study & Synthesis Tools Ribbon (Dedicated Bar) */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:flex-wrap scrollbar-none mb-6">
+                {/* Custom Exam Builder Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsExamBuilderOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(239, 246, 255, 0.95)',
+                    borderColor: isDark ? 'rgba(59, 130, 246, 0.4)' : 'rgba(191, 219, 254, 0.8)',
+                    color: isDark ? '#93C5FD' : '#1D4ED8',
+                  }}
+                  title="توليف امتحان مخصص ومحاكاة ميدترم بنطاق محاضرات مرن"
+                >
+                  <span>⚡</span>
+                  <span>محاكي الامتحانات</span>
+                </button>
+
+                {/* Formula Sheet Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsFormulaSheetOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(236, 253, 245, 0.95)',
+                    borderColor: isDark ? 'rgba(16, 185, 129, 0.4)' : 'rgba(167, 243, 208, 0.8)',
+                    color: isDark ? '#6EE7B7' : '#047857',
+                  }}
+                  title="استعراض بنك القوانين والنظريات وتصديرها كـ PDF للطباعة الورقية"
+                >
+                  <span>📐</span>
+                  <span>كشكول القوانين</span>
+                </button>
+
+                {/* Cohort Hurdles Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsHurdlesModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 242, 242, 0.95)',
+                    borderColor: isDark ? 'rgba(239, 68, 68, 0.4)' : 'rgba(252, 165, 165, 0.8)',
+                    color: isDark ? '#FCA5A5' : '#B91C1C',
+                  }}
+                  title="استعراض أصعب أسئلة كويزات الدفعة مع الإجابات النموذجية والشرح"
+                >
+                  <span>🎯</span>
+                  <span>أصعب الفخاخ</span>
+                </button>
+
+                {/* Recovery Planner Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsRecoveryPlannerOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : 'rgba(250, 245, 255, 0.95)',
+                    borderColor: isDark ? 'rgba(168, 85, 247, 0.4)' : 'rgba(233, 213, 255, 0.8)',
+                    color: isDark ? '#D8B4FE' : '#7E22CE',
+                  }}
+                  title="توليف خطة إنقاذ وسد التراكمات اليومية وحصد نقاط XP"
+                >
+                  <span>📅</span>
+                  <span>خطة الإنقاذ</span>
+                </button>
+
+                {/* Focus & Pomodoro Ambience Button (Feature 4) */}
+                <button
+                  type="button"
+                  onClick={() => setIsFocusAmbienceOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(254, 252, 232, 0.95)',
+                    borderColor: isDark ? 'rgba(234, 179, 8, 0.4)' : 'rgba(254, 240, 138, 0.8)',
+                    color: isDark ? '#FDE047' : '#A16207',
+                  }}
+                  title="بيئة صوتية طبيعية ومؤقت بومودورو للتركيز وحصد XP"
+                >
+                  <span>🧘</span>
+                  <span>ركن التركيز</span>
+                </button>
+
+                {/* Math Scratchpad Button (Feature 4) */}
+                <button
+                  type="button"
+                  onClick={() => setIsMathScratchpadOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(6, 182, 212, 0.15)' : 'rgba(236, 254, 255, 0.95)',
+                    borderColor: isDark ? 'rgba(6, 182, 212, 0.4)' : 'rgba(165, 243, 252, 0.8)',
+                    color: isDark ? '#67E8F9' : '#0E7490',
+                  }}
+                  title="مسودة بيضاء تفاعلية وحاسبة علمية لحل المعادلات والمسائل"
+                >
+                  <span>✏️</span>
+                  <span>مسودة الرياضيات</span>
+                </button>
+
+                {/* Student Binder Button (Feature 4) */}
+                <button
+                  type="button"
+                  onClick={() => setIsStudentBinderOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 247, 237, 0.95)',
+                    borderColor: isDark ? 'rgba(249, 115, 22, 0.4)' : 'rgba(254, 215, 170, 0.8)',
+                    color: isDark ? '#FDBA74' : '#C2410C',
+                  }}
+                  title="كشكول ملاحظاتي الشخصية وقوانيني وقوالب المذاكرة"
+                >
+                  <span>📌</span>
+                  <span>كشكول ملاحظاتي</span>
+                </button>
+
               </div>
 
               {/* Doctor / Professor Tracks Switcher */}
