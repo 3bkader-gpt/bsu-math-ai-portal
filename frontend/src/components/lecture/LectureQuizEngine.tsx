@@ -1,6 +1,6 @@
 'use client';
 
-import React, { MutableRefObject } from 'react';
+import React, { MutableRefObject, useState, useEffect } from 'react';
 import MathRenderer from '@/components/MathRenderer';
 import ExamTrapBadge from '@/components/ExamTrapBadge';
 import content from '@/data/content.json';
@@ -15,6 +15,9 @@ import {
   GraduationCap,
   Brain,
   Coffee,
+  Swords,
+  Flame,
+  Share2,
 } from 'lucide-react';
 import {
   QuizQuestion,
@@ -47,6 +50,7 @@ import { playSound } from '@/lib/audio/soundEngine';
 import { triggerConfetti } from '@/lib/effects/confetti';
 import { recordCohortContribution } from '@/modules/gamification/supabase/cohortChallenge';
 import { AcademicLectureBundle } from '@/types/academic';
+import { generateStoryCardBlob } from '@/lib/storyCardGenerator';
 
 export interface LectureQuizEngineProps {
   lectureBundle: AcademicLectureBundle | null;
@@ -119,6 +123,138 @@ export default function LectureQuizEngine({
   praiseRecentRef,
   correctStreakRef,
 }: LectureQuizEngineProps) {
+  // Arcade Combo & 1v1 Duel Engine (Sprint 1)
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [comboBrokenAlert, setComboBrokenAlert] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
+  const [copiedDuel, setCopiedDuel] = useState(false);
+  const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+  const [duelData, setDuelData] = useState<{
+    challenger: string;
+    score: number;
+    total: number;
+    timeSec?: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const duelBy = params.get('duel_by');
+        const duelScore = params.get('duel_score');
+        const duelTotal = params.get('duel_total');
+        const duelTime = params.get('duel_time');
+
+        if (duelBy && duelScore && duelTotal) {
+          setDuelData({
+            challenger: decodeURIComponent(duelBy),
+            score: parseInt(duelScore, 10) || 0,
+            total: parseInt(duelTotal, 10) || 0,
+            timeSec: duelTime ? parseInt(duelTime, 10) : undefined,
+          });
+        }
+      } catch {}
+    }
+  }, []);
+
+  const handleShareDuel = async () => {
+    if (typeof window === 'undefined') return;
+    const studentName =
+      localStorage.getItem('bsu_portal_student_nickname') || (isGirls ? 'بطلة الرياضيات 🌸' : 'بطل الرياضيات ⚡');
+    const totalSec =
+      Math.round(
+        Object.values(questionStartTimesRef.current).reduce((acc, t) => acc + (Date.now() - t), 0) / 1000
+      ) || 45;
+
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('duel_by', studentName);
+    currentUrl.searchParams.set('duel_score', String(score ?? 0));
+    currentUrl.searchParams.set('duel_total', String(quizQuestions.length));
+    currentUrl.searchParams.set('duel_time', String(totalSec));
+
+    const textToShare = `⚔️ تحدي 1v1 على منصة BSU Math!\nأنا جبت ${score}/${quizQuestions.length} في كويز "${lectureBundle?.title || 'المحاضرة'}" في ${totalSec} ثانية 🔥\nتقدر تكسر رقمي؟ ادخل اتحداني من هنا:\n${currentUrl.toString()}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '⚔️ تحدي 1v1 - BSU Math Portal',
+          text: textToShare,
+          url: currentUrl.toString(),
+        });
+        return;
+      } catch {
+        // Fallback to clipboard if share dialog was cancelled or unsupported
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(textToShare);
+      setCopiedDuel(true);
+      setTimeout(() => setCopiedDuel(false), 3000);
+    } catch (e) {
+      console.error('Clipboard copy failed', e);
+    }
+  };
+
+  const handleExportStoryCard = async () => {
+    try {
+      setIsGeneratingStory(true);
+      const studentName =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('bsu_portal_student_nickname') || (isGirls ? 'بطلة الرياضيات 🌸' : 'بطل الرياضيات ⚡')
+          : 'بطل الرياضيات ⚡';
+
+      let studentLevel = 3;
+      let levelTitle = isGirls ? 'شطورة الدفعة 🌸' : 'فنان المعادلات ⚡';
+      try {
+        const cached = localStorage.getItem('bsu_portal_gamification_state_v1');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.level) studentLevel = parsed.level;
+        }
+      } catch {}
+
+      const totalSec =
+        Math.round(
+          Object.values(questionStartTimesRef.current).reduce((acc, t) => acc + (Date.now() - t), 0) / 1000
+        ) || 45;
+
+      const blob = await generateStoryCardBlob({
+        studentName,
+        studentLevel,
+        levelTitle,
+        lectureTitle: lectureBundle?.title || 'كويز المحاضرة',
+        subjectName: lectureBundle?.subject_name || 'كلية العلوم - قسم الرياضيات',
+        score: score ?? 0,
+        total: quizQuestions.length,
+        maxCombo: Math.max(maxCombo, 1),
+        timeSpentSec: totalSec,
+      });
+
+      const file = new File([blob], `bsu-quiz-story-${Date.now()}.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'إنجازي في كويز الرياضيات 🎓',
+          text: `قفلت كويز ${lectureBundle?.title || ''} على منصة BSU Math! 🔥`,
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `bsu-story-${Date.now()}.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('Failed to export story card:', err);
+    } finally {
+      setIsGeneratingStory(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto py-4">
       {/* Phase 3.4 — 25-min structured flow indicator (pure UI island) */}
@@ -145,6 +281,34 @@ export default function LectureQuizEngine({
         </div>
       ) : (
         <div className="space-y-6">
+          {/* Phase 7: 1v1 Challenger Banner */}
+          {duelData && (
+            <div
+              className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 flex items-center justify-between gap-3 shadow-md animate-in fade-in"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%)',
+                borderColor: 'rgba(245, 158, 11, 0.5)',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl sm:text-4xl">⚔️</span>
+                <div>
+                  <div className="text-xs sm:text-sm font-black text-amber-500">تحدي 1v1 رسمي من زميلك</div>
+                  <div className="text-sm sm:text-base font-black" style={{ color: 'var(--text-primary)' }}>
+                    {duelData.challenger} جاب <strong>{duelData.score}/{duelData.total}</strong>
+                    {duelData.timeSec ? ` في ${duelData.timeSec} ثانية` : ''} 🎯
+                  </div>
+                  <div className="text-xs font-bold" style={{ color: 'var(--text-muted)' }}>
+                    هتقدر تكسر رقمه النهاردة؟ وريه شطارتك وسرعتك!
+                  </div>
+                </div>
+              </div>
+              <div className="px-3 py-1.5 rounded-xl bg-amber-500 text-black font-black text-xs shrink-0 shadow-xs">
+                تحدي مفتوح ⚡
+              </div>
+            </div>
+          )}
+
           {/* Quiz Progress & Score Card */}
           <div
             style={{
@@ -180,22 +344,71 @@ export default function LectureQuizEngine({
 
               <div className="flex flex-wrap items-center gap-3">
                 {score !== null && (
-                  <div
-                    style={{
-                      backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                      borderColor: 'var(--accent-emerald)',
-                      color: 'var(--accent-emerald)',
-                    }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border font-bold text-sm shadow-sm"
-                  >
-                    <Award className="w-5 h-5" />
-                    <span>
-                      {content.quizTab.scoreFormat
-                        .replace('{score}', score.toString())
-                        .replace('{total}', quizQuestions.length.toString())
-                        .replace('{percent}', Math.round((score / quizQuestions.length) * 100).toString())}
-                    </span>
-                  </div>
+                  <>
+                    <div
+                      style={{
+                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        borderColor: 'var(--accent-emerald)',
+                        color: 'var(--accent-emerald)',
+                      }}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border font-bold text-sm shadow-sm"
+                    >
+                      <Award className="w-5 h-5" />
+                      <span>
+                        {content.quizTab.scoreFormat
+                          .replace('{score}', score.toString())
+                          .replace('{total}', quizQuestions.length.toString())
+                          .replace('{percent}', Math.round((score / quizQuestions.length) * 100).toString())}
+                      </span>
+                    </div>
+
+                    {maxCombo >= 2 && (
+                      <div
+                        style={{
+                          backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                          borderColor: '#F59E0B',
+                          color: '#F59E0B',
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border font-black text-xs sm:text-sm shadow-sm"
+                      >
+                        <Flame className="w-4 h-4 text-amber-500" />
+                        <span>أطول كومبو: x{maxCombo} 🔥</span>
+                      </div>
+                    )}
+
+                    {/* Viral 1v1 Challenge Button */}
+                    <button
+                      type="button"
+                      onClick={handleShareDuel}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-black transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-xs"
+                      style={{
+                        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                        borderColor: 'rgba(59, 130, 246, 0.5)',
+                        color: isDark ? '#93C5FD' : '#1D4ED8',
+                      }}
+                      title="شارك نتيجتك مع زمايلك في رابط تحدي مباشر على واتساب"
+                    >
+                      <Swords className="w-4 h-4" />
+                      <span>{copiedDuel ? 'تم نسخ التحدي! 📋' : '⚔️ اتحدى صاحبك (1v1)'}</span>
+                    </button>
+
+                    {/* Viral 9:16 Story Card Button */}
+                    <button
+                      type="button"
+                      disabled={isGeneratingStory}
+                      onClick={handleExportStoryCard}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-black transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-xs disabled:opacity-50"
+                      style={{
+                        backgroundColor: 'rgba(234, 179, 8, 0.15)',
+                        borderColor: 'rgba(234, 179, 8, 0.5)',
+                        color: isDark ? '#FDE047' : '#B45309',
+                      }}
+                      title="توليف كارت استوري احترافي بجودة 1080x1920 لحالة الواتساب والإنستغرام"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>{isGeneratingStory ? 'جاري التوليف... ⏳' : '📸 كارت الاستوري (9:16)'}</span>
+                    </button>
+                  </>
                 )}
 
                 {Object.keys(userAnswers).length > 0 && (
@@ -209,6 +422,9 @@ export default function LectureQuizEngine({
                       setConsecutiveWrong(0);
                       setAnswerFeedback({});
                       setShowEthicalExit(false);
+                      setCombo(0);
+                      setMaxCombo(0);
+                      setComboBrokenAlert(false);
                       correctStreakRef.current = 0;
                       burnoutShownRef.current = false;
                       questionStartTimesRef.current = {};
@@ -309,6 +525,23 @@ export default function LectureQuizEngine({
             </div>
           </div>
 
+          {/* Gentle Combo Broken Alert */}
+          {comboBrokenAlert && (
+            <div className="p-3 sm:p-4 rounded-2xl border text-xs sm:text-sm font-bold flex items-center justify-between gap-3 animate-in fade-in bg-rose-500/10 border-rose-500/30 text-rose-500">
+              <div className="flex items-center gap-2">
+                <span>💔</span>
+                <span>انكسر الكومبو! ولا يهمك خالص، ركز في السؤال الجاي وابدأ كومبو جديد 💪</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setComboBrokenAlert(false)}
+                className="text-xs opacity-75 hover:opacity-100 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Question Cards List */}
           {quizQuestions.map((q, qIdx) => {
             const selectedOpt = userAnswers[qIdx];
@@ -331,7 +564,7 @@ export default function LectureQuizEngine({
                     : 'var(--border-subtle)',
                   boxShadow: 'var(--card-shadow)',
                 }}
-                className="p-5 sm:p-8 rounded-3xl border transition-all space-y-5"
+                className={`p-5 sm:p-8 rounded-3xl border transition-all space-y-5 ${isShaking ? 'animate-micro-shake' : ''}`}
               >
                 {/* Question Header */}
                 <div className="flex items-center justify-between gap-3 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -348,6 +581,26 @@ export default function LectureQuizEngine({
                         .replace('{number}', q.number.toString())
                         .replace('{total}', quizQuestions.length.toString())}
                     </span>
+
+                    {/* Arcade Combo Badge */}
+                    {combo >= 2 && !isAnswered && (
+                      <span
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black shadow-xs border animate-bounce"
+                        style={{
+                          background:
+                            combo >= 5
+                              ? 'linear-gradient(135deg, #EF4444 0%, #F59E0B 100%)'
+                              : 'linear-gradient(135deg, #F59E0B 0%, #10B981 100%)',
+                          color: '#FFFFFF',
+                          borderColor: 'rgba(255, 255, 255, 0.4)',
+                        }}
+                      >
+                        <Flame className="w-3.5 h-3.5 text-white animate-pulse" />
+                        <span>x{combo} كومبو!</span>
+                        {combo >= 5 && <span className="text-[10px] font-black mr-0.5">🔥 مولع</span>}
+                      </span>
+                    )}
+
                     {isAnswered && (
                       <span
                         style={{
@@ -772,14 +1025,32 @@ export default function LectureQuizEngine({
 
                           if (isCorrect) {
                             correctStreakRef.current += 1;
+                            const nextCombo = combo + 1;
+                            setCombo(nextCombo);
+                            setMaxCombo((prev) => Math.max(prev, nextCombo));
+                            setComboBrokenAlert(false);
+
                             const praise = confFeedback.message
                               ? `${confFeedback.headline} ${confFeedback.message}`
                               : pickPraise(persona, praiseRecentRef.current);
                             praiseRecentRef.current = trackPraise(praiseRecentRef.current, praise);
                             setAnswerFeedback((prev) => ({ ...prev, [qIdx]: praise }));
                             vibrateCorrect();
-                            playSound('quiz_correct', { semitones: correctStreakRef.current - 1 });
+
+                            if (nextCombo >= 5) {
+                              setIsShaking(true);
+                              setTimeout(() => setIsShaking(false), 500);
+                              triggerConfetti('standard');
+                              playSound('streak_fire');
+                            } else {
+                              playSound('quiz_correct', { semitones: nextCombo });
+                            }
                           } else {
+                            if (combo >= 3) {
+                              setComboBrokenAlert(true);
+                              setTimeout(() => setComboBrokenAlert(false), 3500);
+                            }
+                            setCombo(0);
                             correctStreakRef.current = 0;
                             const errorMsg = confFeedback.isMisconception
                               ? `${confFeedback.headline} ${confFeedback.message}`

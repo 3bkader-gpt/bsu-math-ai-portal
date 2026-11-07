@@ -52,6 +52,7 @@ import {
   MistakeNotebookModal,
   CohortChallengeWidget,
 } from '@/modules/gamification/ui';
+import DailyMicroHookCard from '@/components/home/DailyMicroHookCard';
 import { useSmartHeaderVisibility } from '@/lib/useSmartHeaderVisibility';
 import { trackSessionStarted } from '@/modules/telemetry';
 import {
@@ -599,6 +600,9 @@ export default function Home() {
 
         {/* Phase 6: Sybil-Proof Collaborative Cohort Challenge */}
         <CohortChallengeWidget isGirls={isGirls} />
+
+        {/* Sprint 1: Daily 60-Second Micro-Hook ("سؤال اليوم السريع") */}
+        <DailyMicroHookCard isGirls={isGirls} />
 
         {/* Subjects Grid & Semester Selector */}
         <section>

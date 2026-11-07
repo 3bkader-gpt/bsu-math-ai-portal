@@ -698,7 +698,18 @@ button:not(:disabled),
 
 button:not(:disabled):active,
 .spring-press:active {
-  transform: scale(0.96) !important;
+  transform: scale(0.96);
+}
+
+/* 7. Arcade Quiz Micro-Shake */
+@keyframes microShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px) rotate(-0.5deg); }
+  40%, 80% { transform: translateX(4px) rotate(0.5deg); }
+}
+
+.animate-micro-shake {
+  animation: microShake 0.4s ease-in-out;
 }
 
 
