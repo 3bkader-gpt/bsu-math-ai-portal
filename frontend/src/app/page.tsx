@@ -593,7 +593,7 @@ export default function Home() {
       </section>
 
       {/* Main Content Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-5 sm:space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-5 sm:space-y-8" suppressHydrationWarning>
         
         {/* Phase 1: Zero-Redundancy Smart Resume ("كمّل من حيث وقفت") */}
         <SmartResumeCard />
