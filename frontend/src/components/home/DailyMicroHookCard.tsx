@@ -116,6 +116,7 @@ export interface DailyMicroHookCardProps {
 }
 
 export default function DailyMicroHookCard({ isGirls = false }: DailyMicroHookCardProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -147,6 +148,7 @@ export default function DailyMicroHookCard({ isGirls = false }: DailyMicroHookCa
 
   // Load persistence state on client mount
   useEffect(() => {
+    setIsMounted(true);
     if (typeof window === 'undefined') return;
 
     try {
@@ -310,7 +312,7 @@ export default function DailyMicroHookCard({ isGirls = false }: DailyMicroHookCa
 
             <div className="flex items-center gap-3 text-xs font-semibold mt-0.5" style={{ color: 'var(--text-muted)' }}>
               <span>تجديد يومي لكسر الملل والروتين</span>
-              {timeLeft && (
+              {isMounted && timeLeft && (
                 <span className="inline-flex items-center gap-1 font-mono text-[11px] opacity-80">
                   <Clock className="w-3 h-3" />
                   <span>يتغير بعد: {timeLeft}</span>
@@ -334,17 +336,19 @@ export default function DailyMicroHookCard({ isGirls = false }: DailyMicroHookCa
             <span>+{todayQuestion.xpReward} XP</span>
           </div>
 
-          <div
-            className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-black border"
-            style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.12)',
-              borderColor: 'rgba(239, 68, 68, 0.3)',
-              color: '#DC2626',
-            }}
-          >
-            <Flame className="w-3.5 h-3.5 text-rose-500" />
-            <span>{dailyStreak} يوم متتالي</span>
-          </div>
+          {isMounted && (
+            <div
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-black border"
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                borderColor: 'rgba(239, 68, 68, 0.3)',
+                color: '#DC2626',
+              }}
+            >
+              <Flame className="w-3.5 h-3.5 text-rose-500" />
+              <span>{dailyStreak} يوم متتالي</span>
+            </div>
+          )}
         </div>
       </div>
 

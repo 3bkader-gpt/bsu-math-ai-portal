@@ -234,13 +234,21 @@ export default function LectureQuizEngine({
 
       const file = new File([blob], `bsu-quiz-story-${Date.now()}.png`, { type: 'image/png' });
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'إنجازي في كويز الرياضيات 🎓',
-          text: `قفلت كويز ${lectureBundle?.title || ''} على منصة BSU Math! 🔥`,
-        });
-      } else {
+      let sharedSuccessfully = false;
+      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'إنجازي في كويز الرياضيات 🎓',
+            text: `قفلت كويز ${lectureBundle?.title || ''} على منصة BSU Math! 🔥`,
+          });
+          sharedSuccessfully = true;
+        } catch {
+          // Native share dialogue was rejected, denied, or cancelled; fall through to file download
+        }
+      }
+
+      if (!sharedSuccessfully) {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
