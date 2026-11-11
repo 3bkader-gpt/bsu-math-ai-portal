@@ -34,7 +34,13 @@ jobs:
           cache: 'pip'
 
       - name: Install System Dependencies (ffmpeg)
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            python -m pip install --quiet imageio-ffmpeg
+            FFMPEG_BIN=$(python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())")
+            sudo ln -sf "$FFMPEG_BIN" /usr/local/bin/ffmpeg
+          fi
+          ffmpeg -version | head -n 2
 
       - name: Install Dependencies
         run: |

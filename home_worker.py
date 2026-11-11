@@ -139,7 +139,7 @@ def claim_next_lecture() -> dict | None:
                        AND updated_at < now() - interval '15 minutes'
                        AND id NOT IN (SELECT lecture_id FROM public.media_handoffs WHERE status IN ('pending', 'in_progress', 'completed'))
                    )
-                ORDER BY id ASC LIMIT 1 FOR UPDATE SKIP LOCKED
+                ORDER BY (CASE WHEN notebook_id IS NOT NULL AND status = 'queued' THEN 0 WHEN status = 'queued' THEN 1 ELSE 2 END) ASC, id ASC LIMIT 1 FOR UPDATE SKIP LOCKED
             )
             RETURNING id, subject_id, lecture_num, title, doctor, source_pdf_url
         """)).fetchone()
@@ -153,12 +153,14 @@ def claim_next_lecture() -> dict | None:
 
 
 def set_stage(lecture_id: int, status: str, stage: str, error: str | None = None):
+    from datetime import datetime, timezone
     with SessionLocal() as db:
         lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
         if lec:
             lec.status = status
             lec.stage_info = stage
             lec.error_message = error
+            lec.updated_at = datetime.now(timezone.utc)
             db.commit()
 
 
@@ -284,14 +286,22 @@ async def get_profile_quota(profile: str, action_kind: str = "audio_overview") -
         return {"profile": profile, "available": False, "remaining": 0.0, "has_action_quota": False}
 
 
+_POOL_RR_INDEX = 0
+
+
 async def select_best_profile(kind: str = "audio") -> str:
-    """Select the account profile with highest remaining compute quota for kind."""
+    """Select the account profile with highest remaining compute quota for kind,
+    using round-robin rotation across tied highest-quota profiles."""
+    global _POOL_RR_INDEX
     action_kind = "audio_overview" if kind == "audio" else "video_overview"
     quotas = await asyncio.gather(*(get_profile_quota(acc["profile"], action_kind) for acc in ACCOUNT_POOL))
 
     ready = [q for q in quotas if q["available"] and q["has_action_quota"] and q["remaining"] >= 10.0]
     if ready:
-        best = max(ready, key=lambda q: q["remaining"])
+        max_rem = max(q["remaining"] for q in ready)
+        near_top = [q for q in ready if q["remaining"] >= max_rem - 5.0]
+        best = near_top[_POOL_RR_INDEX % len(near_top)]
+        _POOL_RR_INDEX += 1
         logger.info("Selected profile '%s' (%.1f%% quota remaining) for %s", best["profile"], best["remaining"], kind)
         return best["profile"]
 
@@ -548,7 +558,7 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
 
         # Resume support: if a notebook already exists for this lecture, skip
         # regeneration of notebook/source/texts and go straight to media wait.
-        TEXT_ASSET_TYPES = ("quiz_md", "study_guide_md", "flashcards_md", "mind_map_json")
+        TEXT_ASSET_TYPES = ("quiz_md", "study_guide_md", "flashcards_md")
         with SessionLocal() as db:
             lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
             nb_id = lec.notebook_id if lec else None
@@ -613,7 +623,7 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
                           "--wait", "--retry", "3", "-n", nb_id]
             cards_cmd = ["notebooklm", "generate", "flashcards",
                          FLASHCARDS_PROMPT_INSTRUCTIONS, "--quantity", "more",
-                         "--retry", "3", "-n", nb_id]
+                         "--wait", "--retry", "3", "-n", nb_id]
             map_cmd = ["notebooklm", "generate", "mind-map", "--kind", "note-backed", "-n", nb_id]
             await asyncio.gather(run_cmd_async(quiz_cmd), run_cmd_async(report_cmd),
                                  run_cmd_async(cards_cmd), run_cmd_async(map_cmd))
