@@ -51,9 +51,10 @@ from app.services.notebooklm_client import run_notebooklm_cmd_async as run_cmd_a
 from app.services.telegram_storage import telegram_storage
 
 PROMPTS_DIR = ROOT / "prompts"
-CHROME_PROFILE_DIR = Path(os.getenv("CHROME_PROFILE_DIR", "/home/abkader/.notebooklm-profile"))
+CHROME_PROFILE_DIR = Path(os.getenv("CHROME_PROFILE_DIR", str(Path.home() / ".notebooklm-profile")))
 GITHUB_REPO = os.getenv("GITHUB_REPO", "3bkader-gpt/bsu-math-ai-portal")
 GITHUB_DISPATCH_TOKEN = os.getenv("GITHUB_DISPATCH_TOKEN", "")
+LOCAL_DATA_PLANE = os.getenv("LOCAL_DATA_PLANE", "0").strip().lower() in ("1", "true", "yes")
 POLL_INTERVAL = 15
 MEDIA_POLL_TIMEOUT = 45 * 60  # generous: audio "long" can take a while
 POLL_STEP = 60
@@ -487,7 +488,47 @@ def _storage_state_path() -> Path | None:
         return None
 
 
+_LOCAL_TRANSFER_TASKS: dict[str, asyncio.Task] = {}
+
+
+async def _run_local_transfer_worker(handoff_id: str):
+    """Run media_transfer_worker.py locally in a subprocess (eliminates GitHub Actions dependency)."""
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            sys.executable,
+            str(ROOT / "media_transfer_worker.py"),
+            handoff_id,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+        out_bytes, _ = await proc.communicate()
+        output = out_bytes.decode("utf-8", errors="replace").strip()
+        if proc.returncode == 0:
+            logger.info("Local Data-Plane completed handoff %s", handoff_id)
+        else:
+            logger.error("Local Data-Plane failed for handoff %s (rc=%s): %s", handoff_id, proc.returncode, output[-400:])
+    except Exception:  # noqa: BLE001
+        logger.exception("Local Data-Plane error for handoff %s", handoff_id)
+    finally:
+        _LOCAL_TRANSFER_TASKS.pop(handoff_id, None)
+
+
+def spawn_local_data_plane(handoff_id: str) -> bool:
+    """Schedules local media_transfer_worker execution if not already active."""
+    existing = _LOCAL_TRANSFER_TASKS.get(handoff_id)
+    if existing and not existing.done():
+        return True
+    _LOCAL_TRANSFER_TASKS[handoff_id] = asyncio.create_task(
+        _run_local_transfer_worker(handoff_id),
+        name=f"local_transfer_{handoff_id[:8]}",
+    )
+    logger.info("Scheduled local Data-Plane worker for handoff %s", handoff_id)
+    return True
+
+
 def dispatch_data_plane(handoff_id: str) -> bool:
+    if LOCAL_DATA_PLANE:
+        return spawn_local_data_plane(handoff_id)
     if not GITHUB_DISPATCH_TOKEN:
         logger.error("GITHUB_DISPATCH_TOKEN missing — handoff queued but cloud not notified")
         return False

@@ -22,6 +22,7 @@ telethon_auth_cache.json
 scripts/test_*.py
 !tests/
 refresh_*.py
+!scripts/refresh_notebooklm_auth.py
 attach_*.py
 scan_*.py
 process_*.py
