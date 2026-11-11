@@ -3,10 +3,14 @@ import logging
 import os
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
 logger = logging.getLogger("notebooklm_client")
+
+_REFRESH_LOCK = threading.Lock()
+_LAST_REFRESH_TS = 0.0
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 REFRESH_SCRIPT = PROJECT_ROOT / "scripts" / "refresh_notebooklm_auth.py"
@@ -41,30 +45,37 @@ def is_auth_error(text: str) -> bool:
 def refresh_session_now() -> bool:
     """
     Executes the headless session refresh script using the active Python interpreter.
-    Runs silently in-process without touching any OS or Windows system settings.
+    Serialized across threads with a short cooldown to prevent Chrome SingletonLock collisions.
     """
+    global _LAST_REFRESH_TS
     if not REFRESH_SCRIPT.exists():
         logger.error(f"Cannot refresh NotebookLM session: script not found at {REFRESH_SCRIPT}")
         return False
 
-    try:
-        logger.info(f"🔄 Executing in-process headless refresh via {REFRESH_SCRIPT.name}...")
-        proc = subprocess.run(
-            [sys.executable, str(REFRESH_SCRIPT)],
-            capture_output=True,
-            text=True,
-            timeout=60,
-            check=False
-        )
-        if proc.returncode == 0:
-            logger.info("✅ NotebookLM session refreshed and cookies saved successfully.")
+    with _REFRESH_LOCK:
+        if time.monotonic() - _LAST_REFRESH_TS < 30.0:
+            logger.info("Skipping duplicate refresh (completed within last 30s).")
             return True
-        else:
-            logger.warning(f"⚠️ Refresh script returned code {proc.returncode}. Output: {proc.stdout} {proc.stderr}")
+
+        try:
+            logger.info(f"🔄 Executing in-process headless refresh via {REFRESH_SCRIPT.name}...")
+            proc = subprocess.run(
+                [sys.executable, str(REFRESH_SCRIPT)],
+                capture_output=True,
+                text=True,
+                timeout=90,
+                check=False
+            )
+            if proc.returncode == 0:
+                _LAST_REFRESH_TS = time.monotonic()
+                logger.info("✅ NotebookLM session refreshed and cookies saved successfully.")
+                return True
+            else:
+                logger.warning(f"⚠️ Refresh script returned code {proc.returncode}. Output: {proc.stdout} {proc.stderr}")
+                return False
+        except Exception as e:
+            logger.error(f"❌ Failed to run headless session refresh: {e}")
             return False
-    except Exception as e:
-        logger.error(f"❌ Failed to run headless session refresh: {e}")
-        return False
 
 def run_notebooklm_cmd(args: list[str], timeout: int = 1800, max_retries: int = 2) -> tuple[int, str]:
     """
