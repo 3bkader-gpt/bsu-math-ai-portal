@@ -1,8 +1,6 @@
 import { supabase } from './client';
 import { ProfileRow } from './types';
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || 'https://bsu-math-api.onrender.com';
+import { getApiUrl } from '@/lib/api';
 
 const DEVICE_ID_KEY = 'bsu_portal_device_id';
 const GUEST_CREDENTIALS_KEY = 'bsu_portal_guest_auth';
@@ -111,7 +109,7 @@ export async function getOrCreateAnonymousSession(): Promise<StudentSession> {
     }
   }
 
-  // 3. Provision new guest account via Render API
+  // 3. Provision new guest account via backend API
   const deviceId = getOrCreateDeviceId();
   const persona =
     (localStorage.getItem('bsu_portal_persona') as 'boys' | 'girls') || 'boys';
@@ -119,7 +117,7 @@ export async function getOrCreateAnonymousSession(): Promise<StudentSession> {
     (typeof localStorage !== 'undefined' && localStorage.getItem('bsu_portal_student_nickname')) ||
     (persona === 'girls' ? 'عاشقة الرياضيات' : 'عاشق الرياضيات');
 
-  const res = await fetch(`${API_BASE}/api/auth/anonymous-session`, {
+  const res = await fetch(getApiUrl('/api/auth/anonymous-session'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

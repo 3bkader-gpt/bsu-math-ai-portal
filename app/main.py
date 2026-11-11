@@ -39,6 +39,8 @@ allowed_origins = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://bsu-math-ai-portal.pages.dev",
+    "https://bsumath.bond",
+    "https://www.bsumath.bond",
 ]
 custom_origins = getattr(settings, "ALLOWED_ORIGINS", "") or ""
 if custom_origins and custom_origins.strip() != "*":

@@ -504,9 +504,12 @@ export default function AdminDashboardPage() {
 
     // 1. Try the FastAPI upload ONLY for backends that can actually run the
     // NotebookLM pipeline (local dev server / explicit tunnel override).
-    const PRODUCTION_RENDER_API = 'https://bsu-math-api.onrender.com';
+    const PRODUCTION_CLOUD_APIS = [
+      'https://api.bsumath.bond',
+      'https://bsu-math-api.onrender.com',
+    ];
     const apiBase = getApiBaseUrl();
-    const canBackendProcess = apiBase !== PRODUCTION_RENDER_API;
+    const canBackendProcess = !PRODUCTION_CLOUD_APIS.includes(apiBase);
 
     let uploadDone = false;
     if (canBackendProcess) {

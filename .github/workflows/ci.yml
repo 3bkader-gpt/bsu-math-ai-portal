@@ -40,7 +40,7 @@ jobs:
 
       - name: Production Build Check
         env:
-          NEXT_PUBLIC_API_URL: https://bsu-math-api.onrender.com
+          NEXT_PUBLIC_API_URL: https://api.bsumath.bond
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://cjmlnpdtfclzcvehebsv.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_iukVp-1coXRxhHD3T_pqoQ_k2g1PnN5' }}
         run: npm run build

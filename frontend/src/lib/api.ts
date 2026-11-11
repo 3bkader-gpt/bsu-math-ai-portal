@@ -19,8 +19,8 @@ export function getApiBaseUrl(): string {
     return envUrl.trim().replace(/\/+$/, '');
   }
 
-  // Production cloud default: Render backend 24/7
-  return 'https://bsu-math-api.onrender.com';
+  // Production cloud default: AWS Lightsail 24/7 backend
+  return 'https://api.bsumath.bond';
 }
 
 export const API_BASE_URL = getApiBaseUrl();
