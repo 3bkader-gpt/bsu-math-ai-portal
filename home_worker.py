@@ -315,6 +315,25 @@ async def select_best_profile(kind: str = "audio") -> str:
     return "default"
 
 
+async def select_text_profile() -> str:
+    """Pick an authenticated profile with quota for low-cost text artifacts
+    (prefers acc_passplay when >= 5% so heavy audio/video quota stays free)."""
+    quotas = await asyncio.gather(*(get_profile_quota(acc["profile"], "quiz") for acc in ACCOUNT_POOL))
+    ok = [q for q in quotas if q["available"] and q["has_action_quota"] and q["remaining"] >= 5.0]
+    if ok:
+        for q in ok:
+            if q["profile"] == "acc_passplay":
+                logger.info("Selected text profile 'acc_passplay' (%.1f%% quota remaining)", q["remaining"])
+                return "acc_passplay"
+        best = max(ok, key=lambda q: q["remaining"])
+        logger.info("Selected text profile '%s' (%.1f%% quota remaining)", best["profile"], best["remaining"])
+        return best["profile"]
+    non_exhausted = [q for q in quotas if q["available"] and q["remaining"] > 1.0]
+    if non_exhausted:
+        return max(non_exhausted, key=lambda q: q["remaining"])["profile"]
+    return "acc_mo"
+
+
 async def artifact_state(nb_id: str, kind: str) -> str:
     """Returns 'completed', 'in_progress', or 'missing'."""
     code, out = await run_cmd_async(
@@ -572,73 +591,90 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
         if nb_id and texts_complete:
             logger.info("Lecture %s already has notebook %s with all text assets — resuming at media wait",
                         lecture_id, nb_id)
-        elif nb_id and not lecture["source_pdf_url"]:
-            raise RuntimeError("Lecture has neither a notebook nor source_pdf_url")
         else:
-            with SessionLocal() as db:
-                pdf_assets = db.query(MediaAsset).filter(
-                    MediaAsset.lecture_id == lecture_id,
-                    MediaAsset.asset_type == "original_pdf"
-                ).all()
-                pdf_sources = []
-                for p_asset in pdf_assets:
-                    if p_asset.local_file_path and p_asset.local_file_path.startswith("http"):
-                        pdf_sources.append((p_asset.local_file_path, p_asset.title or "source.pdf"))
-                if not pdf_sources and lecture.get("source_pdf_url"):
-                    pdf_sources.append((lecture["source_pdf_url"], f"lecture_{lecture['lecture_num']}.pdf"))
+            if not nb_id:
+                with SessionLocal() as db:
+                    pdf_assets = db.query(MediaAsset).filter(
+                        MediaAsset.lecture_id == lecture_id,
+                        MediaAsset.asset_type == "original_pdf"
+                    ).all()
+                    pdf_sources = []
+                    for p_asset in pdf_assets:
+                        if p_asset.local_file_path and p_asset.local_file_path.startswith("http"):
+                            pdf_sources.append((p_asset.local_file_path, p_asset.title or "source.pdf"))
+                    if not pdf_sources and lecture.get("source_pdf_url"):
+                        pdf_sources.append((lecture["source_pdf_url"], f"lecture_{lecture['lecture_num']}.pdf"))
 
-            if not pdf_sources:
-                raise RuntimeError("Lecture has no source PDF files")
+                if not pdf_sources:
+                    raise RuntimeError("Lecture has no source PDF files")
 
-            # 1. Notebook + sources
-            nb_id = await NotebookLMPipeline.create_notebook(
-                f"{subject_name} - المحاضرة {lecture['lecture_num']}"
-            )
-            with SessionLocal() as db:
-                lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
-                lec.notebook_id = nb_id
-                db.commit()
+                # 1. Notebook + sources
+                nb_id = await NotebookLMPipeline.create_notebook(
+                    f"{subject_name} - المحاضرة {lecture['lecture_num']}"
+                )
+                with SessionLocal() as db:
+                    lec = db.query(Lecture).filter(Lecture.id == lecture_id).first()
+                    lec.notebook_id = nb_id
+                    db.commit()
 
-            for idx, (p_url, p_title) in enumerate(pdf_sources):
-                clean_name = re.sub(r'[^a-zA-Z0-9._-]', '_', p_title)
-                dest = temp_dir / f"src_{idx}_{clean_name}"
-                download_pdf(p_url, dest)
-                logger.info("Adding source %d/%d (%s) to notebook %s...", idx + 1, len(pdf_sources), p_title, nb_id)
-                await NotebookLMPipeline.add_source(nb_id, dest)
+                for idx, (p_url, p_title) in enumerate(pdf_sources):
+                    clean_name = re.sub(r'[^a-zA-Z0-9._-]', '_', p_title)
+                    dest = temp_dir / f"src_{idx}_{clean_name}"
+                    download_pdf(p_url, dest)
+                    logger.info("Adding source %d/%d (%s) to notebook %s...", idx + 1, len(pdf_sources), p_title, nb_id)
+                    await NotebookLMPipeline.add_source(nb_id, dest)
 
-            # Wait up to 60s for Google to finish OCR/indexing all added sources before generating audio/video
-            for _ in range(12):
-                s_code, s_out = await run_cmd_async(["notebooklm", "source", "list", "--json", "-n", nb_id])
-                if s_code == 0 and s_out:
-                    try:
-                        srcs = json.loads(s_out).get("sources", [])
-                        if srcs and all(str(s.get("status", "")).lower() == "ready" for s in srcs):
-                            break
-                    except Exception:
-                        pass
-                await asyncio.sleep(5)
+                # Wait up to 60s for Google to finish OCR/indexing all added sources before generating audio/video
+                for _ in range(12):
+                    s_code, s_out = await run_cmd_async(["notebooklm", "source", "list", "--json", "-n", nb_id])
+                    if s_code == 0 and s_out:
+                        try:
+                            srcs = json.loads(s_out).get("sources", [])
+                            if srcs and all(str(s.get("status", "")).lower() == "ready" for s in srcs):
+                                break
+                        except Exception:
+                            pass
+                    await asyncio.sleep(5)
 
-            # 2. Launch media generation in Google's cloud with on-demand multi-account rotation
-            set_stage(lecture_id, "processing",
-                      "جاري توليد البودكاست والفيديو عبر شبكة الحسابات الموزعة + الكويز والملخص ☁️")
+                # 2. Launch media generation in Google's cloud with on-demand multi-account rotation
+                set_stage(lecture_id, "processing",
+                          "جاري توليد البودكاست والفيديو عبر شبكة الحسابات الموزعة + الكويز والملخص ☁️")
 
-            await launch_media(nb_id, "audio", prompt_path)
-            await asyncio.sleep(15)  # Spacing cooldown before requesting video
-            await launch_media(nb_id, "video", prompt_path)
+                await launch_media(nb_id, "audio", prompt_path)
+                await asyncio.sleep(15)  # Spacing cooldown before requesting video
+                await launch_media(nb_id, "video", prompt_path)
+            else:
+                logger.info("Lecture %s already has notebook %s — resuming text generation", lecture_id, nb_id)
 
-            # 3. Text artifacts (quiz / guide / flashcards / mind-map) — KB scale
+            # 3. Text artifacts (quiz / guide / flashcards / mind-map) — rotate profile when default exhausted
             set_stage(lecture_id, "processing", "جاري توليد الكويز والملخص والبطاقات الذكية ✍️")
-            quiz_cmd = ["notebooklm", "generate", "quiz",
-                        QUIZ_PROMPT_INSTRUCTIONS, "--quantity", "more",
-                        "--wait", "--retry", "3", "-n", nb_id]
-            report_cmd = ["notebooklm", "generate", "report", "--format", "study-guide",
-                          "--wait", "--retry", "3", "-n", nb_id]
-            cards_cmd = ["notebooklm", "generate", "flashcards",
-                         FLASHCARDS_PROMPT_INSTRUCTIONS, "--quantity", "more",
-                         "--wait", "--retry", "3", "-n", nb_id]
-            map_cmd = ["notebooklm", "generate", "mind-map", "--kind", "note-backed", "-n", nb_id]
-            await asyncio.gather(run_cmd_async(quiz_cmd), run_cmd_async(report_cmd),
-                                 run_cmd_async(cards_cmd), run_cmd_async(map_cmd))
+            text_profile = await select_text_profile()
+            await ensure_notebook_shared_with_profile(nb_id, text_profile)
+            p_flag = ["-p", text_profile]
+
+            gen_jobs = []
+            if "quiz_md" not in existing_types:
+                gen_jobs.append(("quiz_md", ["notebooklm", *p_flag, "generate", "quiz",
+                                             QUIZ_PROMPT_INSTRUCTIONS, "--quantity", "more",
+                                             "--wait", "--retry", "3", "-n", nb_id]))
+            if "study_guide_md" not in existing_types:
+                gen_jobs.append(("study_guide_md", ["notebooklm", *p_flag, "generate", "report", "--format", "study-guide",
+                                                    "--wait", "--retry", "3", "-n", nb_id]))
+            if "flashcards_md" not in existing_types:
+                gen_jobs.append(("flashcards_md", ["notebooklm", *p_flag, "generate", "flashcards",
+                                                   FLASHCARDS_PROMPT_INSTRUCTIONS, "--quantity", "more",
+                                                   "--wait", "--retry", "3", "-n", nb_id]))
+            if "mind_map_json" not in existing_types:
+                gen_jobs.append(("mind_map_json", ["notebooklm", *p_flag, "generate", "mind-map", "--kind", "note-backed", "-n", nb_id]))
+
+            if gen_jobs:
+                results = await asyncio.gather(*(run_cmd_async(cmd) for _, cmd in gen_jobs))
+                failed_jobs = [(atype, cmd) for (atype, cmd), (rc, _) in zip(gen_jobs, results) if rc != 0]
+                if failed_jobs:
+                    # One failover pass on highest-remaining profile
+                    fallback = next((acc["profile"] for acc in ACCOUNT_POOL if acc["profile"] not in (text_profile, "default", "acc_ali")), "acc_mo")
+                    await ensure_notebook_shared_with_profile(nb_id, fallback)
+                    await asyncio.gather(*(run_cmd_async(["notebooklm", "-p", fallback, *cmd[3:]]) for _, cmd in failed_jobs))
 
             for kind, filename, asset_type, title, label in [
                 ("quiz", "quiz.md", "quiz_md", "كويز المحاضرة", "📝 كويز تفاعلي وبنك الأسئلة الكامل"),
@@ -646,11 +682,18 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
                 ("flashcards", "flashcards.md", "flashcards_md", "بطاقات تعليمية", "🃏 بطاقات استذكار تعليمية"),
                 ("mind-map", "mind_map.json", "mind_map_json", "خريطة ذهنية", "🧠 خريطة ذهنية ومفاهيمية"),
             ]:
+                if asset_type in existing_types:
+                    continue
                 dest = temp_dir / filename
-                cmd = ["notebooklm", "download", kind, str(dest), "--force", "-n", nb_id]
+                cmd = ["notebooklm", *p_flag, "download", kind, str(dest), "--force", "-n", nb_id]
                 if kind == "quiz":
-                    cmd[3:3] = ["--format", "markdown"]
-                await run_cmd_async(cmd)
+                    cmd[5:5] = ["--format", "markdown"]
+                dl_code, _ = await run_cmd_async(cmd)
+                if (dl_code != 0 or not dest.exists()) and text_profile != "default":
+                    alt_cmd = ["notebooklm", "download", kind, str(dest), "--force", "-n", nb_id]
+                    if kind == "quiz":
+                        alt_cmd[3:3] = ["--format", "markdown"]
+                    await run_cmd_async(alt_cmd)
                 if not dest.exists():
                     logger.warning("%s download missing for lec %s", kind, lecture_id)
                     continue
