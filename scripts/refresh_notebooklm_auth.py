@@ -42,7 +42,10 @@ async def _refresh_all():
             try:
                 page = await context.new_page()
                 url = f"https://notebooklm.google.com/u/{u_idx}/"
-                await page.goto(url, wait_until="networkidle", timeout=25000)
+                await page.goto(url, wait_until="domcontentloaded", timeout=35000)
+                await page.wait_for_timeout(4000)
+                if "accounts.google.com" in page.url:
+                    raise RuntimeError(f"Google login required for {profile_name} ({email}): redirected to {page.url[:80]}")
                 state = await context.storage_state()
                 state["notebooklm"] = {"account": {"authuser": u_idx, "email": email}}
                 out_dir = NLM_PROFILES_DIR / profile_name
