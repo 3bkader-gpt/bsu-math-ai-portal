@@ -190,10 +190,11 @@ async def stream_media_asset(
 
 
 
-    # 3. Fallback to local file streaming if present on disk
+    # 3. Fallback to local file streaming (reject unapproved paths on any OS)
+    if local_path and not is_safe_path(local_path) and (local_path.exists() or not asset.telegram_file_id):
+        raise HTTPException(status_code=403, detail="Access to specified file path is forbidden")
+
     if local_path and local_path.exists():
-        if not is_safe_path(local_path):
-            raise HTTPException(status_code=403, detail="Access to specified file path is forbidden")
         file_size = local_path.stat().st_size
         range_header = request.headers.get("Range")
 
