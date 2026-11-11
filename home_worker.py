@@ -606,6 +606,18 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
                 logger.info("Adding source %d/%d (%s) to notebook %s...", idx + 1, len(pdf_sources), p_title, nb_id)
                 await NotebookLMPipeline.add_source(nb_id, dest)
 
+            # Wait up to 60s for Google to finish OCR/indexing all added sources before generating audio/video
+            for _ in range(12):
+                s_code, s_out = await run_cmd_async(["notebooklm", "source", "list", "--json", "-n", nb_id])
+                if s_code == 0 and s_out:
+                    try:
+                        srcs = json.loads(s_out).get("sources", [])
+                        if srcs and all(str(s.get("status", "")).lower() == "ready" for s in srcs):
+                            break
+                    except Exception:
+                        pass
+                await asyncio.sleep(5)
+
             # 2. Launch media generation in Google's cloud with on-demand multi-account rotation
             set_stage(lecture_id, "processing",
                       "جاري توليد البودكاست والفيديو عبر شبكة الحسابات الموزعة + الكويز والملخص ☁️")
