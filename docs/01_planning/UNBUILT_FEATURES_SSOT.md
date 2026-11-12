@@ -7,7 +7,7 @@
 
 ---
 
-## 1. الميزات الجاهزة للتطوير سابقاً (Non-AI — تم تنفيذها بالكامل في المرحلة الأولى `dd3847e`)
+## 1. الميزات الجاهزة للتطوير سابقاً (Non-AI — تم تنفيذها بالكامل في المرحلة الأولى `253ef18`)
 
 | # | الميزة | الحالة | التفاصيل والأدلة في الكود |
 | :---: | :--- | :---: | :--- |
@@ -22,8 +22,8 @@
 
 | # | البند | التفاصيل | المصدر | الوضع الحالي | الأولوية |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| **2.1** | **تفكيك المكونات الضخمة `[OPT-FE-01]`** | تقسيم [`frontend/src/app/page.tsx`](../../frontend/src/app/page.tsx) (1,479 → 471 سطراً) و[`frontend/src/app/admin/dashboard/page.tsx`](../../frontend/src/app/admin/dashboard/page.tsx) (1,545 → 386 سطراً) إلى Custom Hooks (`usePortalCatalog`, `useAdminDiagnostics`, `useLectureUploadPipeline`) ومكونات أصغر (`components/portal/*`, `components/admin/*`). | [`SECURITY_AUDIT.md`](../02_architecture/SECURITY_AUDIT.md#L28) | ✅ **مُنفذ** (المرحلة الثانية). | 🟢 مكتمل |
-| **2.2** | **تنظيف سجل Git التاريخي (`git filter-repo`)** | إزالة آثار الـ PAT وكلمة مرور الأدمن القديمة من تاريخ Git القديم. | [`TASKING.md`](../00_agent_context/TASKING.md) | ⏳ قيد التنفيذ في المرحلة الثانية. | 🟢 منخفضة |
+| **2.1** | **تفكيك المكونات الضخمة `[OPT-FE-01]`** | تقسيم [`frontend/src/app/page.tsx`](../../frontend/src/app/page.tsx) (1,479 → 471 سطراً) و[`frontend/src/app/admin/dashboard/page.tsx`](../../frontend/src/app/admin/dashboard/page.tsx) (1,545 → 386 سطراً) إلى Custom Hooks (`usePortalCatalog`, `useAdminDiagnostics`, `useLectureUploadPipeline`) ومكونات أصغر (`components/portal/*`, `components/admin/*`). | [`SECURITY_AUDIT.md`](../02_architecture/SECURITY_AUDIT.md#L28) | ✅ **مُنفذ** (المرحلة الثانية `cf46d0b`). | 🟢 مكتمل |
+| **2.2** | **تنظيف سجل Git التاريخي (`git filter-repo`)** | شطب آثار `service_role` JWT و`TELEGRAM_BOT_TOKEN` التاريخية من كامل سجل Git (`--replace-text`) عبر 211 كوميت دون المساس بـ Supabase `anon` key العام. | [`TASKING.md`](../00_agent_context/TASKING.md) | ✅ **مُنفذ** (المرحلة الثانية). | 🟢 مكتمل |
 
 ---
 

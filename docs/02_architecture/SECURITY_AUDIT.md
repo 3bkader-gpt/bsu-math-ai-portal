@@ -25,7 +25,7 @@ Track remediation progress across three verified tiers:
 - [x] **[TEST-LAT-01]** Benchmark latency impact of duplicate `get_messages` calls during Range requests ([`telethon_service.py:44-72`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/app/services/telethon_service.py)) ΓÇö *Resolved & Tested*
 
 ### ≡ƒƒí Section 3: Optional Improvements & Future Enhancements (Non-Blocking)
-- [ ] **[OPT-FE-01]** Refactor monolithic React components (`page.tsx`, `admin/dashboard/page.tsx`) into dedicated hooks and sub-components
+- [x] **[OPT-FE-01]** Refactor monolithic React components (`page.tsx`, `admin/dashboard/page.tsx`) into dedicated hooks and sub-components — *Stage 2 Completed (`cf46d0b`) & Verified*
 - [x] **[OPT-FE-02]** Prepare Semester 2 extensibility via dynamic subject merging and semester separation ([`page.tsx`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/frontend/src/app/page.tsx), [`supabase.ts`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/frontend/src/lib/supabase.ts), [`lectures.py`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/app/routes/lectures.py), [`models.py`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/app/db/models.py)) ΓÇö *Phase 3 Steps 1 & 2 Completed & Verified*
 - [x] **[OPT-DB-01]** Optimize diagnostic N+1 query loop using SQLAlchemy `joinedload` and `selectinload` ([`diagnostics.py:80-115`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/app/routes/diagnostics.py)) ΓÇö *Phase 3 Step 3 Completed: 93.5% query reduction (31 -> 2 queries)*
 - [ ] **[OPT-ENV-01]** Standardize `D:\╪º┘ä┘â┘ä┘è┘ç` Windows path references for full container portability
