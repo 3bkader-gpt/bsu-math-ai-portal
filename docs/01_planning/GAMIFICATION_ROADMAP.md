@@ -155,9 +155,8 @@ Every task, feature, and code modification across all 6 phases adhered strictly 
 
 ---
 
-## ≡ƒîÉ Live Production Verification Endpoints
+## 🌐 Live Production Endpoints (Current as of `v1.5.0`, `2026-11-12`)
 
-- **Frontend Portal (Cloudflare Pages):** [https://bsu-math-ai-portal.pages.dev](https://bsu-math-ai-portal.pages.dev)
-- **Lecture View (Live Gamification):** [https://bsu-math-ai-portal.pages.dev/lecture?id=28](https://bsu-math-ai-portal.pages.dev/lecture?id=28)
-- **Backend API (Render):** [https://bsu-math-api.onrender.com](https://bsu-math-api.onrender.com)
-- **Supabase Cloud Database:** `https://cjmlnpdtfclzcvehebsv.supabase.co`
+- **Frontend Portal (Custom Domain / Cloudflare Pages):** [https://bsumath.bond](https://bsumath.bond) ([bsu-math-ai-portal.pages.dev](https://bsu-math-ai-portal.pages.dev))
+- **Backend API (AWS Lightsail + Caddy HTTPS):** [https://api.bsumath.bond](https://api.bsumath.bond) *(migrated from retired `bsu-math-api.onrender.com`)*
+- **Supabase Cloud Database:** `https://cjmlnpdtfclzcvehebsv.supabase.co` (`PostgreSQL 17.11`)

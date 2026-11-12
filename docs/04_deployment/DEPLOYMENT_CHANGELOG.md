@@ -1,10 +1,29 @@
-# ≡ƒÜÇ Soft Launch Deployment & Changelog Log
+# 🚀 Deployment & Changelog Log
 
-This changelog records all production deployments during the 7-day Soft Launch observation period. To ensure scientific integrity of telemetry and retention measurements, **only critical bugfixes are permitted** during this window. All behavioral mechanics (XP, streaks, caps) are frozen.
+> Current Production: **v1.5.0** — Frontend `https://bsumath.bond` (`bsu-math-ai-portal.pages.dev`) | Backend `https://api.bsumath.bond` (AWS Lightsail `13.63.217.38`)
 
 ---
 
-### [2026-10-20 14:20 Cairo] ΓÇö Release `v1.2.1` (Production Baseline)
+### [2026-11-11 → 2026-11-12 Cairo] — Release `v1.5.0` (AWS Lightsail Migration, NVMe Caching, Typst 3.9 Fix & Automated DB Backups)
+* **Git Commits:** `cbddb0f`, `e8e7a0f`
+* **Infrastructure Migration & Legacy Cleanup:**
+  - Migrated backend API (`bsu-math-api.service`) and unified Control+Data lecture worker (`lecture-worker.service`, `LOCAL_DATA_PLANE=1`) onto AWS Lightsail `bsu-math-backend` (`small_3_0`, `2 vCPU`, `2 GB RAM` + `2 GB Swap`, `60 GB SSD`, Ubuntu 24.04 kernel `7.0.0-1017-aws`) fronted by Caddy HTTPS (`api.bsumath.bond`) and custom frontend domain `bsumath.bond`.
+  - Retired Render.com (`render.yaml`), GitHub Actions `media_transfer.yml`, `NOTEBOOKLM_STORAGE_STATE_B64`, `telegram_cloud_bot.py`, legacy `scripts/*render*`, and home-server (`192.168.1.5`) worker dependency.
+  - Enabled OS hardening: `ufw` (`22`, `80`, `443`), `fail2ban`, `PasswordAuthentication no`, daily AWS Lightsail `AutoSnapshot` (`03:00 UTC`), and cgroup limits on `lecture-worker.service` (`MemoryHigh=700M`, `MemoryMax=900M`, `CPUQuota=60%`, `Nice=15`, `OOMScoreAdjust=500`).
+* **Pipeline & Typst Reliability (`cbddb0f`):**
+  - Fixed Pandoc 3.9 / Typst normalization in `app/services/typst_service.py` (`sect` -> `inter`, empty `sqrt("")`, `#strong[...](` spacing, `("DejaVu Sans Mono", "Courier New")` font stack) — verified `72/72` study guides OK on Lightsail.
+  - Updated NotebookLM 5-account pool (`default`, `acc_mo`, `acc_p1`, `acc_p2`, `acc_passplay`; removed `acc_p4`), added `_sync_sibling_sid_cookies`, dynamic Chrome `authuser` discovery + `/trynow` guard in `scripts/refresh_notebooklm_auth.py` (`notebooklm-refresh.timer`, 4h), and portable `/api/upload` & `prompts/` path resolution.
+* **NVMe Caching, HTTP Caching & DB Backups (`e8e7a0f`):**
+  - Added `app/services/media_cache.py` (`DiskLRUCache`): `/var/cache/bsu-media` (`15 GB` max LRU) with single-flight background fill preventing Telegram `FloodWait` + `Range 206` support (`X-Media-Cache: HIT|MISS`) and offline cache fallback.
+  - Added `/var/cache/bsu-pdf` (`1 GB` max LRU) + `Cache-Control: public, max-age=86400`, `ETag`, and `304 Not Modified` in `app/routes/study_guides.py` (`X-PDF-Cache: HIT|MISS`).
+  - Installed `pg_dump (PostgreSQL) 17.11` matching Supabase PG 17.11; added `scripts/db_backup_and_prune.py` + `bsu-db-backup.timer` (daily `03:30 UTC`, 14d local retention in `/var/backups/bsu-db` + private Telegram archive) + `bsu-telemetry-prune.timer` (weekly Sunday `04:00 UTC`, deletes `activity_events` >30d by `server_ts`).
+* **Verified Tests & Live State:** `pytest tests/ -v` (`70 passed`), GitHub Actions CI (`43213802393` `success`), live PDF `MISS -> HIT -> 304`, live stream `206` `MISS -> HIT`, first live DB backup (`bsu_math_20261112_115929.sql.gz`, `1.1M` compressed / `5.2M` raw SQL, uploaded `msg_id=549`), Supabase DB size `18 MB` (`247` profiles, `1152` `activity_events`).
+
+---
+
+## Historical Soft Launch & Earlier Releases (`v1.2.1` → `v1.4.0`)
+
+### [2026-10-20 14:20 Cairo] — Release `v1.2.1` (Production Baseline)
 * **Git Commit:** `5466cc3` / `v1.2.1`
 * **Cloudflare Pages:** `https://bsu-math-ai-portal.pages.dev`
 * **Changes:**

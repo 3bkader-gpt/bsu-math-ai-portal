@@ -1,6 +1,6 @@
 # 🤖 AI_HANDOFF.md — Agent Context & Onboarding Document
 > **READ THIS FIRST.** This is the single most important file for any AI agent working on this project.
-> Last Updated: 2026-10-25 | Version: v1.4.1
+> Last Updated: 2026-11-12 | Version: v1.5.0
 
 ---
 
@@ -10,10 +10,10 @@
 |---|---|
 | **Project Name** | BSU Math & AI Portal (بوابة قسم الرياضيات الذكية) |
 | **University** | Faculty of Science, Beni-Suef University, Egypt |
-| **Purpose** | Convert dense academic PDFs into multi-modal learning assets (podcast, video, quiz, flashcards, study guide) and serve them via a gamified student web portal |
-| **Live URL** | https://bsu-math-ai-portal.pages.dev |
-| **Backend API** | https://bsu-math-api.onrender.com |
-| **Supabase Project** | `cjmlnpdtfclzcvehebsv` (Frankfurt, eu-central-1) |
+| **Purpose** | Convert dense academic PDFs into multi-modal learning assets (podcast, video, quiz, flashcards, study guide, compiled Arabic+Math PDFs) and serve them via a gamified student web portal |
+| **Live Frontend URLs** | https://bsumath.bond (Cloudflare Pages: https://bsu-math-ai-portal.pages.dev) |
+| **Backend API** | https://api.bsumath.bond (AWS Lightsail `13.63.217.38` behind Caddy HTTPS) |
+| **Supabase Project** | `cjmlnpdtfclzcvehebsv` (Frankfurt, `eu-central-1`, PostgreSQL 17.11) |
 | **GitHub Repo** | https://github.com/3bkader-gpt/bsu-math-ai-portal |
 
 ---
@@ -27,63 +27,96 @@
 - **Math Rendering:** KaTeX (forced LTR, isolated from gamification re-renders)
 - **State:** Zustand (`useGamificationStore`) + IndexedDB outbox
 - **Fonts:** Cairo (Arabic UI) + Outfit (numbers/XP)
-- **Hosting:** Cloudflare Pages (via Wrangler CLI)
+- **Hosting:** Cloudflare Pages (`bsumath.bond` / `bsu-math-ai-portal.pages.dev`)
 
-### Backend
-- **Runtime:** Python 3.12 + FastAPI
-- **AI Pipeline:** `notebooklm-py` (Playwright automation for Google NotebookLM)
-- **Storage:** Telegram Cloud (MTProto via Telethon) — free unlimited CDN
-- **Database:** Supabase PostgreSQL 17 (via Supavisor pooler for IPv6 compat)
-- **Hosting:** Render.com (free tier with keepalive GitHub Action)
+### Backend & Infrastructure (AWS Lightsail Single-Node Production)
+- **Host:** AWS Lightsail `bsu-math-backend` (`eu-north-1`, `small_3_0`: `2 vCPU`, `2 GB RAM` + `2 GB Swap`, `60 GB NVMe SSD` — ~50 GB free), Ubuntu 24.04 LTS (kernel `7.0.0-1017-aws`), static IP `13.63.217.38` (`ssh aws`).
+- **Reverse Proxy:** Caddy (`api.bsumath.bond` -> `127.0.0.1:8000`, `flush_interval -1`).
+- **Runtime:** Python 3.12 + FastAPI (`bsu-math-api.service`, Uvicorn 1 worker).
+- **AI Pipeline:** `notebooklm-py` + headless Google Chrome (`lecture-worker.service` running `home_worker.py` with `LOCAL_DATA_PLANE=1`). Legacy Render (`render.yaml`), GitHub Actions `media_transfer.yml`, and home server `192.168.1.5` worker hosting were retired and cleaned up.
+- **Storage & Caching:** Telegram Cloud (MTProto via Telethon) + **Local NVMe LRU Caches** (`app/services/media_cache.py`):
+  - Media cache: `/var/cache/bsu-media` (`15 GB` max LRU) with single-flight background fill preventing Telegram `FloodWait` + byte-range `206` support (`X-Media-Cache: HIT|MISS`).
+  - Study Guide PDF cache: `/var/cache/bsu-pdf` (`1 GB` max LRU), keyed by `SHA-256(asset_id, lecture_num, content_text)` with `Cache-Control: public, max-age=86400`, `ETag`, and `304 Not Modified` (`X-PDF-Cache: HIT|MISS`).
+- **Typst PDF Compilation:** Pandoc 3.9 + Typst (`app/services/typst_service.py` + `app/routes/study_guides.py`) with bilingual Arabic RTL + KaTeX/Typst math normalization (`sect` -> `inter`, empty `sqrt("")`, `#strong[...]` call spacing, `("DejaVu Sans Mono", "Courier New")` font stack).
+- **Database:** Supabase PostgreSQL 17.11 (via Supavisor session pooler port `5432`, ~18 MB size).
+- **Backups, Retention & Hardening:**
+  - `postgresql-client-17` (`pg_dump 17.11`) + [`scripts/db_backup_and_prune.py`](../../scripts/db_backup_and_prune.py): daily `bsu-db-backup.timer` (`03:30 UTC`) saves gzipped `.sql.gz` backups to `/var/backups/bsu-db` (14-day local retention, min 3 kept) and uploads archive to the private Telegram channel; weekly `bsu-telemetry-prune.timer` (Sunday `04:00 UTC`) prunes `activity_events` older than 30 days by `server_ts`.
+  - `lecture-worker.service` cgroup isolation: `MemoryHigh=700M`, `MemoryMax=900M`, `CPUQuota=60%`, `Nice=15`, `OOMScoreAdjust=500`.
+  - Security & Availability: `ufw` (`22`, `80`, `443`), `fail2ban`, key-only SSH, Lightsail daily `AutoSnapshot` (`03:00 UTC`), UptimeRobot monitor (`804349204`).
 
-### Production Pipeline — Split-Plane Architecture (v1.4.0, 2026-10-24)
-The NotebookLM Google session **never lives in CI** (datacenter IP churn kills it). See `BLUEPRINT.md`.
-- **Control Plane — home server `abkader@192.168.1.5`:** `lecture-worker.service` (systemd user unit, linger enabled, `Restart=always`) runs `home_worker.py`: polls `lectures WHERE status='queued'` every 15s, drives NotebookLM, auto re-mints dead cookies by driving **system Chrome against `/home/abkader/.notebooklm-profile`** (L3 `browser="chrome"`), generates texts, waits for Google-side media readiness by status (ZERO media bytes at home), writes `media_handoffs` + dispatches the cloud plane. **Ops:** `ssh abkader@192.168.1.5`, logs `journalctl --user -u lecture-worker -f`, updates `cd ~/bsu-math-ai-portal && git pull && systemctl --user restart lecture-worker`.
-- **Data Plane — GitHub Actions `media_transfer.yml` + `media_transfer_worker.py`:** pulls media straight from Google (one-shot cookie jar from the handoff row) → uploads to Telegram via **Telethon MTProto (2GB cap; Bot API is 50MB-capped and fails 401/413 on large files)** → registers assets → `status='completed'` → purges the credential-bearing handoff row.
-- **Dashboard upload flow (uploader needs ZERO setup, v1.4.1):** PDF → Supabase Storage → `POST /api/lectures/register` (JWT-protected; authorizes with her admin login — no keys in any browser; the master-key RPC remains as a server-side API path) → daemon claims within 15s. No GitHub PAT in any browser.
-- **Known session facts:** the legacy `TELETHON_SESSION_STRING` user session is DEAD (`AuthKeyDuplicated`) — do not use it; the GitHub repo secrets `TELEGRAM_*` were refreshed 2026-10-24 to match the live `.env` values.
+### Production Pipeline — Unified Plane on Lightsail (`v1.5.0`)
+- **`lecture-worker.service` (`home_worker.py` with `LOCAL_DATA_PLANE=1`):** Polls `lectures WHERE status='queued'`, manages dynamic 5-account NotebookLM pool (`default`, `acc_mo`, `acc_p1`, `acc_p2`, `acc_passplay` — `acc_p4` retired), generates text assets, downloads generated audio/video locally on Lightsail, uploads directly to Telegram MTProto, registers `media_assets`, and cleans temporary directories.
+- **Session Refresh (`notebooklm-refresh.timer`):** Runs `scripts/refresh_notebooklm_auth.py` every 4 hours against Chrome profile `/home/ubuntu/.notebooklm-profile` using dynamic `authuser` discovery, `/trynow` guard, atomic writes, and sibling SID cookie sync (`_sync_sibling_sid_cookies`).
+- **Admin Upload Flow:** Dashboard PDF upload -> Supabase Storage or portable `/api/upload` -> `POST /api/lectures/register` (JWT-protected).
+
+### Ops Cheat Sheet (AWS Lightsail)
+```bash
+ssh aws
+cd /home/ubuntu/bsu-math-ai-portal
+git pull --ff-only origin main
+sudo systemctl restart bsu-math-api lecture-worker
+journalctl -u bsu-math-api -f
+journalctl -u lecture-worker -f
+systemctl list-timers --no-pager | grep -E "bsu-|notebooklm"
+```
 
 ### Key Infrastructure Files
 ```
 d:\الكليه\BOT\
-├── frontend/              # Next.js app (PRIMARY WORKSPACE)
-├── app/                   # FastAPI backend
-├── supabase/migrations/   # All DB schema migrations (source of truth)
-├── docs/                  # All planning & architecture docs
-├── scripts/               # Deploy + verify scripts
-└── render.yaml            # Render deployment config
+├── frontend/                        # Next.js 16 app (Cloudflare Pages)
+├── app/
+│   ├── main.py                      # FastAPI entrypoint & router registration
+│   ├── config.py                    # Settings (MEDIA_DIR, DATABASE_URL, Telegram)
+│   ├── routes/                      # auth, diagnostics, lectures, notifications, stats, stream, study_guides, upload
+│   ├── services/
+│   │   ├── media_cache.py           # NVMe DiskLRUCache (15GB media + 1GB PDF, single-flight)
+│   │   ├── typst_service.py         # Pandoc + Typst academic PDF compiler
+│   │   ├── telethon_service.py      # MTProto upload/stream with 30m message cache
+│   │   ├── notebooklm_client.py     # Dynamic slot cookie manager
+│   │   ├── notebooklm_service.py    # NotebookLM pipeline
+│   │   └── ...
+│   └── db/                          # SQLAlchemy models & Supabase engine
+├── supabase/migrations/             # All DB schema migrations (source of truth)
+├── docs/                            # All planning, context, testing & deployment docs
+├── scripts/
+│   ├── db_backup_and_prune.py       # Daily pg_dump + Telegram archive + weekly 30d telemetry prune
+│   ├── refresh_notebooklm_auth.py   # 4h headless Chrome cookie refresh
+│   └── ...
+├── home_worker.py                   # Unified Control+Data worker on Lightsail
+├── media_transfer_worker.py         # Media upload helper module
+├── requirements.txt                 # API server dependencies
+├── requirements-worker.txt          # Worker extra dependencies (notebooklm-py, playwright)
+└── tests/                           # 70 backend pytest tests
 ```
 
 ---
 
-## 3. Current Project State (as of 2026-10-24)
+## 3. Current Project State (as of 2026-11-12)
 
-### Security Posture (v1.3.1 hardening — 2026-10-24)
-- **No secrets in the client bundle. EVER.** No admin passwords, no GitHub PATs, no fallback keys. Violations were purged on 2026-10-24.
-- `/admin` login is exclusively server-verified (FastAPI JWT). The old client-fabricated `bsu_master_academic_*` session bypass was removed; such tokens are auto-purged on page load.
-- Cloud-ops credentials (`ADMIN_MASTER_KEY`, `GITHUB_DISPATCH_TOKEN`) live in backend env only and are provisioned to the dashboard **in the login response**, stored per-device in localStorage. A ⚙️ settings modal in the dashboard manages them manually.
-- `admin_upsert_lecture` RPC authorizes via SHA-256 digest of `ADMIN_MASTER_KEY` (digest-only in migration SQL). Insecure defaults in `auth_service.py` (`SECRET_KEY`, `ADMIN_PASSWORD`) were removed — fail closed.
-- Lectures storage bucket: public SELECT + INSERT only; UPDATE/DELETE are service-role only.
-- **Pending user actions:** revoke the leaked GitHub PAT (was still valid on 2026-10-24), set the rotated env vars on Render, redeploy backend + frontend.
+### Security & Hardening Posture (`v1.5.0`)
+- **No secrets in the client bundle. EVER.** Admin login is server-verified via FastAPI JWT (`PBKDF2` + fail-closed `SECRET_KEY`).
+- `admin_upsert_lecture` RPC enforces SHA-256 `ADMIN_MASTER_KEY` digest; all Supabase tables enforce RLS (`SECURITY DEFINER` RPCs for mutations).
+- Unapproved local path access on `/api/stream/{id}` is rejected (`403`) via `is_safe_path`; `pg_dump` receives DB credentials exclusively via `PGPASSWORD` env var (never argv).
+- Lightsail firewall (`ufw` 22/80/443), `fail2ban`, `PasswordAuthentication no`, `MemoryMax=900M` worker isolation, and automated daily backups verified live.
 
 ### Gamification Engine — Phase Status
 | Phase | Title | Status |
 |---|---|---|
 | Phase 0 | Baseline Freeze & CI/CD | ✅ COMPLETE |
 | Phase 1 | Frictionless Habit Ignition (Smart Resume, Micro-Session, Wrap-Up) | ✅ COMPLETE |
-| Phase 2 | Leitner Mistake Notebook (Spaced Repetition) | ✅ COMPLETE (live parity restored 2026-10-24) |
-| Phase 3 | Cognitive Guard & Hint Ladder | 📋 PLANNED |
-| Phase 4 | Compassionate Feedback (Math Anxiety Reduction) | 📋 PLANNED |
-| Phase 5 | Sybil-Proof Fair Gamification | 📋 PLANNED |
-| Phase 6 | Collaborative Cohort Challenge | 📋 PLANNED |
+| Phase 2 | Leitner Mistake Notebook (Spaced Repetition) | ✅ COMPLETE |
+| Phase 3 | Cognitive Guard & Hint Ladder | ✅ COMPLETE |
+| Phase 4 | Compassionate Feedback (Math Anxiety Reduction) | ✅ COMPLETE |
+| Phase 5 | Confidence Assessment, Neighborhood Leaderboard & Freezes | ✅ COMPLETE |
+| Phase 6 | Collaborative Cohort Challenge | ✅ COMPLETE |
 
 ### ⚠️ Production Function Parity Lesson (2026-10-24)
-The live `ingest_events` had silently regressed to the older Phase-2-core body (500 XP cap, no speed guard, no mistake auto-ingestion) despite the migration file being "deployed". Trust nothing: **verify live `pg_proc` source against migration files** when behavioral parity matters. Restored via `20261024_fix_ingest_events_leitner_parity.sql`.
+The live `ingest_events` had silently regressed once despite migrations. Always verify live `pg_proc` source against migration files when behavioral parity matters.
 
-### Latest Commits
-- `9532834` — feat(security): RLS across all tables + admin_upsert_lecture RPC
-- `3b77c13` — docs: mark Phase 2 COMPLETED
-- `dbf6661` — leaderboard self-highlight + edit nickname + loading spinner
+### Recent Releases / Commits
+- `e8e7a0f` (2026-11-12) — Harden streaming & Typst PDF with NVMe LRU cache (`media_cache.py`), plus `db_backup_and_prune.py`
+- `cbddb0f` (2026-11-12) — Fix Typst Pandoc 3.9 normalization (`72/72` OK), NotebookLM dynamic slots/cookie sync, portable `/api/upload`, legacy Render/`hp-server` cleanup
+- See [`docs/04_deployment/DEPLOYMENT_CHANGELOG.md`](../04_deployment/DEPLOYMENT_CHANGELOG.md) for full release history.
 
 ### Deployed Database Migrations (in order)
 1. `20261016_add_semester_to_subjects.sql`

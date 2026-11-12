@@ -1,5 +1,5 @@
 # 🏗️ ARCHITECTURE.md — System Architecture Reference
-> Last Updated: 2026-10-21
+> Last Updated: 2026-11-12 (v1.5.0)
 
 ---
 
@@ -99,29 +99,39 @@ src/
 
 ---
 
-## Backend Architecture (FastAPI)
+## Backend Architecture (FastAPI + Lightsail Workers)
 
 ```
 app/
-├── main.py              # FastAPI app, CORS, routers registration
-├── config.py            # Environment config (Supabase, Telegram, etc.)
+├── main.py                       # FastAPI app, CORS, routers registration
+├── config.py                     # Environment config (Supabase, Telegram, Paths)
 ├── routes/
-│   ├── lectures.py      # GET /api/lectures, GET /api/subjects
-│   ├── stream.py        # HTTP 206 partial content streamer (audio/video)
-│   └── auth.py          # POST /api/auth/anonymous-session
+│   ├── auth.py                   # POST /api/auth/anonymous-session & admin JWT login
+│   ├── diagnostics.py            # GET /api/diagnostics overview
+│   ├── lectures.py               # GET /api/lectures, GET /api/subjects, register
+│   ├── notifications.py          # Notifications & web push
+│   ├── stats.py                  # Platform momentum & analytics routes
+│   ├── stream.py                 # NVMe LRU cache first -> HTTP 206 Telethon streamer -> local safe fallback
+│   ├── study_guides.py           # Typst PDF export with /var/cache/bsu-pdf + Cache-Control + ETag (304)
+│   └── upload.py                 # Portable PDF/material upload handler
 ├── services/
-│   ├── prompt_service.py # 11 subject master prompts
-│   ├── notebooklm.py    # Playwright automation for AI generation
-│   └── telegram.py      # Telethon MTProto file upload/download
+│   ├── media_cache.py            # DiskLRUCache (15 GB media + 1 GB PDF, single-flight dedup)
+│   ├── typst_service.py          # Pandoc 3.9 + Typst bilingual math-safe PDF compiler
+│   ├── prompt_service.py         # 11 subject master prompts (portable prompts/ resolution)
+│   ├── notebooklm_client.py      # Multi-account pool + cookie sync (_sync_sibling_sid_cookies)
+│   ├── notebooklm_service.py     # NotebookLM pipeline orchestration
+│   ├── telethon_service.py       # Telethon MTProto upload/download + 30m _message_cache
+│   └── telegram_storage.py       # Bot API / Telethon upload dispatcher
 └── db/
-    └── supabase.py      # Supabase admin client (service role key)
+    ├── database.py               # SQLAlchemy engine & SessionLocal (Supabase pooler)
+    └── models.py                 # ORM models (Subject, Lecture, MediaAsset, etc.)
 ```
 
-### Telegram CDN Architecture
-- **Channel:** `المنصه` (`-1004453609138`) — private storage channel
-- **Bot:** `@BSUMath_bot` — receives uploaded assets
-- **File limit:** 2GB per file (sufficient for all audio/video assets)
-- **Retrieval:** `GET /stream/{telegram_file_id}` → HTTP 206 range-supporting proxy
+### Telegram CDN + NVMe LRU Cache Architecture
+- **Channel:** `المنصه` (`-1004453609138`) — private storage channel (origin archive)
+- **Bot:** `@BSUMath_bot` — uploads assets & daily DB `.sql.gz` backups
+- **NVMe Local Cache (`/var/cache/bsu-media`, 15 GB max):** Eliminates Telegram `FloodWait` under exam-night traffic spikes via single-flight background warm-up and atomic `.part` -> `.bin` commits (`X-Media-Cache: HIT|MISS`). Preserves HTTP `206 Partial Content` & `HEAD`.
+- **Typst PDF Cache (`/var/cache/bsu-pdf`, 1 GB max):** Content-addressed (`SHA-256`) disk cache + `Cache-Control: public, max-age=86400` + `ETag` (`X-PDF-Cache: HIT|MISS`).
 
 ---
 
@@ -130,14 +140,21 @@ app/
 ```
 GitHub main branch push
     │
-    ├─→ Cloudflare Pages (frontend)
-    │   Wrangler CLI → Next.js static export → CDN global edge
-    │   Domain: bsu-math-ai-portal.pages.dev
+    ├─→ CI Quality Gate (.github/workflows/ci.yml)
+    │   pytest (70 backend tests) + Typecheck/Vitest/Build
     │
-    └─→ Render.com (backend)
-        Docker container → FastAPI on port 10000
-        Keepalive: GitHub Action pings /health every 14min (prevents sleep)
-        Domain: bsu-math-api.onrender.com
+    ├─→ Cloudflare Pages (frontend)
+    │   Next.js static export → CDN global edge
+    │   Domains: bsumath.bond / bsu-math-ai-portal.pages.dev
+    │
+    └─→ AWS Lightsail: bsu-math-backend (13.63.217.38, eu-north-1)
+        Ubuntu 24.04 (2 vCPU, 2 GB RAM + 2 GB Swap, 60 GB NVMe SSD)
+        ├── Caddy reverse proxy (api.bsumath.bond HTTPS → 127.0.0.1:8000)
+        ├── bsu-math-api.service (Uvicorn FastAPI + /var/cache/bsu-media + /var/cache/bsu-pdf)
+        ├── lecture-worker.service (home_worker.py, LOCAL_DATA_PLANE=1; MemoryMax=900M, CPUQuota=60%, Nice=15)
+        ├── notebooklm-refresh.timer (4h Chrome headless cookie refresh)
+        ├── bsu-db-backup.timer (daily pg_dump 17.11 → /var/backups/bsu-db + Telegram channel)
+        └── bsu-telemetry-prune.timer (weekly prune of activity_events > 30 days)
 ```
 
 ---

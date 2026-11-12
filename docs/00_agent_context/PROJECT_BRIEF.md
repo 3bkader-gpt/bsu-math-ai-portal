@@ -1,6 +1,6 @@
 # 📝 PROJECT_BRIEF.md — Product Requirements Document (PRD)
 > Single-page vision, goals, users, and constraints. Read before writing any code.
-> Last Updated: 2026-10-21
+> Last Updated: 2026-11-12 (v1.5.0)
 
 ---
 
@@ -55,12 +55,12 @@
 | **Dark / Light Mode** | System-aware + manual toggle |
 | **Bilingual Math** | KaTeX with forced LTR, isolated from Arabic RTL layout |
 
-### 📋 Planned (Behavioral Plan Phases 3–6)
-- 3-Tier Hint Ladder for quiz questions
-- Compassionate diagnostic error messages
-- Pre-answer confidence rating (متأكد / مش متأكد)
-- 10-peer neighborhood leaderboard
-- Collaborative cohort weekly challenge
+| **Academic PDF Export** | Compiled study-guide PDFs via Typst 3.9 + Pandoc (`Cache-Control` + `ETag` + NVMe cache) |
+| **Gamification Phases 3–6** | 3-tier hint ladder, compassionate diagnostic copy, pre-answer confidence rating, 10-peer neighborhood leaderboard, and collaborative cohort challenge |
+
+### 📋 Future Backlog
+- Slide-aware AI tutor / doctor audio-to-slide alignment (from PhysioTalk competitive study)
+- PWA / offline support & scheduled study push notifications
 
 ---
 
@@ -74,7 +74,7 @@
 | **Offline resilience** | IndexedDB outbox queues XP events if network drops |
 | **Data integrity** | All XP/streak writes are idempotent RPC transactions |
 | **Language** | Egyptian Arabic (عامية مصرية) for all student-facing copy |
-| **Zero cost hosting** | Cloudflare Pages (frontend) + Render free tier (backend) + Telegram CDN (media) |
+| **Production Hosting** | Cloudflare Pages (frontend, `\$0`) + AWS Lightsail (`bsu-math-backend`, `\$12/mo` credit-covered) + Telegram CDN + Local NVMe LRU Cache + Supabase Free Tier |
 | **Privacy** | Anonymous auth by default; no email required |
 
 ---

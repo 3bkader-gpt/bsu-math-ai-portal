@@ -1,6 +1,6 @@
 # 📋 CONTEXT_INDEX.md — Project Feature-to-File Master Index
 > Navigation guide for AI agents: maps every feature to its exact files.
-> Last Updated: 2026-10-21
+> Last Updated: 2026-11-12 (v1.5.0)
 
 ---
 
@@ -85,18 +85,24 @@
 ### ⚙️ Backend (FastAPI + Python)
 | Feature | File(s) |
 |---|---|
-| App entry point | `app/main.py` |
-| Telegram CDN streaming | `app/routes/` + `cloud_lecture_executor.py` |
-| NotebookLM pipeline | `app/services/` |
-| System prompts (11 subjects) | `app/services/prompt_service.py` |
+| App entry point | `app/main.py`, `app/config.py` |
+| Media streaming + 15GB NVMe LRU cache | `app/routes/stream.py`, `app/services/media_cache.py`, `app/services/telethon_service.py` |
+| Typst PDF export + 1GB cache + ETag | `app/routes/study_guides.py`, `app/services/typst_service.py` |
+| Portable upload & lectures API | `app/routes/upload.py`, `app/routes/lectures.py` |
+| NotebookLM pipeline & cookie pool | `home_worker.py`, `media_transfer_worker.py`, `app/services/notebooklm_service.py`, `app/services/notebooklm_client.py` |
+| System prompts (11 subjects) | `app/services/prompt_service.py`, `prompts/` |
+| Backend tests (70 tests) | `tests/test_hardening_cache.py`, `tests/test_typst_export.py`, `tests/test_cloud_fixes.py`, `tests/test_phase*.py` |
 
-### 🚀 Deployment & CI/CD
+### 🚀 Deployment, Automation & Operations (AWS Lightsail)
 | Feature | File(s) |
 |---|---|
 | GitHub Actions CI | `.github/workflows/ci.yml` |
-| Cloudflare Pages config | `frontend/wrangler.toml` (or `wrangler.jsonc`) |
-| Render backend config | `render.yaml` |
-| Multi-cloud deploy script | `scripts/deploy_and_verify.py` |
+| Cloudflare Pages config | `frontend/wrangler.toml` / `frontend/next.config.ts` |
+| Daily Supabase `pg_dump` backup & 30d prune | `scripts/db_backup_and_prune.py` (`bsu-db-backup.timer`, `bsu-telemetry-prune.timer`) |
+| 4h NotebookLM cookie refresh | `scripts/refresh_notebooklm_auth.py` (`notebooklm-refresh.timer`) |
+| Worker dependencies (Playwright, NLM) | `requirements-worker.txt` |
+| Lightsail systemd units (on host) | `/etc/systemd/system/bsu-math-api.service`, `lecture-worker.service` (`MemoryMax=900M`, `CPUQuota=60%`, `Nice=15`) |
+| Reverse proxy (on host) | `/etc/caddy/Caddyfile` (`api.bsumath.bond`) |
 
 ---
 

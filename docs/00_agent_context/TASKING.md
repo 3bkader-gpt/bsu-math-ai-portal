@@ -1,10 +1,24 @@
 # ✅ TASKING.md — Current Backlog & Execution Queue
 > Living task tracker. Update after every session.
-> Last Updated: 2026-10-25 | Current Version: v1.4.1
+> Last Updated: 2026-11-12 | Current Version: v1.5.0
 
 ---
 
-## 🔴 Active Sprint (Now)
+## 🔴 Recently Completed Infrastructure & Hardening (v1.5.0, 2026-11-11 → 2026-11-12)
+
+### AWS Lightsail Migration & Worker Consolidation (`cbddb0f`, `e8e7a0f`) — ✅ DEPLOYED & VERIFIED
+- [x] Migrated FastAPI backend (`bsu-math-api.service`) and unified worker (`lecture-worker.service` with `LOCAL_DATA_PLANE=1`) onto AWS Lightsail `bsu-math-backend` (`13.63.217.38`, Ubuntu 24.04 kernel `7.0.0-1017-aws`, Caddy HTTPS at `https://api.bsumath.bond`, custom frontend domain `https://bsumath.bond`).
+- [x] Retired Render.com (`render.yaml`), GitHub Actions `media_transfer.yml`, `NOTEBOOKLM_STORAGE_STATE_B64`, legacy `telegram_cloud_bot.py`, and home-server `192.168.1.5` worker hosting.
+- [x] Fixed Typst Pandoc 3.9 compilation regressions (`sect` -> `inter`, empty `sqrt("")`, `#strong[...]` call spacing, mono font stack) — verified `72/72` study guides OK on Lightsail.
+- [x] Updated NotebookLM dynamic account pool (`default`, `acc_mo`, `acc_p1`, `acc_p2`, `acc_passplay`; removed `acc_p4`) + automated 4h session refresh (`scripts/refresh_notebooklm_auth.py` + `notebooklm-refresh.timer`) + `_sync_sibling_sid_cookies`.
+- [x] Added NVMe LRU caches (`app/services/media_cache.py`): `/var/cache/bsu-media` (`15 GB` max, single-flight background warm-up preventing Telegram `FloodWait`, full `Range 206` support) + `/var/cache/bsu-pdf` (`1 GB` max, `SHA-256` key, `Cache-Control: public, max-age=86400`, `ETag`, `304 Not Modified`).
+- [x] Isolated `lecture-worker.service` cgroup resources (`MemoryHigh=700M`, `MemoryMax=900M`, `CPUQuota=60%`, `Nice=15`, `OOMScoreAdjust=500`).
+- [x] Installed `postgresql-client-17` (`pg_dump 17.11`) matching Supabase PostgreSQL 17.11; added `scripts/db_backup_and_prune.py` + `bsu-db-backup.timer` (daily local 14d + Telegram private channel archive) + `bsu-telemetry-prune.timer` (weekly >30d `activity_events` cleanup) + Lightsail `AutoSnapshot`, `ufw`, `fail2ban`, `2 GB Swap`.
+- [x] Verified full local `pytest tests/ -v` (`70 passed`), GitHub Actions CI (`43213802393` `success`), and live `MISS` -> `HIT` -> `304` / `206` endpoints.
+
+---
+
+## 🟢 Active / Feature Sprints (Gamification Phases 3–6)
 
 ### Phase 6 — Sybil-Proof Cohort Collaboration (2026-10-26) — ✅ BUILT & TESTED
 - [x] `20261026_cohort_challenges.sql`: Non-blocking append-only contributions schema + daily per-student cap guard (15/day) + `get_active_cohort_challenge` and `record_cohort_contribution` RPCs.
