@@ -1,8 +1,9 @@
 # 📌 UNBUILT_FEATURES_SSOT.md — المرجع الوحيد المعتمد للميزات غير المنفذة
 
 > **Single Source of Truth (SSOT)** لجميع الميزات المتبقية، الأفكار البحثية غير المبنية، والديون التقنية المفتوحة في المشروع.  
+> **طبيعة المنصة:** تعليمية مجانية بالكامل (لا توجد أي خطط مدفوعة أو اشتراكات).  
 > **تاريخ التدقيق الفعلي ضد الكود:** `2026-11-12` (`v1.5.0`)  
-> **القاعدة:** أي ميزة تُنفَّذ تُنقل هنا من قسم "غير المنفذ" أو تُحذف مع تحديث المرجع، وقد تم استبعاد كل ما تبيّن وجوده فعلياً في الكود (راجع القسم 5 أسفله).
+> **القاعدة:** أي ميزة تُنفَّذ تُحذف من القوائم أدناه وتُوثَّق في قسم التحقق بالأسفل.
 
 ---
 
@@ -11,19 +12,21 @@
 | # | الميزة | الوصف المختصر | المصدر | ما يوجد حالياً في الكود vs ما ينقص | الأولوية |
 | :---: | :--- | :--- | :--- | :--- | :---: |
 | **1.1** | **Zero-Prompt Micro-Tutor (مصحح الأخطاء بالذكاء الاصطناعي)** | زران تحت الإجابة الخاطئة في الكويز (`"اشرحهالي ببساطة"`، `"القانون ده جه منين؟"`) لشرح الخطأ بـ 3 نقاط مركزة في $< 800\text{ms}$ عبر Groq LLaMA أو Gemini Flash مع كاش مشترك. | [`AUTONOMOUS_ECOSYSTEM_SPECIFICATION.md`](../AUTONOMOUS_ECOSYSTEM_SPECIFICATION.md#L214-L274) | لا يوجد Endpoint أو UI زر Micro-Tutor. دالة السياق [`getStudentContextForAI()`](../../frontend/src/lib/studentProfile.ts#L118) موجودة ومستعدة للربط. | 🔴 عالية |
-| **1.2** | **AI Private Tutor ("The Big One")** | معلم خاص 1-on-1 يخاطب الطالب باسمه ويركّز تلقائياً على أسئلة Box 1 الصعبة والمحاضرات الأقل درجة. | [`PLATFORM_FEATURES.md`](../PLATFORM_FEATURES.md#L212-L220) | دالة تجميع السياق `getStudentContextForAI()` مبنية بالكامل في Frontend، لكن لا توجد واجهة محادثة أو LLM API موصولة بها. | 🟡 متوسطة |
-| **1.3** | **عارض الخرائط الذهنية (`MindMapViewer`)** | واجهة بصرية تفاعلية لعرض هيكل المفاهيم وعلاقاتها لكل محاضرة. | [`notebooklm_service.py`](../../app/services/notebooklm_service.py#L225-L234) | الباك-إند يولّد ويرفع ويبث `mind_map_json` عبر `/api/stream/{id}` بالفعل، لكن لا يوجد أي مكون يعرض `mind_map` في `frontend/src` (فجوة جاهزة للتشغيل الفوري). | 🔴 عالية |
-| **1.4** | **Slide-Aware RAG & Multimodal Vision OCR** | ربط قارئ الـ PDF برقم الصفحة Open Slide بحيث يرى الشات الصفحة الحالية + الرسومات/المنحنيات (`Area Selection / Figure Context`) مع أوامر سريعة (`اشرح السلايد دي ببساطة`). | [`physiotalk_reverse/CORE_FEATURES_BREAKDOWN.md`](../../physiotalk_reverse/CORE_FEATURES_BREAKDOWN.md#L3-L12) | غير مبني نهائياً؛ المنصة الحالية تعتمد على أصول NotebookLM المولدة مسبقاً (`study_guide_md`, `quiz_md`, ...). | 🟡 متوسطة |
-| **1.5** | **Doctor Recording to Slide Annotations ("Doctor Tab")** | رفع تسجيل الدكتور الصوتي/المرئي في المدرج، تفريغه (عامية مصرية + مصطلحات رياضية)، استخراج تنبيهات الامتحان (`"بتيجي في الامتحان"`)، وربطها بمواضع السلايدات مع حذف الصوت ومسح أي PII. | [`physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md`](../../physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md) | غير مبني نهائياً. | 🟢 مستقبلية |
-| **1.6** | **University Exam Cloning (محاكي امتحانات السنين السابقة)** | رفع صورة أو PDF لامتحان كلية قديم لتحليل أسلوب الأسئلة وتوزيع الدرجات وتوليد امتحان محاكٍ بنفس البنية من المنهج الحالي. | [`physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md`](../../physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md) | غير مبني (`CustomExamBuilderModal.tsx` يبني امتحانات من بنك أسئلة الكويزات الموجودة فقط ولا يحلل أوراق امتحانات خارجية). | 🟡 متوسطة |
+| **1.2** | **عارض الخرائط الذهنية (`MindMapViewer`)** | واجهة بصرية تفاعلية لعرض هيكل المفاهيم وعلاقاتها لكل محاضرة. | [`notebooklm_service.py`](../../app/services/notebooklm_service.py#L225-L234) | الباك-إند يولّد ويرفع ويبث `mind_map_json` عبر `/api/stream/{id}` بالفعل، لكن لا يوجد أي مكون يعرض `mind_map` في `frontend/src` (فجوة جاهزة للتشغيل الفوري). | 🔴 عالية |
+| **1.3** | **AI Private Tutor ("The Big One")** | معلم خاص 1-on-1 يخاطب الطالب باسمه ويركّز تلقائياً على أسئلة Box 1 الصعبة والمحاضرات الأقل درجة. | [`PLATFORM_FEATURES.md`](../PLATFORM_FEATURES.md#L212-L220) | دالة تجميع السياق `getStudentContextForAI()` مبنية بالكامل في Frontend، لكن لا توجد واجهة محادثة أو LLM API موصولة بها. | 🟡 متوسطة |
+| **1.4** | **Slide-Aware RAG & Multimodal Vision OCR** | ربط قارئ الـ PDF برقم الصفحة بحيث يرى الشات الصفحة الحالية + الرسومات والمنحنيات (`Figure Context / Area Crop`) مع أوامر سريعة (`اشرح السلايد دي ببساطة`). | [`physiotalk_reverse/CORE_FEATURES_BREAKDOWN.md`](../../physiotalk_reverse/CORE_FEATURES_BREAKDOWN.md#L3-L12) | غير مبني نهائياً؛ المنصة الحالية تعتمد على أصول NotebookLM المولدة مسبقاً. | 🟡 متوسطة |
+| **1.5** | **University Exam Cloning (محاكي امتحانات السنين السابقة)** | رفع صورة أو PDF لامتحان كلية قديم لتحليل أسلوب الأسئلة وتوزيع الدرجات وتوليد امتحان محاكٍ بنفس البنية من المنهج الحالي. | [`physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md`](../../physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md) | غير مبني (`CustomExamBuilderModal.tsx` يبني امتحانات من بنك أسئلة الكويزات الموجودة فقط ولا يحلل أوراق امتحانات خارجية). | 🟡 متوسطة |
+| **1.6** | **Doctor Recording to Slide Annotations ("Doctor Tab")** | رفع تسجيل الدكتور الصوتي/المرئي في المدرج، تفريغه (عامية مصرية + مصطلحات رياضية)، استخراج تنبيهات الامتحان (`"بتيجي في الامتحان"`)، وربطها بمواضع السلايدات مع حذف الصوت ومسح أي PII. | [`physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md`](../../physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md) | غير مبني نهائياً. | 🟢 مستقبلية |
 
 ---
 
-## 2. ميزات الإدارة والتحليلات (Admin & Analytics)
+## 2. تحسينات واجهة الطالب والإدارة (Student UX & Admin Analytics)
 
 | # | الميزة | الوصف المختصر | المصدر | ما يوجد حالياً في الكود vs ما ينقص | الأولوية |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| **2.1** | **لوحة تحليلات الـ Gamification والأداء للأدمن** | شاشة في `/admin/dashboard` تعرض معدلات الاحتفاظ (D1/D7)، نشاط الدفعة اليومي، أكثر المحاضرات مشاهدة، وأصعب الأسئلة. | [`TASKING.md`](./TASKING.md) & `supabase/migrations/20261020_phase2_kpi_views.sql` | الـ SQL KPI Views موجودة ومؤمّنة في Supabase، لكن `/admin/dashboard` يعرض إدارة الأصول والتشخيص الفني فقط بدون تبويب تحليلات سلوكية. | 🟡 متوسطة |
+| **2.1** | **Study Heatmap (خريطة الالتزام الـ 16 أسبوعاً)** | شبكة نشاط شبيهة بـ GitHub في ملف الطالب توضح أيام وكثافة المذاكرة من جدول `daily_activity`. | [`physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md`](../../physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md) | جدول `daily_activity` موجود ويجمع النشاط اليومي، لكن لا يوجد مكون Heatmap في `frontend/src`. | 🟡 متوسطة |
+| **2.2** | **التشطيب التلقائي لخطة التعويض (Self-Ticking Plan)** | تعليم مهام اليوم في `RecoveryPlannerModal` كمكتملة تلقائياً بمجرد إنهاء كويز أو قراءة ملخص المحاضرة المرتبطة. | [`physiotalk_reverse/CORE_FEATURES_BREAKDOWN.md`](../../physiotalk_reverse/CORE_FEATURES_BREAKDOWN.md#L47-L50) | `RecoveryPlannerModal.tsx` و`studyPlanner.ts` يعتمدان حالياً على التأشير اليدوي من الطالب. | 🟢 منخفضة |
+| **2.3** | **لوحة تحليلات الـ Gamification والأداء للأدمن** | تبويب في `/admin/dashboard` يعرض معدلات الاحتفاظ (D1/D7)، نشاط الدفعة اليومي، أكثر المحاضرات مشاهدة، وأصعب الأسئلة. | [`TASKING.md`](./TASKING.md) & `supabase/migrations/20261020_phase2_kpi_views.sql` | الـ SQL KPI Views موجودة ومؤمّنة في Supabase، لكن `/admin/dashboard` يعرض إدارة الأصول والتشخيص الفني فقط بدون رسوم بيانية للتحليلات. | 🟡 متوسطة |
 
 ---
 
@@ -31,23 +34,13 @@
 
 | # | البند | التفاصيل | المصدر | الوضع الحالي | الأولوية |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| **3.1** | **تفكيك المكونات الضخمة `[OPT-FE-01]`** | تقسيم [`frontend/src/app/page.tsx`](../../frontend/src/app/page.tsx) (1,479 سطراً) و [`frontend/src/app/admin/dashboard/page.tsx`](../../frontend/src/app/admin/dashboard/page.tsx) (1,532 سطراً) إلى Custom Hooks ومكونات أصغر لسهولة الصيانة. | [`SECURITY_AUDIT.md`](../02_architecture/SECURITY_AUDIT.md#L28) | المكونات تعمل باستقرار في الإنتاج؛ التحسين اختياري للصيانة. | 🟢 منخفضة |
-| **3.2** | **تنظيف سجل Git التاريخي (`git filter-repo`)** | إزالة آثار الـ PAT وكلمة مرور الأدمن القديمة من تاريخ Git القديم. | [`TASKING.md`](./TASKING.md) | الـ PAT وكلمة المرور القديمة تم إبطالهما وتدويرهما منذ 2026-10-24 ولا خطر نشط؛ التنظيف اختياري. | 🟢 منخفضة |
-| **3.3** | **ضوابط أمان ميزات الـ AI المستقبلية** | تطبيق `Prompt Injection Isolation` (`<lecture_content>...</lecture_content>`) وحذف الملفات الصوتية المرفوعة فوراً (`Ephemeral Audio`) وفلترة PII عند بناء البندين **1.4** أو **1.5**. | [`physiotalk_reverse/SECURITY_AND_VULNERABILITIES_AUDIT.md`](../../physiotalk_reverse/SECURITY_AND_VULNERABILITIES_AUDIT.md#L65-L99) | غير مطبق لعدم وجود شات RAG مفتوح أو تفريغ تسجيلات طلابية حتى الآن — شرط أساسي عند بنائهما. | 🔴 إلزامي وقت التنفيذ |
+| **3.1** | **حماية حصة الـ AI المجانية وأمان RAG (عند تشغيل 1.1–1.6)** | عند إضافة أي Endpoint مجاني للـ LLM: فرض Rate-Limit بالسيرفر لكل جلسة طالب، عزل نصوص PDF داخل `<lecture_content>` لمنع `Prompt Injection`، وحذف التسجيلات الصوتية المؤقتة فور التفريغ مع تنقية PII. | [`physiotalk_reverse/SECURITY_AND_VULNERABILITIES_AUDIT.md`](../../physiotalk_reverse/SECURITY_AND_VULNERABILITIES_AUDIT.md) | يُطبَّق إلزامياً مع أول ميزة AI تفاعلية تُبنى من القسم 1. | 🔴 إلزامي وقت التنفيذ |
+| **3.2** | **تفكيك المكونات الضخمة `[OPT-FE-01]`** | تقسيم [`frontend/src/app/page.tsx`](../../frontend/src/app/page.tsx) (1,479 سطراً) و [`frontend/src/app/admin/dashboard/page.tsx`](../../frontend/src/app/admin/dashboard/page.tsx) (1,532 سطراً) إلى Custom Hooks ومكونات أصغر لسهولة الصيانة. | [`SECURITY_AUDIT.md`](../02_architecture/SECURITY_AUDIT.md#L28) | المكونات تعمل باستقرار في الإنتاج؛ التحسين اختياري للصيانة. | 🟢 منخفضة |
+| **3.3** | **تنظيف سجل Git التاريخي (`git filter-repo`)** | إزالة آثار الـ PAT وكلمة مرور الأدمن القديمة من تاريخ Git القديم. | [`TASKING.md`](./TASKING.md) | الـ PAT وكلمة المرور القديمة تم إبطالهما وتدويرهما منذ 2026-10-24 ولا خطر نشط؛ التنظيف اختياري. | 🟢 منخفضة |
 
 ---
 
-## 4. خطة التوسع التجاري والخطط المدفوعة (Optional Commercialization — مؤجلة)
-
-> البوابة مجانية بالكامل حالياً لطلاب قسم الرياضيات بجامعة بني سويف؛ هذه البنود تُنفّذ **فقط** عند التوسع لنظام باقات أو جامعات أخرى:
-
-- **4.1** **نظام رصيد واضح بدون تحايل (`Honest Quotas` + `Atomic Server Credit Deduction`)** داخل معاملة الباك-إند قبل استدعاء أي LLM (بديلاً عن ثغرة الـ Client-side Paywall).  
-- **4.2** **بوابات الدفع المصرية (بدون تجديد تلقائي):** تكامل **Paymob** (بطاقات/محافظ كاش/Apple Pay) + تحقق فوري لـ **InstaPay** + خطط **اشتراك الشلة/الدفعة (3–5 طلاب)** ([`ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md`](../../physiotalk_reverse/ACTIONABLE_BLUEPRINT_FOR_OUR_PLATFORM.md)).  
-- **4.3** **Dynamic PDF Watermarking:** علامة مائية خفيفة بمعرّف الطالب على ملفات المذكرات عند وجود محتوى مدفوع ([`SECURITY_AND_VULNERABILITIES_AUDIT.md`](../../physiotalk_reverse/SECURITY_AND_VULNERABILITIES_AUDIT.md#L24)).
-
----
-
-## 5. ميزات تم التحقق من بنائها فعلياً (Excluded — Already Built in Code)
+## 4. ميزات تم التحقق من بنائها فعلياً (Excluded — Already Built in Code)
 
 > كانت بعض الخطط القديمة تذكر هذه العناصر كمؤجلة، لكن الفحص الفعلي للمستودع أثبت أنها **مكتملة وموجودة في الكود**:
 
