@@ -96,7 +96,8 @@
 ### 📌 Planning & Backlog (Single Source of Truth)
 | Feature | File(s) |
 |---|---|
-| All unbuilt features & open tech debt (SSOT) | `docs/01_planning/UNBUILT_FEATURES_SSOT.md` |
+| Unbuilt Non-AI features & open tech debt (Active SSOT) | `docs/01_planning/UNBUILT_FEATURES_SSOT.md` |
+| Parked AI features (no active LLM provider yet) | `docs/99_parked_ai/PARKED_AI_FEATURES.md` |
 | Active sprint & execution backlog | `docs/00_agent_context/TASKING.md` |
 | Agent onboarding & ops runbook | `docs/00_agent_context/AI_HANDOFF.md` |
 

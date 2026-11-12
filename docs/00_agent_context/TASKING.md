@@ -72,8 +72,8 @@
 
 ## 🔧 Technical Debt & Remaining Backlog (SSOT)
 
-> **المصدر الوحيد المعتمد (SSOT):** راجع [`docs/01_planning/UNBUILT_FEATURES_SSOT.md`](../01_planning/UNBUILT_FEATURES_SSOT.md) للتفاصيل الكاملة لكل الميزات غير المبنية (Micro-Tutor، عارض `MindMapViewer`، Slide RAG، Doctor Audio-to-Notes، Exam Cloning، لوحة تحليلات الأدمن، تفكيك `[OPT-FE-01]`، وتنظيف Git History).  
-> *(تم استبعاد PWA وPush Notifications وCustom Exam Builder والـ Formula Sheet لأنها تبيّن أنها مُنفذة بالفعل في الكود).*
+> **المصدر الوحيد المعتمد للمتبقي حالياً (بدون AI):** [`docs/01_planning/UNBUILT_FEATURES_SSOT.md`](../01_planning/UNBUILT_FEATURES_SSOT.md)  
+> **ميزات الـ AI التفاعلي مؤجلة ومجمعة وحدها في:** [`docs/99_parked_ai/PARKED_AI_FEATURES.md`](../99_parked_ai/PARKED_AI_FEATURES.md) *(لعدم وجود مزود AI حالياً)*.
 
 | Item | Priority | Notes |
 |---|---|---|
@@ -81,8 +81,10 @@
 | ~~Hint Ladder `hintLevelUsed` field not wired in quiz events~~ | ✅ Resolved 2026-10-25 | Wired in Phase 3 and verified in telemetry. |
 | ~~Neighborhood leaderboard (10-peer)~~ | ✅ Resolved 2026-10-26 | Built in Phase 5 with actionable next-rank distance banner. |
 | ~~PWA / offline support & Push notifications~~ | ✅ Built | Implemented (`public/manifest.json`, `public/sw.js`, `app/routes/notifications.py`). |
-| AI Micro-Tutor + `MindMapViewer` (`mind_map_json`) | High | See `UNBUILT_FEATURES_SSOT.md` §1.1–1.3 |
+| `MindMapViewer` (`mind_map_json` frontend viewer) | High | Backend already generates/streams JSON; only UI needed |
+| Student 16-week Study Heatmap + Self-Ticking Planner | Medium | `daily_activity` & `RecoveryPlannerModal` already exist |
 | Admin dashboard gamification analytics | Medium | KPI SQL views exist in DB; UI charts pending |
+| Interactive AI features (Micro-Tutor, RAG, Exam Cloning, Audio-to-Slide) | 🧊 Parked | Consolidated in `docs/99_parked_ai/PARKED_AI_FEATURES.md` |
 | Decompose monolithic `page.tsx` / `admin/dashboard/page.tsx` (`OPT-FE-01`) | Low | Working in prod; optional refactor |
 | Git history scrubbing (`git filter-repo`) | Low | Old PAT + admin pass already rotated/revoked |
 
