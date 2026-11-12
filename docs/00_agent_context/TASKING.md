@@ -73,20 +73,12 @@
 ## 🔧 Technical Debt & Remaining Backlog (SSOT)
 
 > **المصدر الوحيد المعتمد للمتبقي حالياً (بدون AI):** [`docs/01_planning/UNBUILT_FEATURES_SSOT.md`](../01_planning/UNBUILT_FEATURES_SSOT.md)  
-> **ميزات الـ AI التفاعلي مؤجلة ومجمعة وحدها في:** [`docs/99_parked_ai/PARKED_AI_FEATURES.md`](../99_parked_ai/PARKED_AI_FEATURES.md) *(لعدم وجود مزود AI حالياً)*.
+> **حالة الـ Backlog الحالي:** **0 مهام متبقية** (كافة ميزات المنصة والديون التقنية مكتملة ومبنية وشغالة لايف في الإنتاج بنسبة 100%).  
+> **ميزات الـ AI التفاعلي:** مجمدة في [`docs/99_parked_ai/PARKED_AI_FEATURES.md`](../99_parked_ai/PARKED_AI_FEATURES.md) *(لعدم وجود مزود AI حالياً)*.
 
 | Item | Priority | Notes |
 |---|---|---|
-| ~~`mistake_notebook` auto-ingest from quiz wrong answers~~ | ✅ Resolved 2026-10-24 | Restored via `20261024_fix_ingest_events_leitner_parity.sql` and verified live. |
-| ~~Hint Ladder `hintLevelUsed` field not wired in quiz events~~ | ✅ Resolved 2026-10-25 | Wired in Phase 3 and verified in telemetry. |
-| ~~Neighborhood leaderboard (10-peer)~~ | ✅ Resolved 2026-10-26 | Built in Phase 5 with actionable next-rank distance banner. |
-| ~~PWA / offline support & Push notifications~~ | ✅ Built | Implemented (`public/manifest.json`, `public/sw.js`, `app/routes/notifications.py`). |
-| ~~`MindMapViewer` (`mind_map_json` frontend viewer)~~ | ✅ Built 2026-11-12 | Stage 1 (`253ef18`): `MindMapViewer.tsx`, `parseMindMapJson`, `lecture/page.tsx` |
-| ~~Student 16-week Study Heatmap + Self-Ticking Planner~~ | ✅ Built 2026-11-12 | Stage 1 (`253ef18`): `heatmap.ts`, `StudyHeatmap.tsx`, `studyPlanner.ts` auto-tick |
-| ~~Admin dashboard gamification analytics~~ | ✅ Built 2026-11-12 | Stage 1 (`253ef18`): `GET /api/diagnostics/cohort-analytics` + `AdminDiagnosticsModal.tsx` |
-| Interactive AI features (Micro-Tutor, RAG, Exam Cloning, Audio-to-Slide) | 🧊 Parked | Consolidated in `docs/99_parked_ai/PARKED_AI_FEATURES.md` |
-| ~~Decompose monolithic `page.tsx` / `admin/dashboard/page.tsx` (`OPT-FE-01`)~~ | ✅ Built 2026-11-12 | Stage 2 (`cf46d0b`): extracted `usePortalCatalog`, `useAdminDiagnostics`, `useLectureUploadPipeline`, `portal/*`, `admin/*` (`471` & `386` lines) |
-| ~~Git history scrubbing (`git filter-repo`)~~ | ✅ Done 2026-11-12 | Scrubbed legacy `service_role` JWT & `TELEGRAM_BOT_TOKEN` across 211 commits |
+| *No pending Non-AI items in queue* | — | All features delivered and running in production on AWS Lightsail. |
 
 ---
 

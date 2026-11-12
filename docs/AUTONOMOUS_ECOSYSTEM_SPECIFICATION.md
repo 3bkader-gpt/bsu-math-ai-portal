@@ -274,15 +274,17 @@ sequenceDiagram
 
 ---
 
-## 7. Implementation Roadmap & Technical Milestones
+## 7. Implementation Roadmap & Status (100% COMPLETED)
 
-| Phase | Module | Target Deliverable | Effort |
-| :--- | :--- | :--- | :--- |
-| **Phase 1** | **Deterministic Synthesis** | Mock Exam Simulator (`CustomExamBuilder.tsx`) & Auto Formula Aggregator (`FormulaAggregator.ts`) | 1 Day |
-| **Phase 2** | **Passive Telemetry** | PostgreSQL view `v_question_cohort_stats` + Dynamic "Exam Trap" badges in `QuizComponent.tsx` | 0.5 Day |
-| **Phase 3** | **Distraction-Free Sandbox** | Web Audio Brown Noise synthesis in `soundEngine.ts` + Floating Scratchpad Canvas | 1 Day |
-| **Phase 4** | **Recovery Planner** | Backlog Crusher algorithm & interactive daily plan modal (`AutoStudyPlanner.ts`) | 0.5 Day |
-| **Phase 5** | **Zero-Prompt Micro-Tutor** | Groq/Gemini Flash edge function with deterministic 1-click mistake explainer | 1 Day |
+> **حالة التنفيذ:** تم إنجاز كافة مراحل المنظومة المستقلة الخالية من الصيانة (Phases 1–4) بالكامل في الكود ومطابقتها واختبارها وتشغيلها لايف، بينما تم عزل ميزة الـ Micro-Tutor التفاعلية في [`docs/99_parked_ai/PARKED_AI_FEATURES.md`](99_parked_ai/PARKED_AI_FEATURES.md).
+
+| Phase | Module | Implemented Deliverable | Status |
+| :--- | :--- | :--- | :---: |
+| **Phase 1** | **Deterministic Synthesis** | Mock Exam Simulator (`CustomExamBuilderModal.tsx`) & Auto Formula Aggregator (`FormulaSheetModal.tsx`) | ✅ Built & Live |
+| **Phase 2** | **Passive Telemetry** | PostgreSQL view `v_question_cohort_stats` + Dynamic "Exam Trap" badges (`ExamTrapBadge.tsx`) + `stats.py` | ✅ Built & Live |
+| **Phase 3** | **Distraction-Free Sandbox** | Web Audio Brown Noise synthesis (`ambientFocusEngine.ts`) + Floating Scratchpad & Calc (`MathScratchpadModal.tsx`) | ✅ Built & Live |
+| **Phase 4** | **Recovery Planner** | Self-Ticking Recovery Planner (`RecoveryPlannerModal.tsx`, `studyPlanner.ts`) | ✅ Built & Live |
+| **Phase 5** | **Zero-Prompt Micro-Tutor** | Moved to Parked AI Features (Pending AI Provider) | 🧊 Parked |
 
 ---
 
