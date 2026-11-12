@@ -1,676 +1,118 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Sparkles, 
-  UploadCloud, 
-  BookOpen, 
-  FileText, 
-  Headphones, 
-  Video, 
-  HelpCircle, 
-  FileCheck, 
-  Layers, 
-  Brain, 
-  CheckCircle2, 
-  Clock, 
-  AlertCircle, 
-  LogOut, 
-  ExternalLink, 
-  RefreshCw, 
-  Play, 
-  ChevronRight,
-  Database,
+import {
+  Sparkles,
+  BookOpen,
+  Headphones,
+  CheckCircle2,
+  LogOut,
+  ExternalLink,
   Cloud,
   GraduationCap,
-  Plus,
   Activity,
-  X,
-  Search,
-  Copy,
-  Check,
-  Trash2,
-  Terminal,
-  Server,
 } from 'lucide-react';
-import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import ThemeToggle from '@/components/ThemeToggle';
-import { 
-  getDirectSupabaseSubjects, 
-  getDirectSupabaseLectures, 
-  SUPABASE_URL, 
-  SUPABASE_ANON_KEY 
-} from '@/lib/supabase';
-import { 
-  AcademicSubject as Subject, 
-  AcademicLecture as Lecture, 
-  AcademicMediaAsset as LectureAsset 
-} from '@/types/academic';
-import { lockBodyScroll, unlockBodyScroll } from '@/lib/scrollLock';
-import { supabase } from '@/modules/gamification/supabase/client';
 import AdminDiagnosticsModal from '@/components/admin/AdminDiagnosticsModal';
+import AdminTrackedLectureCard from '@/components/admin/AdminTrackedLectureCard';
+import AdminSmartUploaderForm from '@/components/admin/AdminSmartUploaderForm';
+import AdminSubjectLecturesExplorer from '@/components/admin/AdminSubjectLecturesExplorer';
+import { useLectureUploadPipeline } from '@/hooks/useLectureUploadPipeline';
+import { useAdminDiagnostics } from '@/hooks/useAdminDiagnostics';
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    token,
+    subjects,
+    selectedSubjectId,
+    setSelectedSubjectId,
+    selectedSubject,
+    selectedDoctor,
+    setSelectedDoctor,
+    subjectLectures,
+    lectureNum,
+    setLectureNum,
+    lectureTitle,
+    setLectureTitle,
+    selectedFiles,
+    isUploading,
+    uploadError,
+    setActiveTrackingId,
+    trackedLecture,
+    fileInputRef,
+    handleLogout,
+    handleFileChange,
+    handleDrop,
+    handleRemoveFile,
+    handleClearAllFiles,
+    handleUploadSubmit,
+  } = useLectureUploadPipeline();
 
-  // Auth & Admin State
-  const [adminUser, setAdminUser] = useState<string>('admin');
-  const [token, setToken] = useState<string>('');
-
-  // Data State
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [selectedSubjectId, setSelectedSubjectId] = useState<number | ''>('');
-  const [selectedDoctor, setSelectedDoctor] = useState<string>('');
-  const [subjectLectures, setSubjectLectures] = useState<Lecture[]>([]);
-  const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
-
-  // Form State
-  const [lectureNum, setLectureNum] = useState<number>(1);
-  const [lectureTitle, setLectureTitle] = useState<string>('');
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string>('');
-
-  // Active Pipeline Tracking State
-  const [activeTrackingId, setActiveTrackingId] = useState<number | null>(null);
-  const [trackedLecture, setTrackedLecture] = useState<any>(null);
-  const [isPolling, setIsPolling] = useState(false);
-
-  // Diagnostics & Logs System State
-  const [showDiagnosticsModal, setShowDiagnosticsModal] = useState(false);
-  const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
-  const [isLoadingDiagnostics, setIsLoadingDiagnostics] = useState(false);
-  const [diagnosticsTab, setDiagnosticsTab] = useState<'overview' | 'matrix' | 'logs' | 'cohort'>('overview');
-  const [logsData, setLogsData] = useState<any[]>([]);
-  const [logsStats, setLogsStats] = useState<any>(null);
-  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
-  const [logFilterLevel, setLogFilterLevel] = useState<string>('ALL');
-  const [logSearch, setLogSearch] = useState<string>('');
-  const [matrixFilter, setMatrixFilter] = useState<'ALL' | 'COMPLETE' | 'INCOMPLETE'>('ALL');
-  const [matrixSearch, setMatrixSearch] = useState<string>('');
-  const [copiedReport, setCopiedReport] = useState(false);
-
-  // Live Cohort Analytics State
-  const [cohortAnalytics, setCohortAnalytics] = useState<any>(null);
-  const [isLoadingCohort, setIsLoadingCohort] = useState(false);
-
-  // Freeze background page scroll completely when a modal is open
-  useEffect(() => {
-    if (showDiagnosticsModal) {
-      lockBodyScroll();
-      return () => {
-        unlockBodyScroll();
-      };
-    }
-  }, [showDiagnosticsModal]);
-
-  const fetchDiagnostics = async () => {
-    setIsLoadingDiagnostics(true);
-    try {
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(getApiUrl('/api/diagnostics'), { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setDiagnosticsData(data);
-      }
-    } catch (e) {
-      console.error('Failed to fetch diagnostics:', e);
-    } finally {
-      setIsLoadingDiagnostics(false);
-    }
-  };
-
-  const fetchLogs = async () => {
-    setIsLoadingLogs(true);
-    try {
-      const params = new URLSearchParams();
-      if (logFilterLevel && logFilterLevel !== 'ALL') params.append('level', logFilterLevel);
-      if (logSearch) params.append('search', logSearch);
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(getApiUrl(`/api/diagnostics/logs?${params.toString()}`), { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setLogsData(data.logs || []);
-        setLogsStats(data.stats || null);
-      }
-    } catch (e) {
-      console.error('Failed to fetch logs:', e);
-    } finally {
-      setIsLoadingLogs(false);
-    }
-  };
-
-  const fetchCohortAnalytics = async () => {
-    setIsLoadingCohort(true);
-    try {
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const apiRes = await fetch(getApiUrl('/api/diagnostics/cohort-analytics'), { headers });
-      if (apiRes.ok) {
-        const apiData = await apiRes.json();
-        setCohortAnalytics(apiData);
-        return;
-      }
-
-      // Fallback if backend endpoint is temporarily unreachable
-      const [
-        profilesRes,
-        errorsRes,
-        mistakesRes,
-        challengeRes,
-        contribsCountRes
-      ] = await Promise.all([
-        supabase.from('profiles').select('id, nickname, total_xp, level, current_streak, created_at').order('created_at', { ascending: false }).limit(40),
-        supabase.from('ingestion_errors').select('*').order('created_at', { ascending: false }).limit(10),
-        supabase.from('mistake_notebook').select('id, box_level', { count: 'exact' }),
-        supabase.from('cohort_challenges').select('*').eq('is_active', true).limit(1),
-        supabase.from('cohort_challenge_contributions').select('id', { count: 'exact', head: true })
-      ]);
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const profiles = profilesRes.data || [];
-      const todayProfiles = profiles.filter((p: any) => (p.created_at || '').startsWith(todayStr));
-      const activeXpStudents = profiles.filter((p: any) => (p.total_xp || 0) > 0);
-
-      setCohortAnalytics({
-        totalProfilesCount: profiles.length,
-        todayProfilesCount: todayProfiles.length,
-        activeXpStudentsCount: activeXpStudents.length,
-        profilesList: profiles,
-        dauList: [],
-        retentionList: [],
-        mistakeReviewStats: null,
-        timeToFirstActionList: [],
-        hardestQuestionsList: [],
-        errorsList: errorsRes.data || [],
-        mistakesCount: mistakesRes.count || 0,
-        activeChallenge: challengeRes.data?.[0] || null,
-        totalContributions: contribsCountRes.count || 0,
-      });
-    } catch (err) {
-      console.error('Failed to fetch cohort analytics:', err);
-    } finally {
-      setIsLoadingCohort(false);
-    }
-  };
-
-  const handleClearLogs = async () => {
-    if (!confirm('هل تريد مسح سجلات السيرفر الحالية؟')) return;
-    try {
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      await fetch(getApiUrl('/api/diagnostics/clear-logs'), { method: 'POST', headers });
-      fetchLogs();
-    } catch (e) {
-      console.error('Failed to clear logs:', e);
-    }
-  };
-
-  const handleCopyReport = () => {
-    if (!diagnosticsData) return;
-    const reportText = `BSU Math AI Portal - تقرير فحص النظام السحابي
-تاريخ الفحص: ${new Date().toLocaleString('ar-EG')}
-حالة السيرفر: ${diagnosticsData.status}
-قاعدة بيانات Supabase: ${diagnosticsData.database?.status} (${diagnosticsData.database?.latency_ms}ms)
-تخزين تيليجرام MTProto: ${diagnosticsData.telegram_mtproto?.status} (القناة: ${diagnosticsData.telegram_mtproto?.channel_id})
-إجمالي المحاضرات: ${diagnosticsData.summary?.total_lectures}
-المحاضرات مكتملة الخمس خيارات: ${diagnosticsData.summary?.complete_5_of_5}
-الكويزات الجاهزة: ${diagnosticsData.summary?.total_quizzes_ready}/21
-الأدلة والملخصات الجاهزة: ${diagnosticsData.summary?.total_guides_ready}/21
-البطاقات الجاهزة: ${diagnosticsData.summary?.total_flashcards_ready}/21
-الملفات الصوتية: ${diagnosticsData.summary?.total_audios}/21
-الفيديوهات: ${diagnosticsData.summary?.total_videos}/21
-`;
-    navigator.clipboard.writeText(reportText);
-    setCopiedReport(true);
-    setTimeout(() => setCopiedReport(false), 2500);
-  };
-
-
-  // 1. Check Auth & Load Subjects on mount
-  useEffect(() => {
-    const savedToken = localStorage.getItem('adminToken');
-    const savedUser = localStorage.getItem('adminUser') || 'admin';
-    // Purge legacy client-fabricated tokens from the old insecure login flow
-    if (savedToken && savedToken.startsWith('bsu_master_academic_')) {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminUser');
-      router.push('/admin');
-      return;
-    }
-    if (!savedToken) {
-      router.push('/admin');
-      return;
-    }
-    setToken(savedToken);
-    setAdminUser(savedUser);
-    fetchSubjects();
-  }, [router]);
-
-  // 2. Fetch Subjects (High-Speed Direct Supabase Edge CDN with API fallback)
-  const fetchSubjects = async () => {
-    setIsLoadingSubjects(true);
-    try {
-      const data = await getDirectSupabaseSubjects();
-      const cleanData = (data || []).filter((s: any) => s.name && s.name.trim() !== 'كتب كامله');
-      if (cleanData.length > 0) {
-        setSubjects(cleanData);
-        if (!selectedSubjectId) {
-          setSelectedSubjectId(cleanData[0].id);
-        }
-        return;
-      }
-    } catch (err) {
-      console.warn('Direct Supabase fetch failed, trying local API fallback:', err);
-    }
-
-    try {
-      const res = await fetch(getApiUrl('/api/subjects'));
-      if (res.ok) {
-        const raw = await res.json();
-        const cleanData = (Array.isArray(raw) ? raw : []).filter((s: any) => s.name && s.name.trim() !== 'كتب كامله');
-        setSubjects(cleanData);
-        if (cleanData.length > 0 && !selectedSubjectId) {
-          setSelectedSubjectId(cleanData[0].id);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch subjects:', err);
-    } finally {
-      setIsLoadingSubjects(false);
-    }
-  };
-
-  // 3. Fetch lectures whenever selected subject or doctor changes
-  useEffect(() => {
-    if (!selectedSubjectId) return;
-    const currentSub = subjects.find(s => s.id === selectedSubjectId);
-    if (currentSub?.doctors && currentSub.doctors.length > 0) {
-      if (!selectedDoctor || !currentSub.doctors.includes(selectedDoctor)) {
-        setSelectedDoctor(currentSub.doctors[0]);
-        return;
-      }
-    } else {
-      if (selectedDoctor) setSelectedDoctor('');
-    }
-
-    const fetchLectures = async () => {
-      try {
-        const data = await getDirectSupabaseLectures(selectedSubjectId, selectedDoctor || undefined);
-        if (data) {
-          setSubjectLectures(data as Lecture[]);
-          const relevant = data.filter((l: any) => !selectedDoctor || l.doctor === selectedDoctor);
-          const maxNum = relevant.reduce((max: number, l: any) => Math.max(max, l.lecture_num), 0);
-          setLectureNum(maxNum + 1);
-          setLectureTitle(`المحاضرة ${maxNum + 1}`);
-          return;
-        }
-      } catch (e) {
-        console.warn('Direct Supabase lecture fetch failed, trying local API:', e);
-      }
-
-      try {
-        const res = await fetch(getApiUrl(`/api/subjects/${selectedSubjectId}/lectures`));
-        if (res.ok) {
-          const data = await res.json();
-          setSubjectLectures(data);
-          const relevant = data.filter((l: Lecture) => !selectedDoctor || l.doctor === selectedDoctor);
-          const maxNum = relevant.reduce((max: number, l: Lecture) => Math.max(max, l.lecture_num), 0);
-          setLectureNum(maxNum + 1);
-          setLectureTitle(`المحاضرة ${maxNum + 1}`);
-        }
-      } catch (err) {
-        console.error('Failed to load lectures:', err);
-      }
-    };
-    fetchLectures();
-  }, [selectedSubjectId, selectedDoctor, subjects]);
-
-
-  // 4. Poll active tracking lecture directly from Supabase Edge
-  useEffect(() => {
-    if (!activeTrackingId) return;
-
-    let intervalId: any = null;
-    const checkStatus = async () => {
-      try {
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/lectures?id=eq.${activeTrackingId}&select=id,lecture_num,title,doctor,status,stage_info,error_message,media_assets(*)`,
-          {
-            headers: {
-              'apikey': SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-            }
-          }
-        );
-        if (res.ok) {
-          const rows = await res.json();
-          if (rows && rows.length > 0) {
-            const l = rows[0];
-            const assets = (l.media_assets || []).map((a: any) => ({
-              id: a.id,
-              asset_type: a.asset_type,
-              title: a.title,
-              file_size_bytes: a.file_size_bytes || 0,
-              has_telegram: Boolean(a.telegram_file_id),
-              stream_url: getApiUrl(`/api/stream/${a.id}`)
-            }));
-            setTrackedLecture({
-              id: l.id,
-              lecture_num: l.lecture_num,
-              title: l.title,
-              doctor: l.doctor,
-              status: l.status,
-              stage_info: l.stage_info,
-              error_message: l.error_message,
-              assets
-            });
-            if (l.status === 'completed' || l.status === 'failed') {
-              setIsPolling(false);
-              clearInterval(intervalId);
-              // Refresh lectures list
-              if (selectedSubjectId) {
-                const refreshed = await getDirectSupabaseLectures(selectedSubjectId, selectedDoctor || undefined);
-                if (refreshed) setSubjectLectures(refreshed as Lecture[]);
-              }
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Polling error:', e);
-      }
-    };
-
-    setIsPolling(true);
-    checkStatus();
-    intervalId = setInterval(checkStatus, 3000);
-
-    return () => clearInterval(intervalId);
-  }, [activeTrackingId, selectedSubjectId, selectedDoctor]);
-
-  // Logout
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    router.push('/admin');
-  };
-
-  // File selection
-  const MAX_PDF_BYTES = 45 * 1024 * 1024; // matches the pipeline's storage cap
-
-  const validatePdf = async (file: File): Promise<string | null> => {
-    if (file.size > MAX_PDF_BYTES) {
-      return `الملف '${file.name}' كبير جداً (${(file.size / (1024*1024)).toFixed(1)} ميجا) — الحد الأقصى 45 ميجابايت`;
-    }
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      return `الملف '${file.name}' ليس PDF — يُقبل ملف المحاضرة بصيغة PDF فقط`;
-    }
-    // Magic-byte check: catches files renamed to .pdf (real PDFs start with %PDF-)
-    const head = new Uint8Array(await file.slice(0, 5).arrayBuffer());
-    const signature = String.fromCharCode(...head);
-    if (signature !== '%PDF-') {
-      return `الملف '${file.name}' ليس PDF حقيقياً (المحتوى لا يطابق صيغة PDF)`;
-    }
-    return null;
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const incoming = Array.from(e.target.files);
-      const newValidFiles: File[] = [];
-      for (const file of incoming) {
-        const error = await validatePdf(file);
-        if (error) {
-          setUploadError(`تنبيه بخصوص ${file.name}: ${error}`);
-          continue;
-        }
-        newValidFiles.push(file);
-      }
-      if (newValidFiles.length > 0) {
-        setSelectedFiles(prev => {
-          const existingNames = new Set(prev.map(f => f.name));
-          const unique = newValidFiles.filter(f => !existingNames.has(f.name));
-          return [...prev, ...unique];
-        });
-        setUploadError('');
-      }
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  // Handle Drag & Drop
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const incoming = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
-      if (incoming.length === 0) {
-        setUploadError('يرجى سحب ملفات بصيغة PDF فقط');
-        return;
-      }
-      const newValidFiles: File[] = [];
-      for (const file of incoming) {
-        const error = await validatePdf(file);
-        if (error) {
-          setUploadError(`تنبيه بخصوص ${file.name}: ${error}`);
-          continue;
-        }
-        newValidFiles.push(file);
-      }
-      if (newValidFiles.length > 0) {
-        setSelectedFiles(prev => {
-          const existingNames = new Set(prev.map(f => f.name));
-          const unique = newValidFiles.filter(f => !existingNames.has(f.name));
-          return [...prev, ...unique];
-        });
-        setUploadError('');
-      }
-    }
-  };
-
-  // Remove individual file by index
-  const handleRemoveFile = (indexToRemove: number, e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    setSelectedFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
-  };
-
-  // Clear all selected files
-  const handleClearAllFiles = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    setSelectedFiles([]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  // Upload Submission (Autonomous Cloud Pipeline + Local Server Fallback)
-  const handleUploadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setUploadError('');
-
-    if (!selectedSubjectId) {
-      setUploadError('يرجى اختيار المادة أولاً');
-      return;
-    }
-
-    if (selectedFiles.length === 0) {
-      setUploadError('يرجى اختيار ملف PDF واحد على الأقل للمحاضرة');
-      return;
-    }
-
-    const currentSub = subjects.find(s => s.id === selectedSubjectId);
-    if (!currentSub) {
-      setUploadError('بيانات المادة غير صالحة');
-      return;
-    }
-
-    setIsUploading(true);
-
-    // 1. Try the FastAPI upload ONLY for local dev servers configured to process inline.
-    const PRODUCTION_CLOUD_APIS = [
-      'https://api.bsumath.bond',
-    ];
-    const apiBase = getApiBaseUrl();
-    const canBackendProcess = !PRODUCTION_CLOUD_APIS.includes(apiBase);
-
-    let uploadDone = false;
-    if (canBackendProcess) {
-      try {
-        const formData = new FormData();
-        formData.append('subject_id', selectedSubjectId.toString());
-        formData.append('lecture_num', lectureNum.toString());
-        if (selectedDoctor) formData.append('doctor', selectedDoctor);
-        if (lectureTitle) formData.append('title', lectureTitle);
-        selectedFiles.forEach((file) => formData.append('files', file));
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for large lecture PDFs
-
-        const res = await fetch(getApiUrl('/api/upload'), {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: formData,
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          const data = await res.json();
-          setActiveTrackingId(data.lecture_id);
-          setSelectedFiles([]);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-          uploadDone = true;
-        }
-      } catch {
-        // Local backend offline -> proceed autonomously with pure cloud pipeline
-      }
-    }
-
-    if (uploadDone) {
-      setIsUploading(false);
-      return;
-    }
-
-    // 2. Direct Autonomous Cloud Pipeline: Upload ALL files to Supabase Storage
-    try {
-      const uploadedFilesInfo: { url: string; title: string; size: number }[] = [];
-
-      for (const file of selectedFiles) {
-        const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const storageKey = `${selectedSubjectId}/lec${lectureNum}/${Date.now()}_${cleanFileName}`;
-
-        // A. Upload PDF to Supabase Storage Public Bucket
-        const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/lectures/${storageKey}`, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/pdf',
-            'x-upsert': 'true'
-          },
-          body: file
-        });
-
-        if (!uploadRes.ok) {
-          throw new Error(`فشل رفع ملف (${file.name}) إلى سيرفر التخزين السحابي`);
-        }
-
-        const publicPdfUrl = `${SUPABASE_URL}/storage/v1/object/public/lectures/${storageKey}`;
-        uploadedFilesInfo.push({
-          url: publicPdfUrl,
-          title: file.name,
-          size: file.size
-        });
-      }
-
-      // B. Register the lecture with ALL files via the JWT-protected backend endpoint
-      const registerRes = await fetch(getApiUrl('/api/lectures/register'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          subject_id: selectedSubjectId,
-          lecture_num: lectureNum,
-          title: lectureTitle || `المحاضرة ${lectureNum}`,
-          doctor: selectedDoctor || null,
-          source_pdf_url: uploadedFilesInfo[0].url,
-          files: uploadedFilesInfo
-        })
-      });
-
-      if (!registerRes.ok) {
-        if (registerRes.status === 401) {
-          throw new Error('انتهت صلاحية جلسة تسجيل الدخول، يرجى تسجيل الدخول مجدداً');
-        }
-        const errJson = await registerRes.json().catch(() => ({}));
-        throw new Error(errJson.detail || 'فشل تسجيل المحاضرة في قاعدة البيانات السحابية');
-      }
-
-      const upsertResult = await registerRes.json();
-      const lectureId: number = upsertResult.id;
-
-      setActiveTrackingId(lectureId);
-      setSelectedFiles([]);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err: any) {
-      console.error('Autonomous cloud upload error:', err);
-      const isNetworkError = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(String(err?.message));
-      setUploadError(
-        isNetworkError
-          ? 'تعذر الاتصال بالسيرفر السحابي — اتأكدي من الإنترنت وحاولي تاني.'
-          : (err?.message || 'حدث خطأ أثناء الرفع السحابي')
-      );
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
+  const {
+    showDiagnosticsModal,
+    setShowDiagnosticsModal,
+    diagnosticsData,
+    isLoadingDiagnostics,
+    diagnosticsTab,
+    setDiagnosticsTab,
+    logsData,
+    logsStats,
+    isLoadingLogs,
+    logFilterLevel,
+    setLogFilterLevel,
+    logSearch,
+    setLogSearch,
+    matrixFilter,
+    setMatrixFilter,
+    matrixSearch,
+    setMatrixSearch,
+    copiedReport,
+    cohortAnalytics,
+    isLoadingCohort,
+    fetchDiagnostics,
+    fetchLogs,
+    fetchCohortAnalytics,
+    handleClearLogs,
+    handleCopyReport,
+  } = useAdminDiagnostics(token);
 
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col transition-colors selection:bg-teal-500/25 selection:text-teal-200"
       style={{
         backgroundColor: 'var(--bg-page)',
-        color: 'var(--text-primary)'
+        color: 'var(--text-primary)',
       }}
     >
-      
       {/* Top Glass Navigation Bar */}
-      <header 
+      <header
         className="sticky top-0 z-50 border-b backdrop-blur-xl transition-colors"
         style={{
           backgroundColor: 'var(--bg-surface-translucent)',
-          borderColor: 'var(--border-subtle)'
+          borderColor: 'var(--border-subtle)',
         }}
       >
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 min-h-[3.75rem] sm:min-h-[4.5rem] py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-4">
-          
           {/* Logo & Platform Info */}
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
-            <div 
+            <div
               className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shadow-lg shrink-0"
               style={{ backgroundColor: 'var(--accent-primary)', color: '#ffffff' }}
             >
               <Sparkles className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-              <h1 className="font-black text-xs xs:text-sm sm:text-xl lg:text-2xl tracking-tight leading-tight" style={{ color: 'var(--text-primary)' }}>
+              <h1
+                className="font-black text-xs xs:text-sm sm:text-xl lg:text-2xl tracking-tight leading-tight"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 <span className="hidden sm:inline">لوحة الإدارة والرفع الذكي</span>
                 <span className="sm:hidden">لوحة الإدارة</span>
               </h1>
-              <p className="text-xs sm:text-sm hidden md:block font-bold mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>
+              <p
+                className="text-xs sm:text-sm hidden md:block font-bold mt-0.5 truncate"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 قسم الرياضيات | جامعة بني سويف
               </p>
             </div>
@@ -688,7 +130,7 @@ export default function AdminDashboardPage() {
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
-                color: 'var(--text-primary)'
+                color: 'var(--text-primary)',
               }}
             >
               <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-500 shrink-0" />
@@ -706,7 +148,7 @@ export default function AdminDashboardPage() {
               style={{
                 backgroundColor: 'rgba(16, 185, 129, 0.15)',
                 borderColor: 'rgba(16, 185, 129, 0.4)',
-                color: '#10b981'
+                color: '#10b981',
               }}
             >
               <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-emerald-500" />
@@ -723,7 +165,7 @@ export default function AdminDashboardPage() {
               style={{
                 backgroundColor: 'var(--accent-primary)',
                 borderColor: 'var(--accent-primary)',
-                color: '#ffffff'
+                color: '#ffffff',
               }}
             >
               <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
@@ -737,7 +179,7 @@ export default function AdminDashboardPage() {
               style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
-                color: 'var(--text-secondary)'
+                color: 'var(--text-secondary)',
               }}
             >
               <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -748,57 +190,74 @@ export default function AdminDashboardPage() {
 
       {/* Main Content Dashboard */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
         {/* KPI Quick Stats Row */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4 sm:gap-6">
-          <div 
+          <div
             className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--card-shadow)'
+              boxShadow: 'var(--card-shadow)',
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm sm:text-base font-black uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+              <span
+                className="text-sm sm:text-base font-black uppercase tracking-wider"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 المواد المسجلة
               </span>
-              <div 
+              <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center shadow-xs"
-                style={{ backgroundColor: 'var(--bg-surface-elevated)', color: 'var(--accent-primary)' }}
+                style={{
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  color: 'var(--accent-primary)',
+                }}
               >
                 <BookOpen className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            <div
+              className="text-3xl sm:text-4xl font-black tracking-tight"
+              style={{ color: 'var(--text-primary)' }}
+            >
               {subjects.length}
             </div>
-            <div className="text-xs sm:text-sm mt-2 flex items-center gap-1.5 font-black" style={{ color: 'var(--accent-primary)' }}>
+            <div
+              className="text-xs sm:text-sm mt-2 flex items-center gap-1.5 font-black"
+              style={{ color: 'var(--accent-primary)' }}
+            >
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>جاهزة ومربوطة بالبرومبتس</span>
             </div>
           </div>
 
-          <div 
+          <div
             className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--card-shadow)'
+              boxShadow: 'var(--card-shadow)',
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm sm:text-base font-black uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+              <span
+                className="text-sm sm:text-base font-black uppercase tracking-wider"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 المحاضرات الجاهزة
               </span>
-              <div 
+              <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-cyan-500 shadow-xs"
                 style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
               >
                 <GraduationCap className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            <div
+              className="text-3xl sm:text-4xl font-black tracking-tight"
+              style={{ color: 'var(--text-primary)' }}
+            >
               {subjects.reduce((sum, s) => sum + s.lecture_count, 0)}
             </div>
             <div className="text-xs sm:text-sm text-cyan-600 dark:text-cyan-300 mt-2 flex items-center gap-1.5 font-black">
@@ -807,26 +266,32 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div 
+          <div
             className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--card-shadow)'
+              boxShadow: 'var(--card-shadow)',
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm sm:text-base font-black uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+              <span
+                className="text-sm sm:text-base font-black uppercase tracking-wider"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 سعة التخزين
               </span>
-              <div 
+              <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-sky-500 shadow-xs"
                 style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
               >
                 <Cloud className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            <div
+              className="text-3xl sm:text-4xl font-black tracking-tight"
+              style={{ color: 'var(--text-primary)' }}
+            >
               ∞ لا نهائي
             </div>
             <div className="text-xs sm:text-sm text-sky-600 dark:text-sky-300 mt-2 flex items-center gap-1.5 font-black">
@@ -835,26 +300,32 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div 
+          <div
             className="p-5 sm:p-6 rounded-3xl border transition-all relative overflow-hidden group shadow-sm hover:shadow-md"
             style={{
               backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--card-shadow)'
+              boxShadow: 'var(--card-shadow)',
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm sm:text-base font-black uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+              <span
+                className="text-sm sm:text-base font-black uppercase tracking-wider"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 محرك الذكاء
               </span>
-              <div 
+              <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-emerald-500 shadow-xs"
                 style={{ backgroundColor: 'var(--bg-surface-elevated)' }}
               >
                 <Headphones className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-black tracking-tight truncate" style={{ color: 'var(--text-primary)' }}>
+            <div
+              className="text-2xl sm:text-3xl font-black tracking-tight truncate"
+              style={{ color: 'var(--text-primary)' }}
+            >
               المصرية 🇪🇬
             </div>
             <div className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-300 mt-2 flex items-center gap-1.5 font-black">
@@ -864,655 +335,42 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Live Active Job Tracking Card (if any lecture is being generated) */}
-        {trackedLecture && (
-          <div 
-            className="p-6 rounded-3xl border relative overflow-hidden animate-in fade-in slide-in-from-top-4 shadow-xl transition-all"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--accent-primary)',
-              boxShadow: 'var(--card-shadow-hover)'
-            }}
-          >
-            <div 
-              className="absolute top-0 right-0 left-0 h-1.5"
-              style={{ backgroundColor: 'var(--accent-primary)' }}
-            />
+        {/* Live Active Job Tracking Card */}
+        <AdminTrackedLectureCard trackedLecture={trackedLecture} />
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center border shadow-xs"
-                  style={{
-                    backgroundColor: 'var(--bg-surface-elevated)',
-                    borderColor: 'var(--border-prominent)',
-                    color: 'var(--accent-primary)'
-                  }}
-                >
-                  {trackedLecture.status === 'completed' ? (
-                    <CheckCircle2 className="w-7 h-7 text-emerald-500" />
-                  ) : (
-                    <RefreshCw className="w-6 h-6 animate-spin" />
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span 
-                      className="text-xs sm:text-sm font-black px-3 py-1 rounded-full border"
-                      style={{
-                        backgroundColor: 'var(--bg-surface-elevated)',
-                        borderColor: 'var(--border-prominent)',
-                        color: 'var(--accent-primary)'
-                      }}
-                    >
-                      متابعة خط الإنتاج اللحظي
-                    </span>
-                    <span className="text-xs sm:text-sm font-bold font-mono" style={{ color: 'var(--text-secondary)' }}>#{trackedLecture.id}</span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-black mt-1.5" style={{ color: 'var(--text-primary)' }}>
-                    {trackedLecture.title || `المحاضرة ${trackedLecture.lecture_num}`}
-                  </h3>
-                </div>
-              </div>
-
-              {/* Status Badge */}
-              <div className="flex items-center gap-2 self-start md:self-center">
-                {trackedLecture.status === 'completed' ? (
-                  <span className="px-4 py-2.5 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-black text-sm sm:text-base flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                    <span>اكتملت جميع المخرجات بنجاح</span>
-                  </span>
-                ) : trackedLecture.status === 'failed' ? (
-                  <span className="px-4 py-2.5 rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-500/30 font-black text-sm sm:text-base flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-rose-500" />
-                    <span>فشلت العملية</span>
-                  </span>
-                ) : (
-                  <span 
-                    className="px-4 py-2.5 rounded-2xl border font-black text-sm sm:text-base flex items-center gap-2"
-                    style={{
-                      backgroundColor: 'var(--bg-surface-elevated)',
-                      borderColor: 'var(--border-interactive)',
-                      color: 'var(--text-primary)'
-                    }}
-                  >
-                    <RefreshCw className="w-4 h-4 animate-spin" style={{ color: 'var(--accent-primary)' }} />
-                    <span>{trackedLecture.stage_info || 'جاري المعالجة والإنتاج...'}</span>
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Stepper Visualization */}
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,130px),1fr))] gap-2.5 sm:gap-3 pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-              <div 
-                className="p-3.5 rounded-2xl border text-center transition-all"
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderColor: 'var(--border-subtle)'
-                }}
-              >
-                <FileText className="w-5 h-5 mx-auto mb-1 text-cyan-500" />
-                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>1. استلام الـ PDF</span>
-                <span className="text-xs text-emerald-600 dark:text-emerald-300 font-bold">تم التأكيد ✓</span>
-              </div>
-              <div 
-                className="p-3.5 rounded-2xl border text-center transition-all"
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderColor: 'var(--border-subtle)'
-                }}
-              >
-                <Brain className="w-5 h-5 mx-auto mb-1 text-purple-500" />
-                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>2. حقن البرومبت</span>
-                <span className="text-xs text-emerald-600 dark:text-emerald-300 font-bold">المادة المعتمدة ✓</span>
-              </div>
-              <div 
-                className="p-3.5 rounded-2xl border text-center transition-all"
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderColor: 'var(--border-subtle)'
-                }}
-              >
-                <Headphones className="w-5 h-5 mx-auto mb-1 text-teal-500" />
-                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>3. بودكاست مصري</span>
-                <span className="text-xs text-teal-600 dark:text-teal-300 font-bold">NotebookLM</span>
-              </div>
-              <div 
-                className="p-3.5 rounded-2xl border text-center transition-all"
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderColor: 'var(--border-subtle)'
-                }}
-              >
-                <Video className="w-5 h-5 mx-auto mb-1 text-amber-500" />
-                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>4. فيديو وكويز</span>
-                <span className="text-xs text-amber-600 dark:text-amber-300 font-bold">إنتاج الباقة</span>
-              </div>
-              <div 
-                className="p-3.5 rounded-2xl border text-center col-span-2 sm:col-span-1 transition-all"
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderColor: 'var(--border-subtle)'
-                }}
-              >
-                <Cloud className="w-5 h-5 mx-auto mb-1 text-sky-500" />
-                <span className="block text-xs sm:text-sm font-black" style={{ color: 'var(--text-primary)' }}>5. رفع تليجرام CDN</span>
-                <span className="text-xs text-sky-600 dark:text-sky-300 font-bold">التخزين الدائم</span>
-              </div>
-            </div>
-
-            {/* Generated Assets Preview (when complete) */}
-            {trackedLecture.assets && trackedLecture.assets.length > 0 && (
-              <div className="mt-6 pt-5 border-t flex flex-wrap items-center justify-between gap-3" style={{ borderColor: 'var(--border-subtle)' }}>
-                <div className="flex flex-wrap gap-2.5">
-                  {trackedLecture.assets.map((asset: LectureAsset) => (
-                    <span 
-                      key={asset.id} 
-                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-black shadow-xs"
-                      style={{
-                        backgroundColor: 'var(--bg-surface-elevated)',
-                        borderColor: 'var(--border-subtle)',
-                        color: 'var(--text-primary)'
-                      }}
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span>{asset.title}</span>
-                      <span className="text-xs font-mono font-bold" style={{ color: 'var(--text-secondary)' }}>
-                        ({asset.file_size_bytes ? `${(asset.file_size_bytes / (1024*1024)).toFixed(1)}MB` : 'مكتمل'})
-                      </span>
-                    </span>
-                  ))}
-                </div>
-
-                <Link
-                  href={`/`}
-                  className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-white font-black text-sm shadow-lg hover:opacity-95 transition-all"
-                  style={{ backgroundColor: 'var(--accent-primary)' }}
-                >
-                  <Play className="w-4 h-4" />
-                  <span>معاينة في بوابة الطلاب</span>
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Two-Column Studio: Uploader Form & Subject Lectures Browser */}
+        {/* Two-Column Studio */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start w-full max-w-full min-w-0">
-          
-          {/* Column 1: The Smart Uploader Form (7 cols) */}
-          <div 
-            className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border transition-all shadow-xl min-w-0 w-full"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--card-shadow)'
-            }}
-          >
-            
-            <div className="flex items-center justify-between mb-5 pb-3.5 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-              <div>
-                <h2 className="text-base sm:text-lg md:text-xl font-extrabold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                  <UploadCloud className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: 'var(--accent-primary)' }} />
-                  <span>رفع محاضرة جديدة وإطلاق الذكاء الاصطناعي</span>
-                </h2>
-                <p className="text-xs sm:text-sm font-medium mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                  ارفع ملف الـ PDF وسيقوم المحرك بتوليد الشرح الصوتي، الفيديو، الكويز، والملخص تلقائياً في السحابة.
-                </p>
-              </div>
-            </div>
+          <AdminSmartUploaderForm
+            subjects={subjects}
+            selectedSubjectId={selectedSubjectId}
+            setSelectedSubjectId={setSelectedSubjectId}
+            selectedSubject={selectedSubject}
+            selectedDoctor={selectedDoctor}
+            setSelectedDoctor={setSelectedDoctor}
+            subjectLectures={subjectLectures}
+            lectureNum={lectureNum}
+            setLectureNum={setLectureNum}
+            lectureTitle={lectureTitle}
+            setLectureTitle={setLectureTitle}
+            selectedFiles={selectedFiles}
+            isUploading={isUploading}
+            uploadError={uploadError}
+            fileInputRef={fileInputRef}
+            handleFileChange={handleFileChange}
+            handleDrop={handleDrop}
+            handleRemoveFile={handleRemoveFile}
+            handleClearAllFiles={handleClearAllFiles}
+            handleUploadSubmit={handleUploadSubmit}
+          />
 
-            {uploadError && (
-              <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center gap-2.5 text-rose-600 dark:text-rose-300 text-xs sm:text-sm font-bold">
-                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                <span>{uploadError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleUploadSubmit} className="space-y-5">
-              
-              {/* Step 1: Subject Picker */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs sm:text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-                    1. اختر المادة الدراسية ({subjects.length} مادة متاحة)
-                  </label>
-                  <span className="md:hidden text-[11px] font-semibold flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-                    <span>اسحب المقررات أفقياً</span>
-                    <span className="text-[10px] opacity-75">↔</span>
-                  </span>
-                </div>
-                
-                {/* Horizontal Swipe Rail on Mobile, Grid on Tablet/Desktop */}
-                <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,135px),1fr))] overflow-x-auto md:overflow-x-visible overscroll-x-contain touch-pan-x snap-x snap-mandatory gap-2 sm:gap-2.5 pb-2.5 pt-1 md:py-0 px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {subjects.map((sub) => {
-                    const isSelected = sub.id === selectedSubjectId;
-                    return (
-                      <button
-                        type="button"
-                        key={sub.id}
-                        onClick={() => setSelectedSubjectId(sub.id)}
-                        className={`p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer min-h-[72px] sm:min-h-[75px] w-[138px] xs:w-[150px] md:w-auto shrink-0 snap-start scroll-mt-24 ${
-                          isSelected ? 'ring-2 ring-cyan-500/50 shadow-md sm:scale-[1.02]' : 'sm:hover:scale-[1.01]'
-                        }`}
-                        style={{
-                          backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
-                          borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                          color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
-                        }}
-                      >
-                        <span className="font-bold text-xs sm:text-sm leading-snug line-clamp-2">{sub.name}</span>
-                        <div className="mt-2 flex items-center justify-between text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">{sub.lecture_count} محاضرات</span>
-                          {sub.has_prompt && (
-                            <span className="font-bold text-[10px] px-1 py-0.5 rounded border text-emerald-500" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-prominent)' }}>
-                              برومبت ✓
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Optional Doctor Picker if subject has multiple doctor tracks */}
-              {selectedSubject?.doctors && selectedSubject.doctors.length > 0 && (
-                <div className="pt-1">
-                  <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
-                    مسار الدكتور / أستاذ المادة
-                  </label>
-                  <div className="flex flex-wrap gap-2 sm:gap-2.5">
-                    {selectedSubject.doctors.map((doc) => {
-                      const isSelected = selectedDoctor === doc;
-                      const isFemale = doc.includes('مروة') || doc.includes('ايمان') || doc.includes('ايه');
-                      return (
-                        <button
-                          type="button"
-                          key={doc}
-                          onClick={() => setSelectedDoctor(doc)}
-                          className={`p-2.5 sm:p-3 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer flex-1 min-w-[130px] ${
-                            isSelected ? 'ring-2 ring-cyan-500/50 shadow-sm' : ''
-                          }`}
-                          style={{
-                            backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
-                            borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                            color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'
-                          }}
-                        >
-                          <span className="text-sm">{isFemale ? '👩‍🏫' : '👨‍🏫'}</span>
-                          <span>{doc}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Step 2: Lecture Info */}
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3 sm:gap-4 pt-1">
-                <div>
-                  <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
-                    رقم المحاضرة
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={lectureNum}
-                    onChange={(e) => setLectureNum(parseInt(e.target.value) || 1)}
-                    className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border text-sm sm:text-base font-bold focus:outline-none transition-all"
-                    style={{
-                      backgroundColor: 'var(--bg-surface-elevated)',
-                      borderColor: subjectLectures.some((l: Lecture) => l.lecture_num === lectureNum)
-                        ? 'var(--accent-warning, #f59e0b)'
-                        : 'var(--border-prominent)',
-                      color: 'var(--text-primary)'
-                    }}
-                    required
-                  />
-                  {subjectLectures.some((l: Lecture) => l.lecture_num === lectureNum) && (
-                    <p className="text-[11px] sm:text-xs font-black mt-1.5 text-amber-600 dark:text-amber-400 leading-relaxed">
-                      ⚠️ محاضرة بهذا الرقم موجودة — الرفع هيستبدل ملفاتها ويعيد معالجتها من الصفر
-                    </p>
-                  )}
-                </div>
-                
-                <div className="sm:col-span-2">
-                  <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
-                    عنوان المحاضرة (اختياري)
-                  </label>
-                  <input
-                    type="text"
-                    value={lectureTitle}
-                    onChange={(e) => setLectureTitle(e.target.value)}
-                    placeholder="مثال: مفهوم المنحنى وطول القوس في الفراغ"
-                    className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border text-sm sm:text-base font-medium focus:outline-none transition-all placeholder:text-slate-400"
-                    style={{
-                      backgroundColor: 'var(--bg-surface-elevated)',
-                      borderColor: 'var(--border-prominent)',
-                      color: 'var(--text-primary)'
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Step 3: Drag & Drop Zone */}
-              <div>
-                <label className="block text-xs sm:text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
-                  2. رفع ملفات المحاضرة (PDF)
-                </label>
-                
-                <div
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-2xl p-5 sm:p-7 text-center cursor-pointer transition-all group"
-                  style={{
-                    backgroundColor: 'var(--bg-surface-elevated)',
-                    borderColor: 'var(--border-prominent)'
-                  }}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,application/pdf"
-                    multiple
-                    onChange={handleFileChange}
-                    className="hidden"
-                    style={{ display: 'none' }}
-                  />
-
-                  <div
-                    className="w-12 h-12 mx-auto mb-2.5 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-xs"
-                    style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--accent-primary)' }}
-                  >
-                    <UploadCloud className="w-6 h-6" />
-                  </div>
-
-                  <p className="text-sm sm:text-base font-bold" style={{ color: 'var(--text-primary)' }}>
-                    اسحب ملفات الـ PDF وأفلتها هنا، أو <span style={{ color: 'var(--accent-primary)' }} className="underline font-bold">تصفح ملفاتك</span>
-                  </p>
-                  <p className="text-xs sm:text-sm font-medium mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    ارفع ملفات المحاضرة المعتمدة (السبورات + الكتاب المقرر + التلخيص) — يمكنك اختيار وإفلات عدة ملفات معاً
-                  </p>
-
-                  {/* Selected files preview badge list with removal option */}
-                  {selectedFiles.length > 0 && (
-                    <div 
-                      className="mt-4 pt-3.5 border-t space-y-2.5 text-right" 
-                      style={{ borderColor: 'var(--border-subtle)' }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-                          الملفات المختارة ({selectedFiles.length}):
-                        </span>
-                        {selectedFiles.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={handleClearAllFiles}
-                            className="text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>مسح كل الملفات</span>
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap justify-center gap-2">
-                        {selectedFiles.map((f, idx) => {
-                          const isBook = /كتاب|book/i.test(f.name);
-                          const isSlides = /سبور|سلايد|slides|blackboard|lec/i.test(f.name);
-                          const isNotes = /تلخيص|ملخص|notes/i.test(f.name);
-                          const badgeText = isBook ? '📚 جزء الكتاب' : isNotes ? '✍️ تلخيص يدوي' : isSlides ? '🖼️ سبورات / سلايدات' : '📄 ملف أصلي';
-
-                          return (
-                            <div
-                              key={idx}
-                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black shadow-xs transition-all group/item"
-                              style={{
-                                backgroundColor: 'var(--bg-surface)',
-                                borderColor: 'var(--border-interactive)',
-                                color: 'var(--text-primary)'
-                              }}
-                            >
-                              <FileText className="w-4 h-4 shrink-0 text-emerald-500" />
-                              <span className="truncate max-w-[160px] sm:max-w-[220px]" title={f.name}>
-                                {f.name}
-                              </span>
-                              <span 
-                                className="text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-md font-bold shrink-0 border"
-                                style={{
-                                  backgroundColor: isBook ? 'rgba(59, 130, 246, 0.1)' : isNotes ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                                  borderColor: isBook ? 'rgba(59, 130, 246, 0.3)' : isNotes ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)',
-                                  color: isBook ? '#3B82F6' : isNotes ? '#10B981' : '#F59E0B'
-                                }}
-                              >
-                                {badgeText}
-                              </span>
-                              <span dir="ltr" className="text-xs font-mono font-bold shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                {(f.size / (1024*1024)).toFixed(2)} MB
-                              </span>
-                              <button
-                                type="button"
-                                onClick={(e) => handleRemoveFile(idx, e)}
-                                className="p-1 rounded-lg hover:bg-rose-500/20 text-rose-500 hover:text-rose-600 transition-colors shrink-0 cursor-pointer ml-1"
-                                title="إلغاء هذا الملف"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Step 4: Included AI Bundle Highlights */}
-              <div 
-                className="p-5 rounded-2xl border transition-colors shadow-xs"
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderColor: 'var(--border-subtle)',
-                  color: 'var(--text-secondary)'
-                }}
-              >
-                <span className="text-sm sm:text-base font-black block mb-3" style={{ color: 'var(--text-primary)' }}>
-                  ✨ ما سيتم إنتاجه تلقائياً من خلال هذا الرفع:
-                </span>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,115px),1fr))] gap-3 text-xs sm:text-sm font-black">
-                  <div className="flex items-center gap-2 text-sky-600 dark:text-sky-300">
-                    <Headphones className="w-4.5 h-4.5 text-sky-500 shrink-0" />
-                    <span>بودكاست مصري (30د)</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-300">
-                    <Video className="w-4.5 h-4.5 text-purple-500 shrink-0" />
-                    <span>فيديو شرح توضيحي</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-300">
-                    <HelpCircle className="w-4.5 h-4.5 text-cyan-500 shrink-0" />
-                    <span>كويز تفاعلي فوري</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-300">
-                    <FileCheck className="w-4.5 h-4.5 text-emerald-500 shrink-0" />
-                    <span>دليل دراسي وملخص</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-300">
-                    <Layers className="w-4.5 h-4.5 text-amber-500 shrink-0" />
-                    <span>بطاقات استذكار</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sky-600 dark:text-sky-300">
-                    <Cloud className="w-4.5 h-4.5 text-sky-500 shrink-0" />
-                    <span>تخزين تليجرام CDN</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isUploading || selectedFiles.length === 0}
-                className="w-full py-4.5 px-6 rounded-2xl font-black text-base sm:text-lg transition-all flex items-center justify-center gap-3 shadow-xl hover:opacity-95 active:scale-[0.99] cursor-pointer disabled:opacity-50 text-white"
-                style={{
-                  backgroundColor: 'var(--accent-primary)',
-                  boxShadow: 'var(--card-shadow-hover)'
-                }}
-              >
-                {isUploading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    <span>جاري الرفع وإدراج المحاضرة في خط الإنتاج السحابي...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    <span>بدء خط الإنتاج الذكي للمحاضرة 🚀</span>
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-
-          {/* Column 2: Subject Lectures Explorer (5 cols) */}
-          <div className="lg:col-span-5 space-y-6 min-w-0 w-full">
-            
-            <div 
-              className="p-6 rounded-3xl border transition-all shadow-xl"
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-                boxShadow: 'var(--card-shadow)'
-              }}
-            >
-              <div className="flex items-center justify-between mb-4 pb-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                <div>
-                  <h3 className="font-black text-lg sm:text-xl flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
-                    <BookOpen className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
-                    <span>محاضرات {selectedSubject?.name || 'المادة المحددة'}</span>
-                  </h3>
-                  <p className="text-sm font-bold mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    إجمالي {subjectLectures.length} محاضرة مسجلة في قاعدة البيانات
-                  </p>
-                </div>
-              </div>
-
-              {subjectLectures.length === 0 ? (
-                <div className="text-center py-10" style={{ color: 'var(--text-secondary)' }}>
-                  <div 
-                    className="w-14 h-14 mx-auto mb-3.5 rounded-2xl flex items-center justify-center border shadow-xs"
-                    style={{
-                      backgroundColor: 'var(--bg-surface-elevated)',
-                      borderColor: 'var(--border-subtle)'
-                    }}
-                  >
-                    <GraduationCap className="w-7 h-7" />
-                  </div>
-                  <p className="text-base sm:text-lg font-black" style={{ color: 'var(--text-primary)' }}>لم يتم رفع أي محاضرات لهذه المادة بعد</p>
-                  <p className="text-sm font-bold mt-1.5" style={{ color: 'var(--text-secondary)' }}>ارفع أول محاضرة الآن من لوحة الرفع على اليمين!</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {subjectLectures.map((lec) => (
-                    <div
-                      key={lec.id}
-                      className="p-3.5 sm:p-5 rounded-2xl border transition-all flex flex-col xs:flex-row xs:items-start justify-between gap-3 group hover:shadow-md"
-                      style={{
-                        backgroundColor: 'var(--bg-surface-elevated)',
-                        borderColor: 'var(--border-subtle)'
-                      }}
-                    >
-                      <div className="flex items-start gap-3 min-w-0 flex-1">
-                        <div 
-                          className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl border flex items-center justify-center shrink-0 font-bold text-sm sm:text-base shadow-xs"
-                          style={{
-                            backgroundColor: 'var(--bg-surface)',
-                            borderColor: 'var(--border-prominent)',
-                            color: 'var(--accent-primary)'
-                          }}
-                        >
-                          {lec.lecture_num}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-sm sm:text-base transition-colors leading-tight break-words" style={{ color: 'var(--text-primary)' }}>
-                            {lec.title}
-                          </h4>
-                          {lec.doctor && (
-                            <div className="mt-1.5">
-                              <span 
-                                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-bold border"
-                                style={{
-                                  backgroundColor: 'var(--bg-surface)',
-                                  borderColor: 'var(--border-prominent)',
-                                  color: 'var(--accent-primary)'
-                                }}
-                              >
-                                {lec.doctor.includes('مروة') || lec.doctor.includes('ايمان') || lec.doctor.includes('ايه') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex flex-wrap items-center gap-2 mt-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                            <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                              <span>{lec.assets_count} أصول مكتملة</span>
-                            </span>
-                            <span>•</span>
-                            <span className="font-medium">
-                              {new Date(lec.created_at).toLocaleDateString('ar-EG')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => setActiveTrackingId(lec.id)}
-                        className="px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs hover:scale-105 self-start xs:self-center"
-                        style={{
-                          backgroundColor: 'var(--bg-surface)',
-                          borderColor: 'var(--border-subtle)',
-                          color: 'var(--text-primary)'
-                        }}
-                      >
-                        معاينة
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Platform Feature Guide Box */}
-            <div 
-              className="p-6 rounded-3xl border space-y-3.5 shadow-md"
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--text-secondary)'
-              }}
-            >
-              <h4 className="font-black text-base sm:text-lg flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
-                <Brain className="w-5 h-5 text-cyan-500" />
-                <span>كيف يعمل خط الإنتاج الذكي؟</span>
-              </h4>
-              <p className="text-sm sm:text-base leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                1. بمجرد رفع الـ PDF، يسحب السيرفر تلقائياً <strong className="font-black text-cyan-600 dark:text-cyan-300">البرومبت الرئيسي للمادة</strong> الذي تم إعداده خصيصاً (المشروح بالمصري والموجّه لأسلوب امتحانات بني سويف).
-              </p>
-              <p className="text-sm sm:text-base leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                2. يقوم <strong className="font-black text-teal-600 dark:text-teal-300">NotebookLM</strong> بإنتاج البودكاست الصوتي والفيديو والكويز والملخص بالتوازي في السحابة.
-              </p>
-              <p className="text-sm sm:text-base leading-relaxed font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                3. تُرفع كافة الملفات إلى <strong className="font-black text-sky-600 dark:text-sky-300">قناة تليجرام السحابية</strong>، وتُسجل الروابط فورياً في <strong className="font-black text-emerald-600 dark:text-emerald-300">Supabase</strong> لتظهر في بوابة الطلاب مباشرة!
-              </p>
-            </div>
-          </div>
+          <AdminSubjectLecturesExplorer
+            selectedSubject={selectedSubject}
+            subjectLectures={subjectLectures}
+            onSelectTrackingLecture={setActiveTrackingId}
+          />
         </div>
       </main>
 
-      {/* ========================================================================= */}
-      {/* COMPREHENSIVE CLOUD DIAGNOSTICS & SYSTEM LOGS MODAL                       */}
-      {/* ========================================================================= */}
       <AdminDiagnosticsModal
         showDiagnosticsModal={showDiagnosticsModal}
         setShowDiagnosticsModal={setShowDiagnosticsModal}

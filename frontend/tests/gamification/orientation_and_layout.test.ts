@@ -57,10 +57,14 @@ describe('Orientation & Mobile Landscape Resilience (Phase 7)', () => {
 
   describe('Course Rail Touch-Action & Vertical Page Scroll', () => {
     it('does NOT contain touch-pan-x on rail-courses-mobile, ensuring vertical swipes scroll the page', () => {
-      const code = fs.readFileSync(pagePath, 'utf8');
-      const railRegex = /rail-courses-mobile[\s\S]*?>/i;
+      const catalogSectionPath = path.resolve(__dirname, '../../src/components/portal/SubjectsCatalogSection.tsx');
+      const code =
+        fs.readFileSync(pagePath, 'utf8') +
+        '\n' +
+        (fs.existsSync(catalogSectionPath) ? fs.readFileSync(catalogSectionPath, 'utf8') : '');
       // Search the line with rail-courses-mobile
       const railLine = code.split('\n').find((l) => l.includes('rail-courses-mobile')) || '';
+      expect(railLine).toContain('rail-courses-mobile');
       expect(railLine).not.toContain('touch-pan-x');
     });
   });

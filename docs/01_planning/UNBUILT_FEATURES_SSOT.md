@@ -7,23 +7,23 @@
 
 ---
 
-## 1. الميزات المتبقية الجاهزة للتطوير (Non-AI — من بيانات وباك-إند المنصة الحالي)
+## 1. الميزات الجاهزة للتطوير سابقاً (Non-AI — تم تنفيذها بالكامل في المرحلة الأولى `dd3847e`)
 
-| # | الميزة | الوصف المختصر | ما يوجد حالياً في الكود vs ما ينقص | الأولوية |
-| :---: | :--- | :--- | :--- | :---: |
-| **1.1** | **عارض الخرائط الذهنية (`MindMapViewer`)** | واجهة بصرية تفاعلية لعرض الخريطة الذهنية لكل محاضرة. | الباك-إند يولّد `mind_map_json` أصلاً من NotebookLM ويرفعه ويبثه عبر `/api/stream/{id}` ([`notebooklm_service.py`](../../app/services/notebooklm_service.py#L225-L234) و[`stream.py`](../../app/routes/stream.py#L189))، لكن لا يوجد مكون لعرضه في `frontend/src`. | 🔴 عالية |
-| **1.2** | **Study Heatmap (خريطة الالتزام الـ 16 أسبوعاً)** | شبكة نشاط شبيهة بـ GitHub في ملف الطالب توضح أيام وكثافة المذاكرة. | جدول `daily_activity` موجود في Supabase ويسجّل النشاط اليومي بالفعل، وينقصه فقط مكون الـ Heatmap في الواجهة. | 🟡 متوسطة |
-| **1.3** | **لوحة تحليلات الـ Gamification والأداء للأدمن** | تبويب في `/admin/dashboard` يعرض معدلات الاحتفاظ (D1/D7)، نشاط الدفعة اليومي، أكثر المحاضرات مشاهدة، وأصعب الأسئلة. | الـ SQL KPI Views موجودة ومؤمّنة في Supabase (`20261020_phase2_kpi_views.sql`)، وينقصها فقط واجهة الرسوم البيانية في `/admin/dashboard`. | 🟡 متوسطة |
-| **1.4** | **التشطيب التلقائي لخطة التعويض (Self-Ticking Plan)** | تعليم مهام اليوم في `RecoveryPlannerModal` كمكتملة تلقائياً بمجرد إنهاء كويز أو قراءة ملخص المحاضرة المرتبطة. | [`RecoveryPlannerModal.tsx`](../../frontend/src/components/RecoveryPlannerModal.tsx) و[`studyPlanner.ts`](../../frontend/src/lib/studyPlanner.ts) يعتمدان حالياً على التأشير اليدوي من الطالب. | 🟢 منخفضة |
+| # | الميزة | الحالة | التفاصيل والأدلة في الكود |
+| :---: | :--- | :---: | :--- |
+| **1.1** | **عارض الخرائط الذهنية (`MindMapViewer`)** | ✅ مُنفذ | `parseMindMapJson` + `countMindMapNodes` في [`lecture-utils.ts`](../../frontend/src/lib/lecture-utils.ts)، ومكون [`MindMapViewer.tsx`](../../frontend/src/components/lecture/MindMapViewer.tsx)، وتبويب `mindmap` في [`lecture/page.tsx`](../../frontend/src/app/lecture/page.tsx). |
+| **1.2** | **Study Heatmap (خريطة الالتزام الـ 16 أسبوعاً)** | ✅ مُنفذ | [`heatmap.ts`](../../frontend/src/modules/gamification/core/heatmap.ts)، [`fetchStudentDailyActivity`](../../frontend/src/modules/gamification/supabase/gamification.ts)، ومكون [`StudyHeatmap.tsx`](../../frontend/src/components/gamification/StudyHeatmap.tsx) مدمجاً في [`StudentGamificationPill.tsx`](../../frontend/src/components/gamification/StudentGamificationPill.tsx). |
+| **1.3** | **لوحة تحليلات الـ Gamification والأداء للأدمن** | ✅ مُنفذ | Endpoint `GET /api/diagnostics/cohort-analytics` في [`diagnostics.py`](../../app/routes/diagnostics.py) وواجهة تبويب `cohort` في [`AdminDiagnosticsModal.tsx`](../../frontend/src/components/admin/AdminDiagnosticsModal.tsx). |
+| **1.4** | **التشطيب التلقائي لخطة التعويض (Self-Ticking Plan)** | ✅ مُنفذ | `mapAppEventToTaskType` و`reconcileRecoveryPlanWithEvent` في [`studyPlanner.ts`](../../frontend/src/lib/studyPlanner.ts)، وتحديث تلقائي عبر [`GamificationHost.tsx`](../../frontend/src/modules/gamification/ui/GamificationHost.tsx) و[`RecoveryPlannerModal.tsx`](../../frontend/src/components/RecoveryPlannerModal.tsx). |
 
 ---
 
-## 2. الديون التقنية والصيانة (Technical Debt — اختيارية)
+## 2. الديون التقنية والصيانة (Technical Debt)
 
 | # | البند | التفاصيل | المصدر | الوضع الحالي | الأولوية |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| **2.1** | **تفكيك المكونات الضخمة `[OPT-FE-01]`** | تقسيم [`frontend/src/app/page.tsx`](../../frontend/src/app/page.tsx) (1,479 سطراً) و[`frontend/src/app/admin/dashboard/page.tsx`](../../frontend/src/app/admin/dashboard/page.tsx) (1,532 سطراً) إلى Custom Hooks ومكونات أصغر لسهولة الصيانة. | [`SECURITY_AUDIT.md`](../02_architecture/SECURITY_AUDIT.md#L28) | المكونات تعمل باستقرار في الإنتاج؛ التحسين اختياري للصيانة. | 🟢 منخفضة |
-| **2.2** | **تنظيف سجل Git التاريخي (`git filter-repo`)** | إزالة آثار الـ PAT وكلمة مرور الأدمن القديمة من تاريخ Git القديم. | [`TASKING.md`](../00_agent_context/TASKING.md) | الـ PAT وكلمة المرور القديمة تم إبطالهما وتدويرهما منذ 2026-10-24 ولا خطر نشط؛ التنظيف اختياري. | 🟢 منخفضة |
+| **2.1** | **تفكيك المكونات الضخمة `[OPT-FE-01]`** | تقسيم [`frontend/src/app/page.tsx`](../../frontend/src/app/page.tsx) (1,479 → 471 سطراً) و[`frontend/src/app/admin/dashboard/page.tsx`](../../frontend/src/app/admin/dashboard/page.tsx) (1,545 → 386 سطراً) إلى Custom Hooks (`usePortalCatalog`, `useAdminDiagnostics`, `useLectureUploadPipeline`) ومكونات أصغر (`components/portal/*`, `components/admin/*`). | [`SECURITY_AUDIT.md`](../02_architecture/SECURITY_AUDIT.md#L28) | ✅ **مُنفذ** (المرحلة الثانية). | 🟢 مكتمل |
+| **2.2** | **تنظيف سجل Git التاريخي (`git filter-repo`)** | إزالة آثار الـ PAT وكلمة مرور الأدمن القديمة من تاريخ Git القديم. | [`TASKING.md`](../00_agent_context/TASKING.md) | ⏳ قيد التنفيذ في المرحلة الثانية. | 🟢 منخفضة |
 
 ---
 

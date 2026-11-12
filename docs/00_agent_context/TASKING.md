@@ -81,12 +81,12 @@
 | ~~Hint Ladder `hintLevelUsed` field not wired in quiz events~~ | ✅ Resolved 2026-10-25 | Wired in Phase 3 and verified in telemetry. |
 | ~~Neighborhood leaderboard (10-peer)~~ | ✅ Resolved 2026-10-26 | Built in Phase 5 with actionable next-rank distance banner. |
 | ~~PWA / offline support & Push notifications~~ | ✅ Built | Implemented (`public/manifest.json`, `public/sw.js`, `app/routes/notifications.py`). |
-| `MindMapViewer` (`mind_map_json` frontend viewer) | High | Backend already generates/streams JSON; only UI needed |
-| Student 16-week Study Heatmap + Self-Ticking Planner | Medium | `daily_activity` & `RecoveryPlannerModal` already exist |
-| Admin dashboard gamification analytics | Medium | KPI SQL views exist in DB; UI charts pending |
+| ~~`MindMapViewer` (`mind_map_json` frontend viewer)~~ | ✅ Built 2026-11-12 | Stage 1 (`dd3847e`): `MindMapViewer.tsx`, `parseMindMapJson`, `lecture/page.tsx` |
+| ~~Student 16-week Study Heatmap + Self-Ticking Planner~~ | ✅ Built 2026-11-12 | Stage 1 (`dd3847e`): `heatmap.ts`, `StudyHeatmap.tsx`, `studyPlanner.ts` auto-tick |
+| ~~Admin dashboard gamification analytics~~ | ✅ Built 2026-11-12 | Stage 1 (`dd3847e`): `GET /api/diagnostics/cohort-analytics` + `AdminDiagnosticsModal.tsx` |
 | Interactive AI features (Micro-Tutor, RAG, Exam Cloning, Audio-to-Slide) | 🧊 Parked | Consolidated in `docs/99_parked_ai/PARKED_AI_FEATURES.md` |
-| Decompose monolithic `page.tsx` / `admin/dashboard/page.tsx` (`OPT-FE-01`) | Low | Working in prod; optional refactor |
-| Git history scrubbing (`git filter-repo`) | Low | Old PAT + admin pass already rotated/revoked |
+| ~~Decompose monolithic `page.tsx` / `admin/dashboard/page.tsx` (`OPT-FE-01`)~~ | ✅ Built 2026-11-12 | Stage 2: extracted `usePortalCatalog`, `useAdminDiagnostics`, `useLectureUploadPipeline`, `portal/*`, `admin/*` (`471` & `386` lines) |
+| Git history scrubbing (`git filter-repo`) | In Progress | Scheduled in Stage 2 after `OPT-FE-01` commit |
 
 ---
 

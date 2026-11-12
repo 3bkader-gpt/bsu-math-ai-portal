@@ -2,88 +2,38 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
 import { StudentGamificationPill } from '@/components/gamification/StudentGamificationPill';
 import NotificationBell from '@/components/NotificationBell';
 import content from '@/data/content.json';
-import { 
-  Sparkles, 
-  BookOpen, 
-  Headphones, 
-  Video, 
-  HelpCircle, 
-  FileText, 
-  Layers, 
-  Play, 
-  Search, 
-  GraduationCap, 
-  Clock,
-  ChevronLeft,
-  Lock,
-  Menu
-} from 'lucide-react';
+import { Search, GraduationCap, Lock, Menu } from 'lucide-react';
 import MobileNavDrawer from '@/components/MobileNavDrawer';
-import StaplePin3D from '@/components/StaplePin3D';
 import DeveloperCreditsModal from '@/components/DeveloperCreditsModal';
 import DeveloperCreditsPill from '@/components/DeveloperCreditsPill';
 import WelcomeStudentModal from '@/components/WelcomeStudentModal';
-import CohortHurdlesModal from '@/components/CohortHurdlesModal';
-import CustomExamBuilderModal from '@/components/CustomExamBuilderModal';
-import FormulaSheetModal from '@/components/FormulaSheetModal';
-import RecoveryPlannerModal from '@/components/RecoveryPlannerModal';
-import FocusAmbienceModal from '@/components/FocusAmbienceModal';
-import MathScratchpadModal from '@/components/MathScratchpadModal';
-import StudentBinderModal from '@/components/StudentBinderModal';
-import { getStudentProfileLocal, shouldPromptOnboarding, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
-import { getApiUrl } from '@/lib/api';
-import { 
-  getDirectSupabaseSubjects, 
-  getDirectSupabaseLectures 
-} from '@/lib/supabase';
-import { 
-  AcademicSubject, 
-  CanonicalCourse 
-} from '@/types/academic';
+import {
+  getStudentProfileLocal,
+  shouldPromptOnboarding,
+  PROFILE_UPDATED_EVENT,
+} from '@/lib/studentProfile';
 import {
   SmartResumeCard,
-  QuickMicroSessionModal,
-  EthicalWrapUpModal,
-  MistakeNotebookModal,
   CohortChallengeWidget,
 } from '@/modules/gamification/ui';
 import DailyMicroHookCard from '@/components/home/DailyMicroHookCard';
 import { useSmartHeaderVisibility } from '@/lib/useSmartHeaderVisibility';
-import { trackSessionStarted } from '@/modules/telemetry';
 import {
   CANONICAL_COURSES,
   SUBJECT_THEME_STYLES,
-  getDoctorTrackDetails,
   mergeSubjects,
   type SubjectStyleConfig,
 } from '@/lib/subjectMeta';
+import { usePortalCatalog } from '@/hooks/usePortalCatalog';
+import SubjectsCatalogSection from '@/components/portal/SubjectsCatalogSection';
+import ActiveSubjectLecturesSection from '@/components/portal/ActiveSubjectLecturesSection';
+import PortalModalsHost from '@/components/portal/PortalModalsHost';
 
 export { CANONICAL_COURSES, SUBJECT_THEME_STYLES, mergeSubjects, type SubjectStyleConfig };
-
-type Subject = AcademicSubject;
-
-interface Lecture {
-  id: number;
-  lecture_num: number;
-  title: string;
-  doctor?: string | null;
-  status: string;
-  stage_info?: string | null;
-  created_at: string;
-  assets_count: number;
-  study_resources_count?: number;
-  has_audio?: boolean;
-  has_video?: boolean;
-  has_quiz?: boolean;
-  has_guide?: boolean;
-  has_flashcards?: boolean;
-  is_ready?: boolean;
-}
 
 export default function Home() {
   const [currentPersona, setCurrentPersona] = useState<'boys' | 'girls'>('boys');
@@ -92,7 +42,8 @@ export default function Home() {
   useEffect(() => {
     try {
       const p = (localStorage.getItem('bsu_portal_persona') as 'boys' | 'girls') || 'boys';
-      const m = (localStorage.getItem('bsu_portal_mode') as 'light' | 'dark') || 
+      const m =
+        (localStorage.getItem('bsu_portal_mode') as 'light' | 'dark') ||
         (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       setCurrentPersona(p);
       setCurrentMode(m);
@@ -110,72 +61,25 @@ export default function Home() {
   const isGirls = currentPersona === 'girls';
   const isDark = currentMode === 'dark';
 
-  const router = useRouter();
+  const {
+    subjects,
+    selectedSemester,
+    activeSubjectId,
+    setActiveSubjectId,
+    selectedDoctor,
+    setSelectedDoctor,
+    subjectLectures,
+    isLoadingLectures,
+    isLoadingSubjects,
+    searchQuery,
+    setSearchQuery,
+    cohortMomentum,
+    handleSemesterChange,
+    filteredSubjects,
+    activeSubject,
+    displayedLectures,
+  } = usePortalCatalog();
 
-  // Instant 0ms hydration: load from cache or canonical courses immediately
-  const [subjects, setSubjects] = useState<Subject[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('bsu_cached_subjects');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch {}
-    }
-    return mergeSubjects([]);
-  });
-
-  const [selectedSemester, setSelectedSemester] = useState<1 | 2>(1);
-
-  // Default active subject: Differential Geometry (id 11) with instant active state
-  const [activeSubjectId, setActiveSubjectId] = useState<number | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('bsu_active_subject_id');
-        if (saved && !isNaN(parseInt(saved))) return parseInt(saved);
-      } catch {}
-    }
-    return 11;
-  });
-
-  const [selectedDoctor, setSelectedDoctor] = useState<string>('الكل');
-
-  // Instant 0ms hydration for lectures: pre-populate Differential Geometry Lecture 1 so it appears with zero lag
-  const [subjectLectures, setSubjectLectures] = useState<Lecture[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('bsu_cached_lectures_11');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch {}
-    }
-    return [
-      {
-        id: 1,
-        lecture_num: 1,
-        title: 'المحاضرة 1: مفهوم المنحنى وطول القوس ومماس الوحدة',
-        doctor: 'د/ سيد',
-        status: 'completed',
-        stage_info: null,
-        created_at: '2026-10-15T00:00:00Z',
-        assets_count: 5,
-        study_resources_count: 5,
-        has_audio: true,
-        has_video: false,
-        has_quiz: true,
-        has_guide: true,
-        has_flashcards: true,
-        is_ready: true,
-      }
-    ];
-  });
-
-  const [isLoadingLectures, setIsLoadingLectures] = useState(false);
-  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isMicroSessionOpen, setIsMicroSessionOpen] = useState(false);
   const [isWrapUpOpen, setIsWrapUpOpen] = useState(false);
   const [isMistakeNotebookOpen, setIsMistakeNotebookOpen] = useState(false);
@@ -189,27 +93,9 @@ export default function Home() {
   const [isFocusAmbienceOpen, setIsFocusAmbienceOpen] = useState(false);
   const [isMathScratchpadOpen, setIsMathScratchpadOpen] = useState(false);
   const [isStudentBinderOpen, setIsStudentBinderOpen] = useState(false);
-  const [cohortMomentum, setCohortMomentum] = useState<Record<string | number, { weekly_activity_count: number; today_activity_count: number; badge?: string | null; badge_text?: string | null }>>({});
   const [studentName, setStudentName] = useState<string>('');
-  const [timeGreeting, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
+  const [, setTimeGreeting] = useState<{ icon: string; title: string; subtitle: string } | null>(null);
   const isHeaderVisible = useSmartHeaderVisibility({ threshold: 12, topBoundary: 25 });
-
-  // Passive Cohort Momentum Fetch (Feature 1)
-  useEffect(() => {
-    let isMounted = true;
-    fetch(getApiUrl('/api/stats/momentum'))
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (isMounted && data) {
-          const map = data.momentum || data;
-          setCohortMomentum(map);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Load student profile & prompt onboarding if first visit
   useEffect(() => {
@@ -239,7 +125,7 @@ export default function Home() {
     return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate);
   }, []);
 
-  // Dynamic time-of-day greeting (كلمة ع الماشي / رادار المحاضرات)
+  // Dynamic time-of-day greeting
   useEffect(() => {
     const hour = new Date().getHours();
     const namePrefix = studentName ? ` يا ${studentName}` : '';
@@ -271,143 +157,6 @@ export default function Home() {
     }
   }, [isGirls, studentName]);
 
-  // Initialize session KPI telemetry on first visit
-  useEffect(() => {
-    try {
-      let sessId = sessionStorage.getItem('bsu_session_id');
-      if (!sessId) {
-        sessId = 'sess_' + Math.random().toString(36).substring(2, 11);
-        sessionStorage.setItem('bsu_session_id', sessId);
-        sessionStorage.setItem('bsu_session_start_ts', String(Date.now()));
-        const isMobile = window.innerWidth < 768;
-        trackSessionStarted(sessId, isMobile ? 'mobile' : 'desktop');
-      }
-    } catch {}
-  }, []);
-
-  // Switch Semester and auto-select appropriate active subject
-  const handleSemesterChange = (semester: 1 | 2) => {
-    setSelectedSemester(semester);
-    const targetSubjects = subjects.filter(s => (s.semester ?? 1) === semester);
-    if (targetSubjects.length > 0) {
-      const stillValid = targetSubjects.some(s => s.id === activeSubjectId);
-      if (!stillValid) {
-        setActiveSubjectId(targetSubjects[0].id);
-      }
-    } else {
-      setActiveSubjectId(null);
-    }
-  };
-
-  // 1. Fetch Subjects on Mount (Supabase Edge Revalidation)
-  useEffect(() => {
-    setIsLoadingSubjects(true);
-    getDirectSupabaseSubjects()
-      .then(data => {
-        const unified = mergeSubjects(data);
-        setSubjects(unified);
-        try { localStorage.setItem('bsu_cached_subjects', JSON.stringify(unified)); } catch {}
-
-        // Ensure valid active subject is selected
-        const term1 = unified.filter(s => (s.semester ?? 1) === 1);
-        const diff = term1.find((s) => s.name === 'هندسة تفاضلية');
-        setActiveSubjectId(prev => {
-          if (prev && unified.some(s => s.id === prev)) return prev;
-          return diff ? diff.id : (term1[0]?.id ?? unified[0]?.id ?? null);
-        });
-      })
-      .catch(err => {
-        console.warn('Supabase edge subjects fetch failed, trying fast fallback:', err);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500);
-
-        fetch(getApiUrl('/api/subjects'), { signal: controller.signal })
-          .then(res => res.json())
-          .then(data => {
-            clearTimeout(timeoutId);
-            const unified = mergeSubjects(data);
-            setSubjects(unified);
-            try { localStorage.setItem('bsu_cached_subjects', JSON.stringify(unified)); } catch {}
-          })
-          .catch(() => {
-            // Already initialized with canonical courses instantly!
-          });
-      })
-      .finally(() => setIsLoadingSubjects(false));
-  }, []);
-
-  // 2. Fetch Subject Lectures when activeSubjectId changes (Supabase Edge First)
-  useEffect(() => {
-    if (!activeSubjectId) return;
-    try { localStorage.setItem('bsu_active_subject_id', String(activeSubjectId)); } catch {}
-
-    const currentSubj = subjects.find(s => s.id === activeSubjectId);
-    if (currentSubj?.doctors && currentSubj.doctors.length > 1) {
-      setSelectedDoctor(currentSubj.doctors[0]);
-    } else {
-      setSelectedDoctor('الكل');
-    }
-
-    // Try reading cached lectures for this subject immediately for zero-lag switching
-    try {
-      const cached = localStorage.getItem(`bsu_cached_lectures_${activeSubjectId}`);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setSubjectLectures(parsed);
-        }
-      }
-    } catch {}
-
-    setIsLoadingLectures(true);
-
-    getDirectSupabaseLectures(activeSubjectId)
-      .then(data => {
-        const lecs = Array.isArray(data) ? data : [];
-        setSubjectLectures(lecs);
-        try { localStorage.setItem(`bsu_cached_lectures_${activeSubjectId}`, JSON.stringify(lecs)); } catch {}
-      })
-      .catch(err => {
-        console.warn('Direct Supabase lectures failed, trying fast fallback:', err);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500);
-
-        fetch(getApiUrl(`/api/subjects/${activeSubjectId}/lectures`), { signal: controller.signal })
-          .then(res => (res.ok ? res.json() : []))
-          .then(data => {
-            clearTimeout(timeoutId);
-            const lecs = Array.isArray(data) ? data : [];
-            setSubjectLectures(lecs);
-            try { localStorage.setItem(`bsu_cached_lectures_${activeSubjectId}`, JSON.stringify(lecs)); } catch {}
-          })
-          .catch(() => {
-            // Keep current / cached
-          });
-      })
-      .finally(() => setIsLoadingLectures(false));
-  }, [activeSubjectId]);
-
-
-  // Filter subjects by selected semester and search query (name, canonical doctor, or doctor track)
-  const semesterSubjects = subjects.filter(s => (s.semester ?? 1) === selectedSemester);
-  const filteredSubjects = semesterSubjects.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (s.canonicalDoctor && s.canonicalDoctor.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (s.doctors && s.doctors.some(d => d.toLowerCase().includes(searchQuery.toLowerCase())))
-  );
-
-  const activeSubject = subjects.find(s => s.id === activeSubjectId);
-
-
-  const displayedLectures = subjectLectures
-    .filter((l) => l.status !== 'failed')
-    .filter((l) => {
-      if (activeSubject?.doctors && activeSubject.doctors.length > 1 && selectedDoctor && selectedDoctor !== 'الكل') {
-        return l.doctor === selectedDoctor;
-      }
-      return true;
-    });
-
   return (
     <div
       style={{
@@ -416,7 +165,6 @@ export default function Home() {
       }}
       className="min-h-screen flex flex-col transition-colors duration-200"
     >
-      
       {/* Top Academic Header (Auto-hides on scroll-down, reveals on scroll-up to maximize screen real estate) */}
       <header
         style={{
@@ -431,16 +179,23 @@ export default function Home() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 min-h-[3.5rem] sm:min-h-[4rem] py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-4">
-          
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <div
               style={{
-                backgroundColor: isGirls 
-                  ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC') 
-                  : (isDark ? 'rgba(45, 212, 191, 0.15)' : '#E6F4F1'),
-                borderColor: isGirls 
-                  ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5') 
-                  : (isDark ? 'rgba(45, 212, 191, 0.35)' : '#B2DFDB'),
+                backgroundColor: isGirls
+                  ? isDark
+                    ? 'rgba(255, 101, 132, 0.2)'
+                    : '#FFE4EC'
+                  : isDark
+                  ? 'rgba(45, 212, 191, 0.15)'
+                  : '#E6F4F1',
+                borderColor: isGirls
+                  ? isDark
+                    ? 'rgba(255, 101, 132, 0.4)'
+                    : '#F2CBD5'
+                  : isDark
+                  ? 'rgba(45, 212, 191, 0.35)'
+                  : '#B2DFDB',
               }}
               className="w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center shadow-xs shrink-0"
             >
@@ -457,9 +212,21 @@ export default function Home() {
                 </h1>
                 <span
                   style={{
-                    backgroundColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.15)' : '#FFF0F3') : (isDark ? 'rgba(45, 212, 191, 0.15)' : '#E6F4F1'),
-                    borderColor: isGirls ? (isDark ? 'rgba(255, 101, 132, 0.35)' : '#F4D7DE') : (isDark ? 'rgba(45, 212, 191, 0.35)' : '#B2DFDB'),
-                    color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : (isDark ? '#2DD4BF' : '#184E4E'),
+                    backgroundColor: isGirls
+                      ? isDark
+                        ? 'rgba(255, 101, 132, 0.15)'
+                        : '#FFF0F3'
+                      : isDark
+                      ? 'rgba(45, 212, 191, 0.15)'
+                      : '#E6F4F1',
+                    borderColor: isGirls
+                      ? isDark
+                        ? 'rgba(255, 101, 132, 0.35)'
+                        : '#F4D7DE'
+                      : isDark
+                      ? 'rgba(45, 212, 191, 0.35)'
+                      : '#B2DFDB',
+                    color: isGirls ? (isDark ? '#FFA0B5' : '#C46D82') : isDark ? '#2DD4BF' : '#184E4E',
                   }}
                   className="hidden lg:inline-block px-2.5 py-0.5 text-xs font-bold rounded-full border shrink-0"
                 >
@@ -468,7 +235,11 @@ export default function Home() {
               </div>
               <p className="text-xs sm:text-sm font-medium mt-0.5 leading-snug truncate" style={{ color: 'var(--text-muted)' }}>
                 <span className="sm:hidden">تربية بني سويف • تانية رياضيات</span>
-                <span className="hidden sm:inline">{isGirls ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸' : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}</span>
+                <span className="hidden sm:inline">
+                  {isGirls
+                    ? 'كلية التربية • الفرقة الثانية • شعبة رياضيات 🌸'
+                    : 'كلية التربية • الفرقة الثانية • شعبة رياضيات'}
+                </span>
               </p>
             </div>
           </div>
@@ -532,7 +303,6 @@ export default function Home() {
             <div className="hidden md:inline-flex">
               <ThemeToggle />
             </div>
-            {/* Mobile Hamburger Drawer Trigger */}
             <button
               onClick={() => setIsMobileNavOpen(true)}
               style={{
@@ -550,7 +320,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Showcase Section - Clean, Modern, Above-the-fold */}
+      {/* Hero Showcase Section */}
       <section
         style={{ borderColor: 'var(--border-subtle)' }}
         className="relative overflow-hidden pt-4 pb-6 sm:pt-8 sm:pb-10 px-4 sm:px-6 lg:px-8 border-b"
@@ -560,18 +330,14 @@ export default function Home() {
             className="fluid-h1 font-black tracking-tight leading-snug max-w-4xl mx-auto"
             style={{ color: 'var(--text-primary)' }}
           >
-            {isGirls
-              ? content.personas.girls.heroTitle
-              : content.personas.boys.heroTitle}
+            {isGirls ? content.personas.girls.heroTitle : content.personas.boys.heroTitle}
           </h2>
 
           <p
             className="fluid-body max-w-2xl mx-auto leading-relaxed text-xs sm:text-sm font-medium"
             style={{ color: 'var(--text-secondary)' }}
           >
-            {isGirls
-              ? content.personas.girls.heroSubtitle
-              : content.personas.boys.heroSubtitle}
+            {isGirls ? content.personas.girls.heroSubtitle : content.personas.boys.heroSubtitle}
           </p>
 
           <div className="max-w-md mx-auto relative pt-1 sm:pt-2">
@@ -594,741 +360,44 @@ export default function Home() {
 
       {/* Main Content Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-5 sm:space-y-8" suppressHydrationWarning>
-        
-        {/* Phase 1: Zero-Redundancy Smart Resume ("كمّل من حيث وقفت") */}
         <SmartResumeCard />
-
-        {/* Phase 6: Sybil-Proof Collaborative Cohort Challenge */}
         <CohortChallengeWidget isGirls={isGirls} />
-
-        {/* Sprint 1: Daily 60-Second Micro-Hook ("سؤال اليوم السريع") */}
         <DailyMicroHookCard isGirls={isGirls} />
 
-        {/* Subjects Grid & Semester Selector */}
-        <section>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
-                {isGirls && <span className="text-2xl">🌸</span>}
-                <span className="inline-flex items-center gap-2 flex-wrap">
-                  <span>{selectedSemester === 1 ? 'مواد الترم الأول' : 'مواد الترم الثاني'}</span>
-                  <span className="inline-flex items-center justify-center text-xs font-bold px-2.5 py-0.5 rounded-full font-mono bg-black/5 dark:bg-white/10 text-[var(--text-secondary)] border border-[var(--border-subtle)] shrink-0">
-                    {filteredSubjects.length} {filteredSubjects.length === 1 ? 'مادة' : 'مواد'}
-                  </span>
-                </span>
-              </h3>
-              <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-muted)' }}>
-                {isGirls 
-                  ? 'اختاري المادة واستمتعي بالمحاضرات والشرح والزتونة 🎀' 
-                  : 'اختار المادة وتصفح المحاضرات والشرح والملخصات الذكية'}
-              </p>
-            </div>
+        <SubjectsCatalogSection
+          subjects={subjects}
+          filteredSubjects={filteredSubjects}
+          selectedSemester={selectedSemester}
+          onSemesterChange={handleSemesterChange}
+          activeSubjectId={activeSubjectId}
+          onSelectSubject={setActiveSubjectId}
+          isLoadingSubjects={isLoadingSubjects}
+          searchQuery={searchQuery}
+          isGirls={isGirls}
+          isDark={isDark}
+        />
 
-            {/* Semester Switcher Tabs */}
-            <div 
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-              }}
-              className="inline-flex items-center p-0.5 rounded-xl border self-start sm:self-auto shadow-xs"
-            >
-              <button
-                type="button"
-                onClick={() => handleSemesterChange(1)}
-                style={{
-                  backgroundColor: selectedSemester === 1 
-                    ? (isGirls ? '#F43F5E' : 'var(--accent-primary)') 
-                    : 'transparent',
-                  color: selectedSemester === 1 
-                    ? '#FFFFFF' 
-                    : 'var(--text-secondary)',
-                }}
-                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
-              >
-                <span className="shrink-0">الترم الأول</span>
-                <span className="shrink-0 inline-flex items-center justify-center text-xs px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
-                  <bdi dir="ltr">{subjects.filter(s => (s.semester ?? 1) === 1).length}</bdi>
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSemesterChange(2)}
-                style={{
-                  backgroundColor: selectedSemester === 2 
-                    ? (isGirls ? '#F43F5E' : 'var(--accent-primary)') 
-                    : 'transparent',
-                  color: selectedSemester === 2 
-                    ? '#FFFFFF' 
-                    : 'var(--text-secondary)',
-                }}
-                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
-              >
-                <span className="shrink-0">الترم الثاني</span>
-                <span className="shrink-0 inline-flex items-center justify-center text-xs px-1.5 py-0.5 rounded-full bg-black/20 text-white font-mono">
-                  <bdi dir="ltr">{subjects.filter(s => (s.semester ?? 1) === 2).length}</bdi>
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {isLoadingSubjects && filteredSubjects.length === 0 ? (
-            <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] gap-2.5 pb-2.5 pt-1 md:py-0 px-1 overflow-hidden">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    backgroundColor: 'var(--bg-surface)',
-                    borderColor: 'var(--border-subtle)',
-                  }}
-                  className="h-28 rounded-2xl border animate-pulse p-4 flex flex-col justify-between"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-gray-500/10" />
-                  <div className="h-4 w-3/4 bg-gray-500/15 rounded" />
-                </div>
-              ))}
-            </div>
-          ) : filteredSubjects.length === 0 ? (
-            <div 
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-              }}
-              className="rounded-3xl border p-8 sm:p-12 text-center max-w-xl mx-auto my-6 transition-colors shadow-sm"
-            >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-3xl select-none">
-                {searchQuery ? '🔍' : (selectedSemester === 2 ? '⏳' : '📚')}
-              </div>
-              <h4 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-                {searchQuery 
-                  ? content.semesters.searchEmpty.title
-                  : selectedSemester === 2 
-                    ? content.semesters.semester2.emptyTitle
-                    : content.semesters.semester1.emptyTitle}
-              </h4>
-              <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                {searchQuery
-                  ? content.semesters.searchEmpty.subtitle
-                  : selectedSemester === 2
-                    ? content.semesters.semester2.emptySubtitle
-                    : content.semesters.semester1.emptySubtitle}
-              </p>
-            </div>
-          ) : (
-            <div>
-              {/* Mobile Swipe Hint */}
-              <div className="flex md:hidden items-center justify-between text-xs font-semibold px-1 mb-2.5" style={{ color: 'var(--text-muted)' }}>
-                <span className="flex items-center gap-1.5">
-                  <span>{content.semesters.mobileSwipeHint}</span>
-                  <span className="text-xs opacity-75">↔</span>
-                </span>
-                <span className="text-xs opacity-80">{filteredSubjects.length} مادة</span>
-              </div>
-
-              <div className="flex md:grid md:grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] overflow-x-auto md:overflow-x-visible overscroll-x-contain snap-x snap-mandatory gap-2.5 pb-2.5 pt-3 md:py-0 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rail-courses-mobile">
-                {filteredSubjects.map((sub) => {
-                  const isActive = sub.id === activeSubjectId;
-                  const baseStyleConfig = SUBJECT_THEME_STYLES[sub.name] || {
-                    charm: '🌸',
-                    badgeTag: 'مقرر دراسي 🌸',
-                    darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
-                    lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
-                    glowColor: '#FB7185',
-                    boysCharm: '',
-                    boysBadgeTag: 'مقرر دراسي',
-                    boysDarkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
-                    boysLightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-                    boysGlowColor: '#06B6D4',
-                  };
-                  const styleConfig = (sub.theme_config && typeof sub.theme_config === 'object')
-                    ? { ...baseStyleConfig, ...sub.theme_config }
-                    : baseStyleConfig;
-
-                  const activeCharm = isGirls ? styleConfig.charm : styleConfig.boysCharm;
-                  const activeBadgeTag = isGirls ? styleConfig.badgeTag : styleConfig.boysBadgeTag;
-                  const activeDarkBadge = isGirls ? styleConfig.darkBadge : styleConfig.boysDarkBadge;
-                  const activeLightBadge = isGirls ? styleConfig.lightBadge : styleConfig.boysLightBadge;
-                  const activeGlowColor = isGirls ? styleConfig.glowColor : styleConfig.boysGlowColor;
-
-                  return (
-                    <button
-                      key={sub.id}
-                      onClick={() => setActiveSubjectId(sub.id)}
-                      style={{
-                        backgroundColor: isActive 
-                          ? 'var(--bg-surface-elevated)' 
-                          : 'var(--bg-surface)',
-                        borderColor: isActive 
-                          ? activeGlowColor 
-                          : 'var(--border-subtle)',
-                        boxShadow: isActive 
-                          ? (isDark ? `0 0 20px ${activeGlowColor}33, var(--card-shadow-hover)` : `0 0 16px ${activeGlowColor}22, var(--card-shadow-hover)`)
-                          : 'var(--card-shadow)',
-                      }}
-                      className={`relative p-3 sm:p-4 rounded-xl sm:rounded-2xl border text-right transition-all flex flex-col justify-between cursor-pointer group min-w-[130px] w-[138px] xs:w-[150px] sm:w-[165px] md:w-auto shrink-0 snap-start ${
-                        isActive 
-                          ? 'ring-2 ring-cyan-500/40' 
-                          : 'sm:hover:scale-[1.01]'
-                      }`}
-                    >
-                      {/* Active sticker tag: Girls or Boys */}
-                      {isActive && (
-                        <div className="absolute -top-2 right-2.5 z-10">
-                          <span
-                            className="text-xs font-bold px-2 py-0.5 rounded-full border shadow-sm flex items-center gap-1 tracking-wide"
-                            style={{
-                              backgroundColor: isDark ? (isGirls ? '#28162F' : '#0B132B') : (isGirls ? '#FFF0F3' : '#EFF6FF'),
-                              borderColor: activeGlowColor,
-                              color: activeGlowColor,
-                            }}
-                          >
-                            {isGirls ? '🎀 المختارة' : 'المقرر النشط'}
-                          </span>
-                        </div>
-                      )}
-
-                      <div>
-                        <div className="relative w-9 h-9 sm:w-11 sm:h-11 mb-2">
-                          <div
-                            className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl border flex items-center justify-center font-bold text-base sm:text-lg shadow-sm transition-transform duration-200 group-hover:scale-105 select-none leading-none ${
-                              isDark ? activeDarkBadge : activeLightBadge
-                            }`}
-                          >
-                            <span className="flex items-center justify-center">{sub.icon || sub.name.slice(0, 2)}</span>
-                          </div>
-
-                          {/* Floating Charm Sticker (Girls only) */}
-                          {isGirls && activeCharm && (
-                            <div
-                              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border shadow-sm flex items-center justify-center text-xs select-none leading-none pointer-events-none"
-                              style={{
-                                backgroundColor: isDark ? '#28162F' : '#FFFFFF',
-                                borderColor: isDark ? `${activeGlowColor}80` : '#F2CBD5',
-                              }}
-                            >
-                              {activeCharm}
-                            </div>
-                          )}
-                        </div>
-                        <h4 className="font-bold text-xs sm:text-sm line-clamp-2 leading-tight break-words" style={{ color: 'var(--text-primary)' }}>
-                          {sub.name}
-                        </h4>
-                        {sub.canonicalDoctor && (
-                          <span
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded-md mt-1 truncate max-w-full border"
-                            style={{
-                              backgroundColor: isDark ? `${activeGlowColor}18` : `${activeGlowColor}12`,
-                              color: activeGlowColor,
-                              borderColor: `${activeGlowColor}35`,
-                            }}
-                          >
-                            {sub.canonicalDoctor.includes('مروة') || sub.canonicalDoctor.includes('ايه') || sub.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {sub.canonicalDoctor} {isGirls ? '🌸' : ''}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-2.5 flex items-center justify-between text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>
-                        <span 
-                          className="font-semibold text-xs sm:text-sm whitespace-nowrap" 
-                          style={{ color: activeGlowColor }}
-                        >
-                          {activeBadgeTag}
-                        </span>
-                        <ChevronLeft className="w-3.5 h-3.5 opacity-70 transition-transform group-hover:-translate-x-1 shrink-0" />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Active Subject Lectures */}
-        {activeSubject && (() => {
-          const baseActiveConfig = SUBJECT_THEME_STYLES[activeSubject?.name || ''] || {
-            charm: '🎀',
-            badgeTag: 'مقرر دراسي 🌸',
-            darkBadge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-950/60',
-            lightBadge: 'bg-rose-100 text-rose-700 border-rose-200',
-            glowColor: '#FB7185',
-            boysCharm: '',
-            boysBadgeTag: 'مقرر دراسي',
-            boysDarkBadge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-950/60',
-            boysLightBadge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-            boysGlowColor: '#06B6D4',
-          };
-          const activeSubjectConfig = (activeSubject?.theme_config && typeof activeSubject.theme_config === 'object')
-            ? { ...baseActiveConfig, ...activeSubject.theme_config }
-            : baseActiveConfig;
-          const activeSubjectCharm = isGirls ? activeSubjectConfig.charm : activeSubjectConfig.boysCharm;
-          const activeSubjectGlow = isGirls ? activeSubjectConfig.glowColor : activeSubjectConfig.boysGlowColor;
-          const activeSubjectDarkBadge = isGirls ? activeSubjectConfig.darkBadge : activeSubjectConfig.boysDarkBadge;
-          const activeSubjectLightBadge = isGirls ? activeSubjectConfig.lightBadge : activeSubjectConfig.boysLightBadge;
-
-          return (
-            <section
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-                boxShadow: 'var(--card-shadow)',
-              }}
-              className="p-3.5 sm:p-8 rounded-2xl sm:rounded-3xl border transition-colors"
-            >
-              <div
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b"
-                style={{ borderColor: 'var(--border-subtle)' }}
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="relative w-12 h-12 shrink-0">
-                    <div
-                      className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm select-none leading-none ${
-                        isDark ? activeSubjectDarkBadge : activeSubjectLightBadge
-                      }`}
-                    >
-                      <span className="flex items-center justify-center">{activeSubject?.icon || '📐'}</span>
-                    </div>
-                    {isGirls && activeSubjectCharm && (
-                      <div
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border shadow-sm flex items-center justify-center text-[11px] select-none leading-none pointer-events-none"
-                        style={{
-                          backgroundColor: isDark ? '#28162F' : '#FFFFFF',
-                          borderColor: isDark ? `${activeSubjectGlow}80` : '#F2CBD5',
-                        }}
-                      >
-                        {activeSubjectCharm}
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wider" style={{ color: activeSubjectGlow }}>
-                        {isGirls ? '🌸 المادة اللي اخترتيها يا شطورة' : 'المقرر المختار'}
-                      </span>
-                      {activeSubject?.canonicalDoctor && (
-                        <span
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border whitespace-nowrap shrink-0"
-                          style={{
-                            backgroundColor: isDark ? `${activeSubjectGlow}20` : `${activeSubjectGlow}15`,
-                            borderColor: `${activeSubjectGlow}45`,
-                            color: activeSubjectGlow,
-                          }}
-                        >
-                          {activeSubject.canonicalDoctor.includes('مروة') || activeSubject.canonicalDoctor.includes('ايه') || activeSubject.canonicalDoctor.includes('ايمان') ? '👩‍🏫' : '👨‍🏫'} {activeSubject.canonicalDoctor} {isGirls ? '🌸' : ''}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-xl sm:text-3xl font-black mt-1 flex items-center gap-2 flex-wrap break-words" style={{ color: 'var(--text-primary)' }}>
-                      <span>{activeSubject?.name || content.lecturesSection.defaultPrompt}</span>
-                      {isGirls && <span className="text-xl">✨</span>}
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Available Lectures Count Badge */}
-                <div 
-                  className="text-xs sm:text-sm font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-xl border shrink-0 shadow-xs self-start sm:self-auto" 
-                  style={{ 
-                    backgroundColor: 'var(--bg-surface-elevated)',
-                    borderColor: 'var(--border-subtle)',
-                    color: 'var(--text-muted)' 
-                  }}
-                >
-                  {isGirls ? <span>☕</span> : <span>🔥</span>}
-                  <span>متاح {displayedLectures.length} محاضرات</span>
-                  {isGirls ? <span>بروقان</span> : <span>جاهزة للفرم</span>}
-                </div>
-              </div>
-
-              {/* Study & Synthesis Tools Ribbon (Dedicated Bar) */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:flex-wrap scrollbar-none mb-6">
-                {/* Custom Exam Builder Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsExamBuilderOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(239, 246, 255, 0.95)',
-                    borderColor: isDark ? 'rgba(59, 130, 246, 0.4)' : 'rgba(191, 219, 254, 0.8)',
-                    color: isDark ? '#93C5FD' : '#1D4ED8',
-                  }}
-                  title="توليف امتحان مخصص ومحاكاة ميدترم بنطاق محاضرات مرن"
-                >
-                  <span>⚡</span>
-                  <span>محاكي الامتحانات</span>
-                </button>
-
-                {/* Formula Sheet Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsFormulaSheetOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(236, 253, 245, 0.95)',
-                    borderColor: isDark ? 'rgba(16, 185, 129, 0.4)' : 'rgba(167, 243, 208, 0.8)',
-                    color: isDark ? '#6EE7B7' : '#047857',
-                  }}
-                  title="استعراض بنك القوانين والنظريات وتصديرها كـ PDF للطباعة الورقية"
-                >
-                  <span>📐</span>
-                  <span>كشكول القوانين</span>
-                </button>
-
-                {/* Cohort Hurdles Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsHurdlesModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 242, 242, 0.95)',
-                    borderColor: isDark ? 'rgba(239, 68, 68, 0.4)' : 'rgba(252, 165, 165, 0.8)',
-                    color: isDark ? '#FCA5A5' : '#B91C1C',
-                  }}
-                  title="استعراض أصعب أسئلة كويزات الدفعة مع الإجابات النموذجية والشرح"
-                >
-                  <span>🎯</span>
-                  <span>أصعب الفخاخ</span>
-                </button>
-
-                {/* Recovery Planner Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsRecoveryPlannerOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : 'rgba(250, 245, 255, 0.95)',
-                    borderColor: isDark ? 'rgba(168, 85, 247, 0.4)' : 'rgba(233, 213, 255, 0.8)',
-                    color: isDark ? '#D8B4FE' : '#7E22CE',
-                  }}
-                  title="توليف خطة إنقاذ وسد التراكمات اليومية وحصد نقاط XP"
-                >
-                  <span>📅</span>
-                  <span>خطة الإنقاذ</span>
-                </button>
-
-                {/* Focus & Pomodoro Ambience Button (Feature 4) */}
-                <button
-                  type="button"
-                  onClick={() => setIsFocusAmbienceOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(254, 252, 232, 0.95)',
-                    borderColor: isDark ? 'rgba(234, 179, 8, 0.4)' : 'rgba(254, 240, 138, 0.8)',
-                    color: isDark ? '#FDE047' : '#A16207',
-                  }}
-                  title="بيئة صوتية طبيعية ومؤقت بومودورو للتركيز وحصد XP"
-                >
-                  <span>🧘</span>
-                  <span>ركن التركيز</span>
-                </button>
-
-                {/* Math Scratchpad Button (Feature 4) */}
-                <button
-                  type="button"
-                  onClick={() => setIsMathScratchpadOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(6, 182, 212, 0.15)' : 'rgba(236, 254, 255, 0.95)',
-                    borderColor: isDark ? 'rgba(6, 182, 212, 0.4)' : 'rgba(165, 243, 252, 0.8)',
-                    color: isDark ? '#67E8F9' : '#0E7490',
-                  }}
-                  title="مسودة بيضاء تفاعلية وحاسبة علمية لحل المعادلات والمسائل"
-                >
-                  <span>✏️</span>
-                  <span>مسودة الرياضيات</span>
-                </button>
-
-                {/* Student Binder Button (Feature 4) */}
-                <button
-                  type="button"
-                  onClick={() => setIsStudentBinderOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer shrink-0"
-                  style={{
-                    backgroundColor: isDark ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 247, 237, 0.95)',
-                    borderColor: isDark ? 'rgba(249, 115, 22, 0.4)' : 'rgba(254, 215, 170, 0.8)',
-                    color: isDark ? '#FDBA74' : '#C2410C',
-                  }}
-                  title="كشكول ملاحظاتي الشخصية وقوانيني وقوالب المذاكرة"
-                >
-                  <span>📌</span>
-                  <span>كشكول ملاحظاتي</span>
-                </button>
-
-              </div>
-
-              {/* Doctor / Professor Tracks Switcher */}
-              {activeSubject?.doctors && activeSubject.doctors.length > 1 && (
-                <div className="flex items-center gap-2.5 mb-6 overflow-x-auto pb-2 scrollbar-none">
-                  {activeSubject.doctors.map((doc) => {
-                    const isSelected = selectedDoctor === doc;
-                    const count = subjectLectures.filter(l => l.doctor === doc).length;
-                    const track = getDoctorTrackDetails(activeSubject.name, doc);
-                    return (
-                      <button
-                        key={doc}
-                        type="button"
-                        onClick={() => setSelectedDoctor(doc)}
-                        className={`shrink-0 min-w-fit px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold border transition-all cursor-pointer flex items-center gap-2.5 shadow-sm ${
-                          isSelected ? 'scale-[1.02] shadow-md' : 'opacity-85 hover:opacity-100 hover:scale-[1.01]'
-                        }`}
-                        style={{
-                          backgroundColor: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
-                          borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                          color: isSelected ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-secondary)'
-                        }}
-                      >
-                        <span className="text-base sm:text-lg shrink-0">{track.icon}</span>
-                        <div className="flex flex-col text-right leading-tight">
-                          <div className="flex items-center gap-1.5 font-bold">
-                            <span>{track.label}</span>
-                            {track.badge && (
-                              <span 
-                                className="text-[10px] px-1.5 py-0.2 rounded font-semibold border"
-                                style={{
-                                  backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'var(--bg-surface)',
-                                  borderColor: isSelected ? 'rgba(255, 255, 255, 0.3)' : 'var(--border-subtle)',
-                                  color: isSelected ? 'inherit' : 'var(--text-muted)'
-                                }}
-                              >
-                                {track.badge}
-                              </span>
-                            )}
-                          </div>
-                          {track.subtext !== track.label && (
-                            <span className="text-[11px] font-medium opacity-85 mt-0.5">
-                              {track.subtext}
-                            </span>
-                          )}
-                        </div>
-                        <span
-                          className="inline-flex items-center justify-center text-xs font-bold px-2 py-0.5 rounded-full shrink-0 font-mono ms-1 border"
-                          style={{
-                            backgroundColor: isSelected
-                              ? 'rgba(255, 255, 255, 0.25)'
-                              : 'var(--bg-surface)',
-                            borderColor: isSelected ? 'transparent' : 'var(--border-subtle)',
-                            color: isSelected ? 'inherit' : 'var(--text-muted)',
-                          }}
-                        >
-                          {count > 0 ? count : (track.badge === 'عملي' ? 'قريباً' : 0)}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {isLoadingLectures ? (
-                <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
-                  <div
-                    style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }}
-                    className="w-10 h-10 border-3 rounded-full animate-spin mx-auto mb-3"
-                  ></div>
-                  <span className="text-base font-semibold">{content.lecturesSection.loading}</span>
-                </div>
-              ) : displayedLectures.length === 0 ? (
-                <div 
-                  className="text-center py-12 px-4 rounded-3xl border border-dashed my-4 max-w-xl mx-auto backdrop-blur-xs" 
-                  style={{ backgroundColor: 'var(--bg-surface-elevated)', borderColor: 'var(--border-subtle)' }}
-                >
-                  <div
-                    style={{ backgroundColor: isGirls ? 'rgba(236, 72, 153, 0.12)' : 'rgba(59, 130, 246, 0.12)', borderColor: isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(59, 130, 246, 0.25)' }}
-                    className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center border text-3xl shadow-inner"
-                  >
-                    {selectedDoctor.includes('ايه') ? '💻' : <GraduationCap className="w-8 h-8 opacity-60" />}
-                  </div>
-                  <p className="text-base sm:text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {selectedDoctor.includes('ايه') 
-                      ? 'السكاشن العملية (د/ آية) - جاري التجهيز' 
-                      : content.lecturesSection.emptyTitle}
-                  </p>
-                  <p className="text-xs sm:text-sm mt-1.5 max-w-md mx-auto leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                    {selectedDoctor.includes('ايه') 
-                      ? 'سيتم رفع وإتاحة السكاشن العملية مع كافة ملخصاتها واختباراتها الذكية هنا فور تسليمها 🌸' 
-                      : content.lecturesSection.emptySubtitle}
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3 sm:gap-5">
-                  {displayedLectures.map((lec) => {
-                    const isReady = lec.is_ready !== undefined ? lec.is_ready : (lec.status === 'completed' && (lec.study_resources_count || lec.assets_count) > 0);
-                    const resourceCount = lec.study_resources_count !== undefined ? lec.study_resources_count : lec.assets_count;
-                      return (
-                        <div
-                          key={lec.id}
-                          onClick={isReady ? () => router.push(`/lecture?id=${lec.id}`) : undefined}
-                          style={{
-                            backgroundColor: 'var(--bg-surface-elevated)',
-                            borderColor: isReady ? 'var(--border-subtle)' : 'var(--border-prominent)',
-                          }}
-                          className={`lecture-card p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between shadow-sm relative overflow-hidden ${
-                            isReady 
-                              ? 'cursor-pointer group hover:border-cyan-500 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0' 
-                              : 'opacity-85 select-none'
-                          }`}
-                        >
-                          {/* Realistic 3D Metallic Staple Pin for Ready Lectures */}
-                          {isReady && (
-                            <StaplePin3D
-                              isGirls={isGirls}
-                              className="absolute top-2 left-2 sm:top-3 sm:left-3 group-hover:scale-110 group-hover:-translate-y-0.5"
-                            />
-                          )}
-                          <div className="mb-4">
-                            <div className="lecture-card-header-inner gap-2.5 sm:gap-4">
-                              <div
-                                style={{
-                                  backgroundColor: isReady 
-                                    ? (isGirls 
-                                        ? (isDark ? 'rgba(255, 101, 132, 0.2)' : '#FFE4EC') 
-                                        : (isDark ? `${activeSubjectGlow}25` : 'var(--accent-primary)'))
-                                    : 'var(--bg-surface)',
-                                  color: isReady 
-                                    ? (isGirls 
-                                        ? (isDark ? '#FF87A2' : '#C46D82') 
-                                        : (isDark ? activeSubjectGlow : '#ffffff'))
-                                    : 'var(--text-muted)',
-                                  borderColor: isReady 
-                                    ? (isGirls 
-                                        ? (isDark ? 'rgba(255, 101, 132, 0.4)' : '#F2CBD5') 
-                                        : `${activeSubjectGlow}50`) 
-                                    : 'var(--border-subtle)',
-                                }}
-                                className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-base sm:text-xl shrink-0 border shadow-md"
-                              >
-                                {isGirls ? `🌸 ${lec.lecture_num}` : lec.lecture_num}
-                              </div>
-                              <div className="min-w-0 flex-1 w-full space-y-1">
-                                <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                                  {lec.doctor && (
-                                    <span
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs sm:text-sm font-bold border whitespace-nowrap"
-                                      style={{
-                                        backgroundColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.12)' : 'rgba(59, 130, 246, 0.12)',
-                                        borderColor: lec.doctor.includes('مروة') ? 'rgba(236, 72, 153, 0.3)' : 'rgba(59, 130, 246, 0.3)',
-                                        color: lec.doctor.includes('مروة') ? '#ec4899' : '#3b82f6',
-                                      }}
-                                    >
-                                      {lec.doctor.includes('مروة') ? '👩‍🏫' : '👨‍🏫'} {lec.doctor} {isGirls ? '🌸' : ''}
-                                    </span>
-                                  )}
-                                  {(() => {
-                                    const mInfo = cohortMomentum[lec.id] || (cohortMomentum as any)[String(lec.id)];
-                                    const badge = mInfo?.badge || mInfo?.badge_text;
-                                    if (!badge) return null;
-                                    return (
-                                      <span
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border whitespace-nowrap animate-pulse"
-                                        style={{
-                                          backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(254, 243, 199, 0.9)',
-                                          borderColor: isDark ? 'rgba(245, 158, 11, 0.4)' : 'rgba(245, 158, 11, 0.5)',
-                                          color: isDark ? '#FBBF24' : '#B45309',
-                                        }}
-                                        title={`نشاط طلاب الدفعة: ${mInfo.weekly_activity_count} تفاعل هذا الأسبوع`}
-                                      >
-                                        {badge}
-                                      </span>
-                                    );
-                                  })()}
-                                </div>
-                                <h4 className="font-extrabold text-sm sm:text-xl transition-colors group-hover:text-cyan-500 dark:group-hover:text-cyan-400 break-words leading-snug" style={{ color: 'var(--text-primary)' }}>
-                                  {lec.title}
-                                </h4>
-                                <p className="text-xs sm:text-sm font-medium mt-1 break-words leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                                  {isReady 
-                                    ? (resourceCount >= 5 
-                                        ? (isGirls ? 'المحاضرة مكتملة بجميع المصادر 🎀✨' : 'المحاضرة مكتملة بجميع مصادر المذاكرة (5/5)')
-                                        : (isGirls ? `متاح ${resourceCount} من 5 مصادر للمذاكرة 🌸` : `متاح ${resourceCount} من 5 مصادر للمذاكرة`))
-                                    : (isGirls ? 'قيد المعالجة السحابية بروقان ⏳' : 'قيد المعالجة السحابية')}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div
-                            className="pt-4 border-t flex flex-wrap items-center justify-between gap-3"
-                            style={{ borderColor: 'var(--border-subtle)' }}
-                          >
-                            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                              <span 
-                                className={`flex items-center gap-1 transition-opacity ${lec.has_audio ? 'text-cyan-500 dark:text-cyan-400 font-bold opacity-100' : 'opacity-30'}`}
-                                title={lec.has_audio ? 'ريكورد صوتي متاح' : 'الريكورد قيد التجهيز'}
-                              >
-                                <Headphones className="w-4 h-4" />
-                                <span className="hidden sm:inline">{isGirls ? 'ريكورد 🌸' : 'ريكورد'}</span>
-                              </span>
-
-                              <span 
-                                className={`flex items-center gap-1 transition-opacity ${lec.has_video ? 'text-purple-500 dark:text-purple-400 font-bold opacity-100' : 'opacity-30'}`}
-                                title={lec.has_video ? 'فيديو توضيحي متاح' : 'الفيديو قيد التجهيز'}
-                              >
-                                <Video className="w-4 h-4" />
-                                <span className="hidden sm:inline">فيديو</span>
-                              </span>
-
-                              <span 
-                                className={`flex items-center gap-1 transition-opacity ${lec.has_quiz ? 'text-amber-500 dark:text-amber-400 font-bold opacity-100' : 'opacity-30'}`}
-                                title={lec.has_quiz ? 'كويز تفاعلي متاح' : 'الكويز قيد التجهيز'}
-                              >
-                                <HelpCircle className="w-4 h-4" />
-                                <span className="hidden sm:inline">كويز</span>
-                              </span>
-
-                              <span 
-                                className={`flex items-center gap-1 transition-opacity ${lec.has_guide ? 'text-emerald-500 dark:text-emerald-400 font-bold opacity-100' : 'opacity-30'}`}
-                                title={lec.has_guide ? 'دليل دراسي متاح' : 'الدليل قيد التجهيز'}
-                              >
-                                <FileText className="w-4 h-4" />
-                                <span className="hidden sm:inline">زتونة</span>
-                              </span>
-
-                              <span 
-                                className={`flex items-center gap-1 transition-opacity ${lec.has_flashcards ? 'text-pink-500 dark:text-pink-400 font-bold opacity-100' : 'opacity-30'}`}
-                                title={lec.has_flashcards ? 'بطاقات استذكار متاحة' : 'البطاقات قيد التجهيز'}
-                              >
-                                <Layers className="w-4 h-4" />
-                                <span className="hidden sm:inline">كروت</span>
-                              </span>
-
-                              <span 
-                                className="mr-1 text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs"
-                                style={{
-                                  backgroundColor: isReady ? 'var(--bg-surface)' : 'var(--bg-surface-elevated)',
-                                  borderColor: isReady ? 'var(--border-prominent)' : 'var(--border-subtle)',
-                                  color: isReady ? 'var(--accent-primary)' : 'var(--text-muted)'
-                                }}
-                              >
-                                {resourceCount > 0 ? `${resourceCount}/5 مصادر` : 'قيد الإنتاج'}
-                              </span>
-                            </div>
-
-                            <Link
-                              href={isReady ? `/lecture?id=${lec.id}` : '#'}
-                              onClick={(e) => {
-                                if (!isReady) e.preventDefault();
-                              }}
-                              style={{
-                                backgroundColor: isReady ? 'var(--accent-primary)' : 'var(--bg-surface)',
-                                color: isReady ? (isGirls && isDark ? '#0D0811' : (!isGirls && isDark ? '#0B0F14' : '#ffffff')) : 'var(--text-muted)',
-                                borderColor: 'var(--border-subtle)',
-                              }}
-                              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 border shadow-sm ${
-                                isReady ? 'hover:opacity-95 cursor-pointer shadow-cyan-500/20' : 'opacity-70 cursor-not-allowed'
-                              }`}
-                            >
-                              {isReady ? <Play className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                              <span>{isReady ? (isGirls ? 'افتحي المحاضرة 🎀' : 'افتح المحاضرة') : (isGirls ? 'بتتجهز يا شطورة ⏳' : 'قيد التجهيز')}</span>
-                            </Link>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </section>
-          );
-        })()}
+        {activeSubject && (
+          <ActiveSubjectLecturesSection
+            activeSubject={activeSubject}
+            subjectLectures={subjectLectures}
+            displayedLectures={displayedLectures}
+            selectedDoctor={selectedDoctor}
+            onSelectDoctor={setSelectedDoctor}
+            isLoadingLectures={isLoadingLectures}
+            cohortMomentum={cohortMomentum}
+            isGirls={isGirls}
+            isDark={isDark}
+            onOpenExamBuilder={() => setIsExamBuilderOpen(true)}
+            onOpenFormulaSheet={() => setIsFormulaSheetOpen(true)}
+            onOpenHurdles={() => setIsHurdlesModalOpen(true)}
+            onOpenRecoveryPlanner={() => setIsRecoveryPlannerOpen(true)}
+            onOpenFocusAmbience={() => setIsFocusAmbienceOpen(true)}
+            onOpenMathScratchpad={() => setIsMathScratchpadOpen(true)}
+            onOpenStudentBinder={() => setIsStudentBinderOpen(true)}
+          />
+        )}
       </main>
-
 
       {/* Academic Footer with subtle Admin Link */}
       <footer
@@ -1344,14 +413,13 @@ export default function Home() {
             <p className="mt-0.5">{content.footer.description}</p>
           </div>
 
-          {/* Developer Credits Pill */}
           <div className="flex items-center justify-center my-2 sm:my-0">
             <DeveloperCreditsPill
               isGirls={isGirls}
               onClick={() => setIsDevCreditsOpen(true)}
             />
           </div>
-          
+
           <div className="flex items-center gap-3">
             <Link
               href="/admin"
@@ -1369,21 +437,6 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Phase 1 & 2 Modals */}
-      <QuickMicroSessionModal
-        isOpen={isMicroSessionOpen}
-        onClose={() => setIsMicroSessionOpen(false)}
-      />
-      <EthicalWrapUpModal
-        isOpen={isWrapUpOpen}
-        onClose={() => setIsWrapUpOpen(false)}
-      />
-      <MistakeNotebookModal
-        isOpen={isMistakeNotebookOpen}
-        onClose={() => setIsMistakeNotebookOpen(false)}
-      />
-
-      {/* Mobile Drawer Navigation with Background Scroll Lock */}
       <MobileNavDrawer
         isOpen={isMobileNavOpen}
         onClose={() => setIsMobileNavOpen(false)}
@@ -1403,76 +456,43 @@ export default function Home() {
         onOpenStudentBinder={() => setIsStudentBinderOpen(true)}
       />
 
-      {/* Developer Credits Modal */}
       <DeveloperCreditsModal
         isOpen={isDevCreditsOpen}
         onClose={() => setIsDevCreditsOpen(false)}
         isGirls={isGirls}
       />
 
-      {/* First-Visit / Edit Student Profile Modal */}
       <WelcomeStudentModal
         isOpen={isWelcomeModalOpen}
         onClose={() => setIsWelcomeModalOpen(false)}
         isInitialOnboarding={!studentName}
       />
 
-      {/* Cohort Hurdles Modal (Feature 1: Exam Trap Radar) */}
-      <CohortHurdlesModal
-        isOpen={isHurdlesModalOpen}
-        onClose={() => setIsHurdlesModalOpen(false)}
-        isDark={isDark}
-      />
-
-      {/* Feature 2: Custom Exam Builder & Formula Sheet Modals */}
-      <CustomExamBuilderModal
-        isOpen={isExamBuilderOpen}
-        onClose={() => setIsExamBuilderOpen(false)}
+      <PortalModalsHost
         activeSubject={activeSubject}
-        subjectLectures={displayedLectures}
+        displayedLectures={displayedLectures}
         isDark={isDark}
         isGirls={isGirls}
-      />
-      <FormulaSheetModal
-        isOpen={isFormulaSheetOpen}
-        onClose={() => setIsFormulaSheetOpen(false)}
-        activeSubject={activeSubject}
-        subjectLectures={displayedLectures}
-        isDark={isDark}
-        isGirls={isGirls}
-      />
-
-      {/* Feature 3: Automated Recovery Planner Modal */}
-      <RecoveryPlannerModal
-        isOpen={isRecoveryPlannerOpen}
-        onClose={() => setIsRecoveryPlannerOpen(false)}
-        activeSubject={activeSubject}
-        subjectLectures={displayedLectures}
-        isDark={isDark}
-        isGirls={isGirls}
-      />
-
-      {/* Feature 4: Focus Ambience & Pomodoro Modal */}
-      <FocusAmbienceModal
-        isOpen={isFocusAmbienceOpen}
-        onClose={() => setIsFocusAmbienceOpen(false)}
-        isDark={isDark}
-        isGirls={isGirls}
-      />
-
-      {/* Feature 4: Math Scratchpad & Scientific Calculator Modal */}
-      <MathScratchpadModal
-        isOpen={isMathScratchpadOpen}
-        onClose={() => setIsMathScratchpadOpen(false)}
-        isDark={isDark}
-      />
-
-      {/* Feature 4: Personal Student Binder Modal */}
-      <StudentBinderModal
-        isOpen={isStudentBinderOpen}
-        onClose={() => setIsStudentBinderOpen(false)}
-        isDark={isDark}
-        isGirls={isGirls}
+        isMicroSessionOpen={isMicroSessionOpen}
+        setIsMicroSessionOpen={setIsMicroSessionOpen}
+        isWrapUpOpen={isWrapUpOpen}
+        setIsWrapUpOpen={setIsWrapUpOpen}
+        isMistakeNotebookOpen={isMistakeNotebookOpen}
+        setIsMistakeNotebookOpen={setIsMistakeNotebookOpen}
+        isHurdlesModalOpen={isHurdlesModalOpen}
+        setIsHurdlesModalOpen={setIsHurdlesModalOpen}
+        isExamBuilderOpen={isExamBuilderOpen}
+        setIsExamBuilderOpen={setIsExamBuilderOpen}
+        isFormulaSheetOpen={isFormulaSheetOpen}
+        setIsFormulaSheetOpen={setIsFormulaSheetOpen}
+        isRecoveryPlannerOpen={isRecoveryPlannerOpen}
+        setIsRecoveryPlannerOpen={setIsRecoveryPlannerOpen}
+        isFocusAmbienceOpen={isFocusAmbienceOpen}
+        setIsFocusAmbienceOpen={setIsFocusAmbienceOpen}
+        isMathScratchpadOpen={isMathScratchpadOpen}
+        setIsMathScratchpadOpen={setIsMathScratchpadOpen}
+        isStudentBinderOpen={isStudentBinderOpen}
+        setIsStudentBinderOpen={setIsStudentBinderOpen}
       />
     </div>
   );
