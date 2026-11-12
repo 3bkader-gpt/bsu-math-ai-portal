@@ -123,7 +123,7 @@ def _build_typst_preamble() -> str:
 }
 
 // Ensure code blocks and raw text are LTR with fixed-width font
-#show raw: set text(dir: ltr, font: "Courier New")
+#show raw: set text(dir: ltr, font: ("DejaVu Sans Mono", "Courier New"))
 
 // Center display math formulas
 #show math.equation.where(block: true): set align(center)
@@ -237,10 +237,22 @@ def _normalize_pandoc_typst(typst_code: str) -> str:
     - Inserts clean `#linebreak()` between Arabic names and math formulas in table headers.
     - Wraps parenthesized English phrases that contain math with LRM to prevent BiDi word reversal.
     - Fixes sentence-ending periods after math in RTL paragraphs using RLM.
+    - Replaces Pandoc 3.9's invalid `sect` math identifier with Typst's `inter`.
+    - Normalizes empty `sqrt()` calls and separates formatted spans from trailing parentheses.
     - Unescapes unnecessary backslashes before math parentheses.
     """
     code = re.sub(r'mat\(delim:\s*"\|\|"', 'mat(delim: "|"', typst_code)
     code = re.sub(r'#scale\([^)]*\)\[\\*([()\[\]{}|])\]', r'\1', code)
+
+    # Pandoc 3.9 maps LaTeX \cap to `sect`, which is undefined in Typst math (`inter` is valid).
+    code = re.sub(
+        r'\$[^$]+\$',
+        lambda m: re.sub(r'(?<![A-Za-z])sect(?![A-Za-z])', 'inter', m.group(0)),
+        code,
+    )
+
+    # Typst requires a non-empty radicand in sqrt(...); LaTeX $\sqrt{}$ maps to empty sqrt().
+    code = re.sub(r'\bsqrt\(\s*\)', 'sqrt("")', code)
 
     # Normalize rigid equal percentage columns from Pandoc to dynamic auto columns
     def _repl_cols(match):
@@ -264,6 +276,9 @@ def _normalize_pandoc_typst(typst_code: str) -> str:
 
     # Unescape escaped parentheses in math
     code = re.sub(r'\\([()])', r'\1', code)
+
+    # Separate #strong[...](...) AFTER unescaping so Typst never parses trailing (...) as a function call.
+    code = re.sub(r'(#(?:strong|emph|underline|strike|highlight|smallcaps)\[[^\n\]]*\])\(', r'\1 (', code)
     return code
 
 

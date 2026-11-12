@@ -1,18 +1,16 @@
-"""Control-Plane lecture worker — runs 24/7 on the home server (192.168.1.5).
+"""Lecture processing worker — runs 24/7 on the AWS Lightsail cloud server.
 
-Split-Plane architecture (see BLUEPRINT.md):
-  This daemon owns everything that needs the residential IP / live Google
-  session: polling the DB queue, driving NotebookLM (notebook, source,
-  prompt, text artifacts), and handing media downloads over to the cloud
-  Data Plane WITHOUT ever downloading audio/video bytes at home.
+Architecture:
+  Polls the DB queue, drives NotebookLM (notebook, source, prompt, text artifacts,
+  audio/video generation across the multi-account pool), and dispatches Telegram
+  uploads either locally (LOCAL_DATA_PLANE=1) or via cloud handoff.
 
 Environment (~/bsu-math-ai-portal/.env):
   DATABASE_URL              Supabase pooler URL (SQLAlchemy)
   SUPABASE_URL, SUPABASE_ANON_KEY
   TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID, TELEGRAM_API_ID, TELEGRAM_API_HASH
-  GITHUB_DISPATCH_TOKEN     PAT used ONLY to trigger the media_transfer Action
-  GITHUB_REPO               default: 3bkader-gpt/bsu-math-ai-portal
-  CHROME_PROFILE_DIR        default: /home/abkader/.notebooklm-profile
+  CHROME_PROFILE_DIR        default: /home/ubuntu/.notebooklm-profile
+  LOCAL_DATA_PLANE=1        (runs media_transfer_worker.py locally on Lightsail)
   NOTEBOOKLM_HEADLESS_REAUTH=1   (enables mid-RPC L3 recovery as backstop)
 """
 
@@ -130,7 +128,7 @@ def claim_next_lecture() -> dict | None:
     with SessionLocal() as db:
         row = db.execute(text("""
             UPDATE public.lectures SET status='processing',
-                   stage_info='محرك المعالجة المنزلي التقط المحاضرة — جاري المعالجة 🧠',
+                   stage_info='محرك المعالجة السحابي التقط المحاضرة — جاري المعالجة 🧠',
                    updated_at=now()
             WHERE id = (
                 SELECT id FROM public.lectures
@@ -208,9 +206,36 @@ ACCOUNT_POOL = [
     {"profile": "acc_mo", "email": "mo2949042@gmail.com"},
     {"profile": "acc_p1", "email": "pointsone111@gmail.com"},
     {"profile": "acc_p2", "email": "pointstwo222@gmail.com"},
-    {"profile": "acc_ali", "email": "alisamxn2003@gmail.com"},
+    {"profile": "acc_ali", "email": "alisamaxn2003@gmail.com"},
     {"profile": "acc_passplay", "email": "passplay494@gmail.com"},
 ]
+
+
+def _effective_profile_email(profile_name: str, fallback_email: str = "") -> str:
+    """Returns the live active Google email recorded in context.json if available."""
+    ctx_file = Path.home() / ".notebooklm" / "profiles" / profile_name / "context.json"
+    if ctx_file.exists():
+        try:
+            data = json.loads(ctx_file.read_text(encoding="utf-8"))
+            if isinstance(data, dict) and data.get("email"):
+                return str(data["email"]).strip()
+        except Exception:
+            pass
+    return fallback_email
+
+
+def _active_pool_accounts() -> list[dict]:
+    """Returns ACCOUNT_POOL deduplicated by active email so aliased profiles aren't double-counted."""
+    seen_emails: set[str] = set()
+    active: list[dict] = []
+    for acc in ACCOUNT_POOL:
+        eff_email = _effective_profile_email(acc["profile"], acc["email"]).lower()
+        if eff_email and eff_email in seen_emails:
+            continue
+        if eff_email:
+            seen_emails.add(eff_email)
+        active.append(acc)
+    return active
 
 
 # Cache shared (nb_id, profile) pairs in memory so we only share once per notebook/profile
@@ -230,7 +255,11 @@ async def ensure_notebook_shared_with_profile(nb_id: str, target_profile: str, c
     if not acc:
         return False
 
-    email = acc["email"]
+    email = _effective_profile_email(target_profile, acc["email"])
+    creator_email = _effective_profile_email(creator_profile, "")
+    if creator_email and email.lower() == creator_email.lower():
+        _SHARED_NOTEBOOK_PROFILES.add(cache_key)
+        return True
     try:
         cmd = ["notebooklm", "-p", creator_profile, "share", "add", email, "--permission", "editor", "-n", nb_id]
         code, out = await run_cmd_async(cmd)
@@ -295,7 +324,8 @@ async def select_best_profile(kind: str = "audio") -> str:
     using round-robin rotation across tied highest-quota profiles."""
     global _POOL_RR_INDEX
     action_kind = "audio_overview" if kind == "audio" else "video_overview"
-    quotas = await asyncio.gather(*(get_profile_quota(acc["profile"], action_kind) for acc in ACCOUNT_POOL))
+    pool = _active_pool_accounts()
+    quotas = await asyncio.gather(*(get_profile_quota(acc["profile"], action_kind) for acc in pool))
 
     ready = [q for q in quotas if q["available"] and q["has_action_quota"] and q["remaining"] >= 10.0]
     if ready:
@@ -319,7 +349,8 @@ async def select_best_profile(kind: str = "audio") -> str:
 async def select_text_profile() -> str:
     """Pick an authenticated profile with quota for low-cost text artifacts
     (prefers acc_passplay when >= 5% so heavy audio/video quota stays free)."""
-    quotas = await asyncio.gather(*(get_profile_quota(acc["profile"], "quiz") for acc in ACCOUNT_POOL))
+    pool = _active_pool_accounts()
+    quotas = await asyncio.gather(*(get_profile_quota(acc["profile"], "quiz") for acc in pool))
     ok = [q for q in quotas if q["available"] and q["has_action_quota"] and q["remaining"] >= 5.0]
     if ok:
         for q in ok:
@@ -369,7 +400,7 @@ async def launch_media(nb_id: str, kind: str, prompt_path: str | None, preferred
     if best_p not in profiles_to_try:
         profiles_to_try.append(best_p)
 
-    for acc in ACCOUNT_POOL:
+    for acc in _active_pool_accounts():
         p = acc["profile"]
         if p not in profiles_to_try:
             profiles_to_try.append(p)
@@ -575,8 +606,13 @@ async def _watch_and_handoff_media(lecture: dict, nb_id: str, prompt_path: str |
             raise RuntimeError("Media artifacts never became ready within timeout")
 
         handoff_id = create_handoff(lecture, nb_id, None, None, subject_name)
-        set_stage(lecture_id, "media_pending",
-                  "تم تسليم الميديا لخط النقل السحابي — جاري رفعها لتليجرام من الداتا سنتر 🚀")
+        set_stage(
+            lecture_id,
+            "media_pending",
+            "تم تجهيز الميديا — جاري رفعها لتليجرام مباشرة من السيرفر ☁️🚀"
+            if LOCAL_DATA_PLANE
+            else "تم تسليم الميديا لخط النقل السحابي — جاري رفعها لتليجرام 🚀",
+        )
         if not dispatch_data_plane(handoff_id):
             logger.error("Handoff %s persisted; cloud dispatch failed (will retry next loop)",
                          handoff_id)
@@ -712,8 +748,15 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
                 results = await asyncio.gather(*(run_cmd_async(cmd) for _, cmd in gen_jobs))
                 failed_jobs = [(atype, cmd) for (atype, cmd), (rc, _) in zip(gen_jobs, results) if rc != 0]
                 if failed_jobs:
-                    # One failover pass on highest-remaining profile
-                    fallback = next((acc["profile"] for acc in ACCOUNT_POOL if acc["profile"] not in (text_profile, "default", "acc_ali")), "acc_mo")
+                    # One failover pass on another distinct active profile
+                    fallback = next(
+                        (
+                            acc["profile"]
+                            for acc in _active_pool_accounts()
+                            if acc["profile"] not in (text_profile, "default", "acc_ali")
+                        ),
+                        "acc_mo",
+                    )
                     await ensure_notebook_shared_with_profile(nb_id, fallback)
                     await asyncio.gather(*(run_cmd_async(["notebooklm", "-p", fallback, *cmd[3:]]) for _, cmd in failed_jobs))
 
@@ -788,7 +831,7 @@ async def redispatch_pending_handoffs():
 
 
 async def main_loop():
-    logger.info("🏠 Control-Plane home worker started (poll every %ss)", POLL_INTERVAL)
+    logger.info("☁️ Cloud lecture worker started (poll every %ss, local_data_plane=%s)", POLL_INTERVAL, LOCAL_DATA_PLANE)
     while True:
         try:
             await redispatch_pending_handoffs()

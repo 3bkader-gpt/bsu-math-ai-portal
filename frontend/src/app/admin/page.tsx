@@ -56,16 +56,14 @@ export default function AdminLoginPage() {
     const trimmedUser = username.trim();
     const trimmedPass = password.trim();
 
-    // Render free tier cold-starts can take 30s+ — keep the user informed
-    // instead of fabricating a local session.
+    // Show feedback if authentication takes more than 2.5s (e.g. slow connection)
     const wakeTimer = setTimeout(() => {
-      setLoadingStatus('جاري إيقاظ السيرفر السحابي والتحقق...');
+      setLoadingStatus('جاري الاتصال بالسيرفر السحابي والتحقق...');
     }, 2500);
 
     try {
       const controller = new AbortController();
-      // Render free-tier cold starts can exceed 45s — give it a full minute
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       const res = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',

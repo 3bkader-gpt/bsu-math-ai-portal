@@ -231,7 +231,7 @@ def register_cloud_lecture(
         lecture.title = clean_title or f"المحاضرة {body.lecture_num}"
         lecture.doctor = clean_doctor
         lecture.status = "queued"
-        lecture.stage_info = "تم الرفع بنجاح، محرك المعالجة المنزلي هيلتقطها خلال ثوانٍ 🚀"
+        lecture.stage_info = "تم الرفع بنجاح، محرك المعالجة السحابي هيلتقطها خلال ثوانٍ 🚀"
         lecture.source_pdf_url = primary_url
         lecture.error_message = None
         for old_asset in list(lecture.assets):
@@ -244,7 +244,7 @@ def register_cloud_lecture(
             title=clean_title or f"المحاضرة {body.lecture_num}",
             doctor=clean_doctor,
             status="queued",
-            stage_info="تم الرفع بنجاح، محرك المعالجة المنزلي هيلتقطها خلال ثوانٍ 🚀",
+            stage_info="تم الرفع بنجاح، محرك المعالجة السحابي هيلتقطها خلال ثوانٍ 🚀",
             source_pdf_url=primary_url,
         )
         db.add(lecture)

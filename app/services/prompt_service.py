@@ -57,9 +57,14 @@ def sync_subjects_from_filesystem(db: Session):
 
 def get_subject_prompt(subject_name: str) -> str | None:
     """Returns the absolute path to prompt.txt for the given subject."""
-    # Check subjects container first, then direct college dir
-    for base in [settings.COLLEGE_DIR / "subjects", settings.COLLEGE_DIR]:
-        candidate = base / subject_name / "prompt.txt"
+    # Check portable project prompts directory first, then local college workspace
+    candidates = [
+        settings.BASE_DIR.parent / "prompts" / f"{subject_name}.txt",
+        settings.BASE_DIR / "prompts" / f"{subject_name}.txt",
+        settings.COLLEGE_DIR / "subjects" / subject_name / "prompt.txt",
+        settings.COLLEGE_DIR / subject_name / "prompt.txt",
+    ]
+    for candidate in candidates:
         if candidate.exists():
             return str(candidate)
     return None

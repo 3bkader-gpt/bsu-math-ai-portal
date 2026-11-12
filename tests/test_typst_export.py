@@ -296,3 +296,32 @@ def test_unspaced_steps_and_bidi_normalization():
     # 3. Full end-to-end compilation of this tricky construct
     pdf_bytes = markdown_to_typst_pdf(unspaced_md)
     assert pdf_bytes.startswith(b"%PDF-")
+
+
+def test_pandoc39_sect_empty_sqrt_and_strong_parens():
+    """Verifies normalization for \\cap ($sect$), empty \\sqrt{}, and **Bold**(Arabic) constructs."""
+    from app.services.typst_service import _normalize_pandoc_typst
+
+    sample_typst = (
+        "#strong[Al-Mahfuzat](المحفوظات)\n"
+        "- التقاطع: $A sect B$ ورمز الماشية ($sect$)\n"
+        "- الجذر: $sqrt()$\n"
+    )
+    norm = _normalize_pandoc_typst(sample_typst)
+    assert "#strong[Al-Mahfuzat] (المحفوظات)" in norm
+    assert "$A inter B$" in norm
+    assert "($inter$)" in norm
+    assert 'sqrt("")' in norm
+
+    tricky_md = """# اختبار التطبيع الرياضي
+
+| الرمز | المعنى | الشرح |
+| :--- | :---: | :--- |
+| **10** | تقاطع ($\\cap$) | باب مقوس ضيق ($\\cap$) |
+| **Al-Mahfuzat**(المحفوظات) | خانة البواقي | تُكتب أسفل الجمع |
+
+* **Square Root Sign ($\\sqrt{}$):** علامة الجذر التربيعي.
+"""
+    pdf_bytes = markdown_to_typst_pdf(tricky_md)
+    assert pdf_bytes.startswith(b"%PDF-")
+

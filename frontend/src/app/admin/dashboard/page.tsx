@@ -502,11 +502,9 @@ export default function AdminDashboardPage() {
 
     setIsUploading(true);
 
-    // 1. Try the FastAPI upload ONLY for backends that can actually run the
-    // NotebookLM pipeline (local dev server / explicit tunnel override).
+    // 1. Try the FastAPI upload ONLY for local dev servers configured to process inline.
     const PRODUCTION_CLOUD_APIS = [
       'https://api.bsumath.bond',
-      'https://bsu-math-api.onrender.com',
     ];
     const apiBase = getApiBaseUrl();
     const canBackendProcess = !PRODUCTION_CLOUD_APIS.includes(apiBase);
@@ -617,7 +615,7 @@ export default function AdminDashboardPage() {
       const isNetworkError = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(String(err?.message));
       setUploadError(
         isNetworkError
-          ? 'تعذر الاتصال بالسيرفر السحابي — اتأكدي من الإنترنت وحاولي تاني. لو أول استخدام اليوم، السيرفر بيتصحى وبياخد حوالي دقيقة، جرّبي كمان مرة.'
+          ? 'تعذر الاتصال بالسيرفر السحابي — اتأكدي من الإنترنت وحاولي تاني.'
           : (err?.message || 'حدث خطأ أثناء الرفع السحابي')
       );
     } finally {

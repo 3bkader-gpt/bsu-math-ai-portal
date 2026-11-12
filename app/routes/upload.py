@@ -1,7 +1,9 @@
+import os
 import re
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
+from app.config import settings
 from app.db.database import get_db, SessionLocal
 from app.db.models import Subject, Lecture, User
 from app.services.notebooklm_service import NotebookLMPipeline
@@ -43,11 +45,19 @@ async def upload_lecture(
         sanitized = re.sub(r'[\\/*?:"<>|\.]+', ' ', doctor.strip()).strip()
         clean_doctor = sanitized if sanitized else None
 
-    # Target folder in the subject directory (with doctor subfolder if provided)
-    if clean_doctor:
-        lec_folder = Path(subject.folder_path) / clean_doctor / f"lec{lecture_num}"
+    # Target folder in the subject directory (portable across Windows & Linux servers)
+    raw_folder = (subject.folder_path or "").strip()
+    is_win_path = bool(re.match(r"^[A-Za-z]:[/\\]", raw_folder))
+    if raw_folder and (os.name == "nt" or not is_win_path):
+        base_folder = Path(raw_folder)
     else:
-        lec_folder = Path(subject.folder_path) / f"lec{lecture_num}"
+        safe_sub = re.sub(r'[\\/*?:"<>|]+', "_", subject.name).strip() or f"subject_{subject.id}"
+        base_folder = settings.MEDIA_DIR / "uploads" / safe_sub
+
+    if clean_doctor:
+        lec_folder = base_folder / clean_doctor / f"lec{lecture_num}"
+    else:
+        lec_folder = base_folder / f"lec{lecture_num}"
     lec_folder.mkdir(parents=True, exist_ok=True)
 
     saved_pdf_paths: list[Path] = []
@@ -119,8 +129,9 @@ async def upload_lecture(
         db.commit()
         db.refresh(lecture)
 
-    # Get subject master prompt
-    prompt_path = subject.prompt_path or get_subject_prompt(subject.name)
+    # Get subject master prompt (only trust stored prompt_path if it exists on this OS)
+    raw_prompt = (subject.prompt_path or "").strip()
+    prompt_path = raw_prompt if raw_prompt and Path(raw_prompt).exists() else get_subject_prompt(subject.name)
 
     # Launch background job
     background_tasks.add_task(

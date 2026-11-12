@@ -119,7 +119,7 @@ export default function AdminDiagnosticsModal({
                 </span>
               </h3>
               <p className="text-xs font-bold mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                مراقبة حية لسيرفر Render وقاعدة Supabase وتدفق تيليجرام وفهرس الـ 21 محاضرة
+                مراقبة حية لسيرفر الباك إند السحابي وقاعدة Supabase وتدفق تيليجرام ومكتبة المحاضرات
               </p>
             </div>
           </div>
@@ -281,11 +281,11 @@ export default function AdminDiagnosticsModal({
                   <div className="flex items-center gap-2">
                     <Server className="w-5 h-5 text-emerald-500" />
                     <span className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>
-                      Render (Frankfurt)
+                      AWS Lightsail (Stockholm)
                     </span>
                   </div>
                   <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    يعمل 24/7 سحابياً بدون الاعتماد على جهازك المنزلي
+                    يعمل 24/7 سحابياً مع بث مباشر ومعالجة متكاملة
                   </p>
                 </div>
 
