@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.db.database import get_db
 from app.db.models import MediaAsset
+from app.services.media_cache import media_disk_cache
 from app.services.telegram_storage import telegram_storage
 from app.services.telethon_service import telethon_streamer
 
@@ -72,6 +73,72 @@ def range_stream_file(file_path: Path, start: int, end: int):
                 break
             bytes_to_read -= len(chunk)
             yield chunk
+
+
+def _parse_byte_range(range_header: str, file_size: int) -> tuple[int, int]:
+    """Parses a single HTTP Range: bytes=start-end header against file_size."""
+    range_val = range_header.strip().replace("bytes=", "")
+    parts = range_val.split("-")
+    start = int(parts[0]) if parts[0] else 0
+    end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
+    if start >= file_size or start < 0 or end < start:
+        raise HTTPException(status_code=416, detail="Requested Range Not Satisfiable")
+    end = min(end, file_size - 1)
+    return start, end
+
+
+def _serve_disk_file(
+    file_path: Path,
+    file_size: int,
+    range_header: str | None,
+    is_head: bool,
+    content_type: str,
+    disposition_val: str | None,
+    extra_headers: dict[str, str] | None = None,
+) -> Response:
+    """Serves full or byte-range responses from an approved local or cached NVMe file."""
+    if range_header:
+        start, end = _parse_byte_range(range_header, file_size)
+        headers = {
+            "Content-Range": f"bytes {start}-{end}/{file_size}",
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(end - start + 1),
+            "Content-Type": content_type,
+        }
+        if disposition_val:
+            headers["Content-Disposition"] = disposition_val
+        if extra_headers:
+            headers.update(extra_headers)
+        if is_head:
+            return Response(status_code=206, headers=headers, media_type=content_type)
+        return StreamingResponse(
+            range_stream_file(file_path, start, end),
+            status_code=206,
+            headers=headers,
+        )
+
+    headers = {
+        "Content-Length": str(file_size),
+        "Accept-Ranges": "bytes",
+        "Content-Type": content_type,
+    }
+    if disposition_val:
+        headers["Content-Disposition"] = disposition_val
+    if extra_headers:
+        headers.update(extra_headers)
+    if is_head:
+        return Response(status_code=200, headers=headers, media_type=content_type)
+
+    file_resp_headers = {"Accept-Ranges": "bytes"}
+    if disposition_val:
+        file_resp_headers["Content-Disposition"] = disposition_val
+    if extra_headers:
+        file_resp_headers.update(extra_headers)
+    return FileResponse(
+        path=str(file_path),
+        media_type=content_type,
+        headers=file_resp_headers,
+    )
 
 @router.api_route("/stream/{asset_id}", methods=["GET", "HEAD"])
 async def stream_media_asset(
@@ -137,58 +204,107 @@ async def stream_media_asset(
     should_download = download and is_pdf
     disposition_val = build_pdf_content_disposition(asset.title, asset.lecture_id) if should_download else None
 
-    # 2. Primary Cloud Streaming: If telegram_message_id is available, stream via Telethon MTProto
+    # 2. Primary Cloud Streaming: NVMe LRU cache first, else stream via Telethon MTProto & cache cleanly
     if asset.telegram_message_id:
+        cache_key = f"msg_{asset.telegram_message_id}.bin"
+        range_header = request.headers.get("Range")
+
+        # Fast-path NVMe check before RPC when asset size is recorded in DB or on Telethon failure
+        expected_db_size = asset.file_size_bytes if (asset.file_size_bytes and asset.file_size_bytes > 0) else None
+        if expected_db_size:
+            cached_fast = media_disk_cache.get_cached_file(cache_key, expected_size=expected_db_size)
+            if cached_fast is not None:
+                return _serve_disk_file(
+                    cached_fast,
+                    expected_db_size,
+                    range_header,
+                    is_head,
+                    content_type,
+                    disposition_val,
+                    extra_headers={"X-Media-Cache": "HIT"},
+                )
+
         try:
             meta = await telethon_streamer.get_file_metadata(asset.telegram_message_id)
             if meta and meta.get("file_size"):
-                file_size = meta["file_size"]
-                range_header = request.headers.get("Range")
+                file_size = int(meta["file_size"])
+                cached_path = media_disk_cache.get_cached_file(cache_key, expected_size=file_size)
+                if cached_path is not None:
+                    return _serve_disk_file(
+                        cached_path,
+                        file_size,
+                        range_header,
+                        is_head,
+                        content_type,
+                        disposition_val,
+                        extra_headers={"X-Media-Cache": "HIT"},
+                    )
 
                 if range_header:
-                    range_val = range_header.strip().replace("bytes=", "")
-                    parts = range_val.split("-")
-                    start = int(parts[0]) if parts[0] else 0
-                    end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
-
-                    if start >= file_size:
-                        raise HTTPException(status_code=416, detail="Requested Range Not Satisfiable")
-
+                    start, end = _parse_byte_range(range_header, file_size)
                     headers = {
                         "Content-Range": f"bytes {start}-{end}/{file_size}",
                         "Accept-Ranges": "bytes",
                         "Content-Length": str(end - start + 1),
-                        "Content-Type": content_type
+                        "Content-Type": content_type,
+                        "X-Media-Cache": "MISS",
                     }
                     if disposition_val:
                         headers["Content-Disposition"] = disposition_val
                     if is_head:
                         return Response(status_code=206, headers=headers, media_type=content_type)
 
+                    if start == 0 and end == file_size - 1:
+                        source = telethon_streamer.stream_media_chunks(asset.telegram_message_id, 0, file_size - 1)
+                        stream_iter = media_disk_cache.tee_stream(cache_key, file_size, source)
+                    else:
+                        media_disk_cache.schedule_background_fill(
+                            cache_key,
+                            file_size,
+                            lambda msg_id=asset.telegram_message_id, fsz=file_size: telethon_streamer.stream_media_chunks(
+                                msg_id, 0, fsz - 1
+                            ),
+                        )
+                        stream_iter = telethon_streamer.stream_media_chunks(asset.telegram_message_id, start, end)
+
                     return StreamingResponse(
-                        telethon_streamer.stream_media_chunks(asset.telegram_message_id, start, end),
+                        stream_iter,
                         status_code=206,
-                        headers=headers
+                        headers=headers,
                     )
                 else:
                     headers = {
                         "Content-Length": str(file_size),
                         "Accept-Ranges": "bytes",
-                        "Content-Type": content_type
+                        "Content-Type": content_type,
+                        "X-Media-Cache": "MISS",
                     }
                     if disposition_val:
                         headers["Content-Disposition"] = disposition_val
                     if is_head:
                         return Response(status_code=200, headers=headers, media_type=content_type)
 
+                    source = telethon_streamer.stream_media_chunks(asset.telegram_message_id, 0, file_size - 1)
                     return StreamingResponse(
-                        telethon_streamer.stream_media_chunks(asset.telegram_message_id, 0, file_size - 1),
-                        headers=headers
+                        media_disk_cache.tee_stream(cache_key, file_size, source),
+                        headers=headers,
                     )
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Telethon streaming exception for msg {asset.telegram_message_id} (Asset #{asset.id}): {e}", exc_info=True)
-
-
+            # Last-chance NVMe cache fallback even if Telegram RPC fails temporarily
+            fallback_cached = media_disk_cache.get_cached_file(cache_key, expected_size=expected_db_size)
+            if fallback_cached is not None:
+                return _serve_disk_file(
+                    fallback_cached,
+                    fallback_cached.stat().st_size,
+                    range_header,
+                    is_head,
+                    content_type,
+                    disposition_val,
+                    extra_headers={"X-Media-Cache": "HIT"},
+                )
 
     # 3. Fallback to local file streaming (reject unapproved paths on any OS)
     if local_path and not is_safe_path(local_path) and (local_path.exists() or not asset.telegram_file_id):
@@ -196,53 +312,14 @@ async def stream_media_asset(
 
     if local_path and local_path.exists():
         file_size = local_path.stat().st_size
-        range_header = request.headers.get("Range")
-
-        if range_header:
-            range_val = range_header.strip().replace("bytes=", "")
-            parts = range_val.split("-")
-            start = int(parts[0]) if parts[0] else 0
-            end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
-
-            if start >= file_size:
-                raise HTTPException(status_code=416, detail="Requested Range Not Satisfiable")
-
-            headers = {
-                "Content-Range": f"bytes {start}-{end}/{file_size}",
-                "Accept-Ranges": "bytes",
-                "Content-Length": str(end - start + 1),
-                "Content-Type": content_type
-            }
-            if disposition_val:
-                headers["Content-Disposition"] = disposition_val
-            if is_head:
-                return Response(status_code=206, headers=headers, media_type=content_type)
-
-            return StreamingResponse(
-                range_stream_file(local_path, start, end),
-                status_code=206,
-                headers=headers
-            )
-        else:
-            headers = {
-                "Content-Length": str(file_size),
-                "Accept-Ranges": "bytes",
-                "Content-Type": content_type
-            }
-            if disposition_val:
-                headers["Content-Disposition"] = disposition_val
-            if is_head:
-                return Response(status_code=200, headers=headers, media_type=content_type)
-
-            file_resp_headers = {"Accept-Ranges": "bytes"}
-            if disposition_val:
-                file_resp_headers["Content-Disposition"] = disposition_val
-
-            return FileResponse(
-                path=str(local_path),
-                media_type=content_type,
-                headers=file_resp_headers
-            )
+        return _serve_disk_file(
+            local_path,
+            file_size,
+            request.headers.get("Range"),
+            is_head,
+            content_type,
+            disposition_val,
+        )
 
 
     # 4. Fallback: Telegram Bot API direct proxy streaming (Never expose bot token in client redirects!)

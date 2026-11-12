@@ -1,13 +1,15 @@
 """FastAPI router for Academic Study Guide operations and PDF export."""
 
+import hashlib
 import logging
 import re
 import urllib.parse
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models import MediaAsset, Lecture
+from app.services.media_cache import pdf_disk_cache
 from app.services.typst_service import (
     markdown_to_typst_pdf,
     TypstServiceError,
@@ -54,11 +56,13 @@ def build_study_guide_content_disposition(title: str | None, lecture_id: int | N
 @router.get("/{asset_id}/pdf")
 async def download_study_guide_pdf(
     asset_id: int,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
     Compiles an AI-generated study guide asset (`study_guide_md`) into an academic PDF
-    using Typst on the backend and returns the compiled PDF as a downloadable attachment.
+    using Typst on the backend (with NVMe disk cache + HTTP cache headers) and returns
+    the compiled PDF as a downloadable attachment.
     """
     # 1. Look up the asset in the database
     asset = db.query(MediaAsset).filter(MediaAsset.id == asset_id).first()
@@ -93,7 +97,44 @@ async def download_study_guide_pdf(
 
     disposition = build_study_guide_content_disposition(title_for_file, asset.lecture_id)
 
-    # 6. Compile Markdown to Typst PDF with lecture number in document title
+    # 6. Check deterministic cache key + conditional ETag
+    cache_hash = hashlib.sha256(
+        f"{asset.id}:{lecture_num}:{content_text}".encode("utf-8")
+    ).hexdigest()[:24]
+    etag_value = f'"{cache_hash}"'
+    cache_headers = {
+        "Content-Disposition": disposition,
+        "Cache-Control": "public, max-age=86400",
+        "ETag": etag_value,
+    }
+
+    if_none_match = request.headers.get("if-none-match", "")
+    if if_none_match:
+        client_tags = {
+            tag.strip().removeprefix("W/").strip().strip('"')
+            for tag in if_none_match.split(",")
+        }
+        if "*" in client_tags or cache_hash in client_tags:
+            return Response(
+                status_code=304,
+                headers={**cache_headers, "X-PDF-Cache": "HIT"},
+            )
+
+    cache_filename = f"sg_{asset.id}_{cache_hash}.pdf"
+    cached_pdf = pdf_disk_cache.get_cached_file(cache_filename)
+    if cached_pdf is not None:
+        pdf_bytes = cached_pdf.read_bytes()
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                **cache_headers,
+                "Content-Length": str(len(pdf_bytes)),
+                "X-PDF-Cache": "HIT",
+            },
+        )
+
+    # 7. Cache miss: Compile Markdown to Typst PDF and store atomically
     try:
         pdf_bytes = markdown_to_typst_pdf(content_text, lecture_num=lecture_num)
     except InputSizeExceededError:
@@ -106,10 +147,20 @@ async def download_study_guide_pdf(
         logger.error(f"Unexpected error compiling study guide {asset_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="An error occurred while generating the study guide PDF")
 
-    # 7. Return PDF response with headers
+    try:
+        pdf_disk_cache.put_bytes_atomic(
+            cache_filename,
+            pdf_bytes,
+            prefix_cleanup=f"sg_{asset.id}_",
+        )
+    except Exception as e:
+        logger.warning(f"Failed to persist study guide PDF cache for asset {asset_id}: {e}")
+
+    # 8. Return PDF response with cache headers
     headers = {
-        "Content-Disposition": disposition,
+        **cache_headers,
         "Content-Length": str(len(pdf_bytes)),
+        "X-PDF-Cache": "MISS",
     }
 
     return Response(
