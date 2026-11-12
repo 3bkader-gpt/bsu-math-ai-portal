@@ -46,6 +46,7 @@ import WelcomeStudentModal from '@/components/WelcomeStudentModal';
 import ExamTrapBadge from '@/components/ExamTrapBadge';
 import MathScratchpadModal from '@/components/MathScratchpadModal';
 import LectureQuizEngine from '@/components/lecture/LectureQuizEngine';
+import MindMapViewer from '@/components/lecture/MindMapViewer';
 import { getStudentProfileLocal, PROFILE_UPDATED_EVENT } from '@/lib/studentProfile';
 import { getApiUrl, getApiBaseUrl } from '@/lib/api';
 import { getDirectSupabaseBundle, getDirectSupabaseSubjects } from '@/lib/supabase';
@@ -53,10 +54,13 @@ import { AcademicLectureBundle, AcademicMediaAsset } from '@/types/academic';
 import {
   QuizQuestion,
   Flashcard,
+  MindMapNode,
   OriginalPdfInfo,
   getOriginalPdfDetails,
   parseQuizMarkdown,
   parseFlashcardsMarkdown,
+  parseMindMapJson,
+  countMindMapNodes,
   getQuizFeedback,
   getQuizHintPrefix,
   getMascotEmoji,
@@ -157,7 +161,7 @@ function LectureContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const lectureIdParam = searchParams.get('id');
-  const tabParam = searchParams.get('tab') as 'audio' | 'video' | 'quiz' | 'guide' | 'flashcards' | null;
+  const tabParam = searchParams.get('tab') as 'audio' | 'video' | 'quiz' | 'guide' | 'flashcards' | 'mindmap' | null;
   const timeParam = searchParams.get('t') ? parseFloat(searchParams.get('t')!) : null;
   const initialSeekTimeRef = useRef<number | null>(timeParam);
 
@@ -209,7 +213,7 @@ function LectureContent() {
   }, []);
 
   // Active Tab with immediate transition logging
-  const [activeTab, setActiveTabState] = useState<'audio' | 'video' | 'quiz' | 'guide' | 'flashcards'>('audio');
+  const [activeTab, setActiveTabState] = useState<'audio' | 'video' | 'quiz' | 'guide' | 'flashcards' | 'mindmap'>('audio');
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
@@ -222,7 +226,7 @@ function LectureContent() {
     }
   }, [activeTab]);
 
-  const setActiveTab = (tab: 'audio' | 'video' | 'quiz' | 'guide' | 'flashcards') => {
+  const setActiveTab = (tab: 'audio' | 'video' | 'quiz' | 'guide' | 'flashcards' | 'mindmap') => {
     setActiveTabState(tab);
     if (lectureBundle) {
       recordImmediateTransition(lectureBundle.id, tab, {
@@ -322,9 +326,10 @@ function LectureContent() {
     return () => window.clearInterval(id);
   }, [activeTab, showBurnoutRelief, userAnswers, quizQuestions]);
 
-  // Study Guide & Flashcards
+  // Study Guide, Flashcards & Mind Map
   const [guideText, setGuideText] = useState<string>('');
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [mindMapData, setMindMapData] = useState<MindMapNode | null>(null);
   const [downloadingAssetId, setDownloadingAssetId] = useState<number | string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
 
@@ -478,6 +483,27 @@ function LectureContent() {
           }
         } else {
           setFlashcards(DEFAULT_MATH_FLASHCARDS);
+        }
+
+        // Parse Mind Map (`mind_map_json`)
+        const mindMapAsset = bundle.assets?.find((a) => a.asset_type === 'mind_map_json');
+        if (mindMapAsset) {
+          if (mindMapAsset.content_text) {
+            setMindMapData(parseMindMapJson(mindMapAsset.content_text));
+          } else if (mindMapAsset.stream_url) {
+            fetch(getApiUrl(mindMapAsset.stream_url))
+              .then((r) => (r.ok ? r.text() : ''))
+              .then((text) => {
+                if (isMounted) setMindMapData(parseMindMapJson(text));
+              })
+              .catch(() => {
+                if (isMounted) setMindMapData(null);
+              });
+          } else {
+            setMindMapData(null);
+          }
+        } else {
+          setMindMapData(null);
         }
       } catch (err: any) {
         if (isMounted) {
@@ -1108,6 +1134,44 @@ function LectureContent() {
                 </span>
               )}
             </button>
+
+            {/* TAB 6: MIND MAP */}
+            {mindMapData && (
+              <button
+                ref={activeTab === 'mindmap' ? activeTabRef : null}
+                type="button"
+                onClick={() => setActiveTab('mindmap')}
+                className={`shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-150 cursor-pointer select-none ${
+                  activeTab === 'mindmap'
+                    ? isGirls
+                      ? 'bg-pink-500/15 text-pink-600 dark:text-pink-300 border border-pink-500/30 font-black shadow-xs'
+                      : 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30 font-black shadow-xs'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'
+                }`}
+              >
+                {!isGirls && <Brain className={`w-4 h-4 shrink-0 ${activeTab === 'mindmap' ? 'text-teal-500' : 'opacity-70'}`} />}
+                <span className="shrink-0">
+                  {isGirls ? content.personas.girls.tabs.mindmap : content.personas.boys.tabs.mindmap}
+                </span>
+                <span
+                  className="inline-flex items-center justify-center text-xs font-bold px-2 py-0.5 rounded-full font-mono shrink-0 shadow-2xs"
+                  style={{
+                    backgroundColor: activeTab === 'mindmap'
+                      ? (isGirls ? 'rgba(236, 72, 153, 0.25)' : 'rgba(20, 184, 166, 0.25)')
+                      : 'var(--bg-surface-elevated)',
+                    color: activeTab === 'mindmap'
+                      ? (isGirls ? '#ec4899' : '#14b8a6')
+                      : 'var(--text-muted)',
+                    border: '1px solid',
+                    borderColor: activeTab === 'mindmap'
+                      ? (isGirls ? 'rgba(236, 72, 153, 0.35)' : 'rgba(20, 184, 166, 0.35)')
+                      : 'var(--border-subtle)',
+                  }}
+                >
+                  <bdi dir="ltr">{countMindMapNodes(mindMapData)}</bdi>
+                </span>
+              </button>
+            )}
           </div>
         </nav>
 
@@ -1608,6 +1672,27 @@ function LectureContent() {
                       });
                     }
                   }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB 6: MIND MAP VIEWER */}
+          {activeTab === 'mindmap' && (
+            <div className="max-w-4xl mx-auto py-4">
+              <div
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  borderColor: 'var(--border-subtle)',
+                  boxShadow: 'var(--card-shadow)',
+                }}
+                className="p-6 sm:p-10 rounded-3xl border"
+              >
+                <MindMapViewer
+                  data={mindMapData}
+                  lectureTitle={lectureBundle?.title}
+                  isGirls={isGirls}
+                  isDark={isDark}
                 />
               </div>
             </div>

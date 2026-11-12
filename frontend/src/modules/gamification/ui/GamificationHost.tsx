@@ -9,6 +9,10 @@ import { clearOutbox, getOutboxCount } from '../sync/idb';
 import { fetchCohortLeaderboard } from '../supabase/gamification';
 import { playSound } from '@/lib/audio/soundEngine';
 import { triggerConfetti } from '@/lib/effects/confetti';
+import {
+  loadSavedRecoveryPlan,
+  reconcileRecoveryPlanWithEvent,
+} from '@/lib/studyPlanner';
 import type { AppEvent, GamificationEffect } from '@/shared/events/types';
 
 interface ToastItem {
@@ -70,9 +74,48 @@ export function GamificationHost() {
       setTimeout(bootstrap, 100);
     }
 
-    // 2. Connect App Event Bus -> Gamification Store Dispatcher
+    // 2. Connect App Event Bus -> Gamification Store Dispatcher + Self-Ticking Recovery Plan
     const handleAppEvent = (event: AppEvent) => {
       useGamificationStore.getState().dispatchAppEvent(event);
+
+      // Reconcile active Recovery Plan automatically on study milestones
+      try {
+        const savedPlan = loadSavedRecoveryPlan();
+        if (savedPlan) {
+          const payloadObj = (event.payload || {}) as Record<string, any>;
+          const lectureId = payloadObj.lectureId ?? event.meta?.lectureId ?? null;
+          const mediaKind = payloadObj.kind ?? payloadObj.mediaType ?? null;
+
+          const { matchedTasks, dayJustCompleted, xpAwarded } =
+            reconcileRecoveryPlanWithEvent(savedPlan, {
+              type: event.type,
+              lectureId,
+              mediaKind,
+            });
+
+          if (matchedTasks.length > 0) {
+            if (dayJustCompleted && xpAwarded > 0) {
+              playSound('level_up');
+              triggerConfetti('epic');
+              addToast({
+                id: `recovery-day-${Date.now()}`,
+                type: 'xp',
+                title: `🎉 يوم مكتمل في خطة الإنقاذ! (+${xpAwarded} XP)`,
+                subtitle: `تم تشطيب "${matchedTasks[0].taskTitle}" وإغلاق مهام اليوم تلقائياً`,
+              });
+            } else {
+              addToast({
+                id: `recovery-task-${Date.now()}`,
+                type: 'xp',
+                title: '☑️ تشطيب تلقائي في خطة الإنقاذ',
+                subtitle: matchedTasks[0].taskTitle,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[GamificationHost] Recovery plan auto-tick warning:', err);
+      }
     };
 
     // Listen to milestone and educational activity events (excluding raw telemetry heartbeats)

@@ -14,7 +14,7 @@ export interface ResumeState {
   lectureNum?: number;
   subjectName?: string;
   lectureTitle?: string;
-  lastTab: 'guide' | 'audio' | 'video' | 'quiz' | 'flashcards';
+  lastTab: 'guide' | 'audio' | 'video' | 'quiz' | 'flashcards' | 'mindmap';
   audioSec?: number;
   videoSec?: number;
   cardIndex?: number;

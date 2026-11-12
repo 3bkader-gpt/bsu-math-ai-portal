@@ -31,7 +31,8 @@ import {
   togglePlanTask, 
   deleteSavedRecoveryPlan, 
   formatPlanForWhatsApp,
-  DAY_COMPLETION_XP_REWARD
+  DAY_COMPLETION_XP_REWARD,
+  RECOVERY_PLAN_UPDATED_EVENT
 } from '@/lib/studyPlanner';
 import { playSound } from '@/lib/audio/soundEngine';
 import { useGamificationStore } from '@/modules/gamification/store/useGamificationStore';
@@ -64,19 +65,36 @@ export default function RecoveryPlannerModal({
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
   const [celebrationXp, setCelebrationXp] = useState<number>(50);
 
-  // Load existing plan from LocalStorage on open
+  // Load existing plan from LocalStorage on open & subscribe to live auto-tick updates
   useEffect(() => {
-    if (isOpen) {
+    const syncFromStorage = () => {
       const saved = loadSavedRecoveryPlan();
       if (saved) {
         setActivePlan(saved);
-        // Find first uncompleted day
         const firstUnfinishedIdx = saved.days.findIndex(d => !d.isDayCompleted);
         setSelectedDayIdx(firstUnfinishedIdx >= 0 ? firstUnfinishedIdx : 0);
       } else {
         setActivePlan(null);
       }
+    };
+
+    if (isOpen) {
+      syncFromStorage();
     }
+
+    const handlePlanUpdated = (e: Event) => {
+      const custom = e as CustomEvent;
+      if (custom.detail?.updatedPlan) {
+        setActivePlan(custom.detail.updatedPlan);
+      } else {
+        syncFromStorage();
+      }
+    };
+
+    window.addEventListener(RECOVERY_PLAN_UPDATED_EVENT, handlePlanUpdated);
+    return () => {
+      window.removeEventListener(RECOVERY_PLAN_UPDATED_EVENT, handlePlanUpdated);
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;

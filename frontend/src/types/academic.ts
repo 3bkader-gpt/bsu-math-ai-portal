@@ -53,6 +53,7 @@ export interface AcademicLecture {
   has_quiz?: boolean;
   has_guide?: boolean;
   has_flashcards?: boolean;
+  has_mind_map?: boolean;
   is_ready?: boolean;
   source_pdf_url?: string | null;
 }

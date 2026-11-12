@@ -12,10 +12,14 @@ import {
 } from '@/modules/gamification/store/useGamificationStore';
 import { getXpRequiredForLevel, getLevelTitle } from '@/modules/gamification/core/xp';
 import { GAMIFICATION_CONFIG } from '@/config/gamification-rules';
-import { fetchCohortLeaderboard } from '@/modules/gamification/supabase/gamification';
-import { LeaderboardEntry } from '@/modules/gamification/supabase/types';
+import {
+  fetchCohortLeaderboard,
+  fetchStudentDailyActivity,
+} from '@/modules/gamification/supabase/gamification';
+import { LeaderboardEntry, DailyActivityRow } from '@/modules/gamification/supabase/types';
 import { getNeighborhoodWindow } from '@/modules/gamification/core/neighborhoodLeaderboard';
 import { CohortChallengeWidget } from '@/modules/gamification/ui';
+import { StudyHeatmap } from './StudyHeatmap';
 import {
   Flame,
   Zap,
@@ -75,6 +79,8 @@ export function StudentGamificationPill({
 
   const [isOpen, setIsOpen] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [dailyActivity, setDailyActivity] = useState<DailyActivityRow[]>([]);
+  const [loadingHeatmap, setLoadingHeatmap] = useState(false);
   const [activeTab, setActiveTab] = useState<'progress' | 'badges' | 'leaderboard'>('progress');
   const [loadingLb, setLoadingLb] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -156,6 +162,11 @@ export function StudentGamificationPill({
         .catch(() => {})
         .finally(() => setLoadingLb(false));
     }
+    setLoadingHeatmap(true);
+    fetchStudentDailyActivity(112)
+      .then((rows) => setDailyActivity(rows))
+      .catch(() => {})
+      .finally(() => setLoadingHeatmap(false));
   };
 
   return (
@@ -476,6 +487,14 @@ export function StudentGamificationPill({
                       </div>
                     </div>
                   </div>
+
+                  {/* 16-Week Study Activity Heatmap */}
+                  <StudyHeatmap
+                    rows={dailyActivity}
+                    isGirls={isGirls}
+                    isDark={isDark}
+                    loading={loadingHeatmap}
+                  />
 
                   {/* Egyptian Badges Highlight */}
                   <div className="space-y-2">

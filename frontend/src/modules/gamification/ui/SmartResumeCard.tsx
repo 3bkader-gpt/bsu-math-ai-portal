@@ -67,6 +67,9 @@ export function SmartResumeCard() {
   } else if (lastTab === 'flashcards') {
     TabIcon = Layers;
     mediaSubtitle = `كروت المراجعة — بطاقة ${(cardIndex || 0) + 1}`;
+  } else if (lastTab === 'mindmap') {
+    TabIcon = Layers;
+    mediaSubtitle = 'الخريطة الذهنية التفاعلية';
   } else {
     TabIcon = BookOpen;
     mediaSubtitle = 'ملخص الزتونة والدليل الدراسي';

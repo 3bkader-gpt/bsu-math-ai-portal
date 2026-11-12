@@ -391,7 +391,133 @@ export function togglePlanTask(
 
   saveRecoveryPlan(updatedPlan);
 
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent(RECOVERY_PLAN_UPDATED_EVENT, {
+        detail: { updatedPlan, dayJustCompleted, xpAwarded },
+      })
+    );
+  }
+
   return { updatedPlan, dayJustCompleted, xpAwarded };
+}
+
+export const RECOVERY_PLAN_UPDATED_EVENT = 'bsu:recovery-plan-updated';
+
+export interface RecoveryEventInput {
+  type: string;
+  lectureId?: number | null;
+  mediaKind?: string | null;
+}
+
+/**
+ * Maps an application telemetry/gamification event to a `StudyTaskType` (or `'all'` for full lecture completion).
+ */
+export function mapAppEventToTaskType(
+  type: string,
+  mediaKind?: string | null
+): StudyTaskType | 'all' | null {
+  switch (type) {
+    case 'study_guide.read':
+      return 'guide';
+    case 'quiz.finished':
+    case 'quiz.perfect_score':
+      return 'quiz';
+    case 'media.completed':
+      if (mediaKind === 'audio') return 'audio';
+      if (mediaKind === 'video') return 'video';
+      return null;
+    case 'lecture.completed':
+      return 'all';
+    default:
+      return null;
+  }
+}
+
+/**
+ * Automatically ticks off matching uncompleted tasks in a `RecoveryPlan` when a student completes
+ * a study guide, audio podcast, video lecture, or quiz.
+ * Idempotent: already-completed tasks and already-claimed day XP are never duplicated.
+ */
+export function reconcileRecoveryPlanWithEvent(
+  plan: RecoveryPlan | null,
+  event: RecoveryEventInput
+): {
+  updatedPlan: RecoveryPlan | null;
+  matchedTasks: StudyTaskItem[];
+  dayJustCompleted: boolean;
+  xpAwarded: number;
+} {
+  if (!plan || !event || !event.lectureId) {
+    return {
+      updatedPlan: plan,
+      matchedTasks: [],
+      dayJustCompleted: false,
+      xpAwarded: 0,
+    };
+  }
+
+  const targetLectureId = Number(event.lectureId);
+  if (!Number.isFinite(targetLectureId) || targetLectureId <= 0) {
+    return {
+      updatedPlan: plan,
+      matchedTasks: [],
+      dayJustCompleted: false,
+      xpAwarded: 0,
+    };
+  }
+
+  const mappedType = mapAppEventToTaskType(event.type, event.mediaKind);
+  if (!mappedType) {
+    return {
+      updatedPlan: plan,
+      matchedTasks: [],
+      dayJustCompleted: false,
+      xpAwarded: 0,
+    };
+  }
+
+  const matchedTasks: StudyTaskItem[] = [];
+  for (const day of plan.days) {
+    for (const task of day.tasks) {
+      if (
+        !task.completed &&
+        task.lectureId === targetLectureId &&
+        (mappedType === 'all' || task.taskType === mappedType)
+      ) {
+        matchedTasks.push(task);
+        if (mappedType !== 'all') break;
+      }
+    }
+    if (matchedTasks.length > 0 && mappedType !== 'all') break;
+  }
+
+  if (matchedTasks.length === 0) {
+    return {
+      updatedPlan: plan,
+      matchedTasks: [],
+      dayJustCompleted: false,
+      xpAwarded: 0,
+    };
+  }
+
+  let currentPlan = plan;
+  let anyDayJustCompleted = false;
+  let totalXpAwarded = 0;
+
+  for (const matched of matchedTasks) {
+    const res = togglePlanTask(currentPlan, matched.id);
+    currentPlan = res.updatedPlan;
+    if (res.dayJustCompleted) anyDayJustCompleted = true;
+    totalXpAwarded += res.xpAwarded;
+  }
+
+  return {
+    updatedPlan: currentPlan,
+    matchedTasks,
+    dayJustCompleted: anyDayJustCompleted,
+    xpAwarded: totalXpAwarded,
+  };
 }
 
 /**

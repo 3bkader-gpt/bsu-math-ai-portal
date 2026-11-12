@@ -3,6 +3,7 @@ import {
   IngestRpcPayload,
   IngestRpcResponse,
   LeaderboardEntry,
+  DailyActivityRow,
   UserAchievementRow,
   LectureProgressRow,
   MistakeNotebookItem,
@@ -221,4 +222,31 @@ export async function submitMistakeReviewRpc(
 
   return data as SubmitMistakeReviewResponse;
 }
+
+/**
+ * Fetches the authenticated student's own `daily_activity` records for the Study Heatmap.
+ * Protected by Supabase Row-Level Security (`user_id = auth.uid()`).
+ */
+export async function fetchStudentDailyActivity(
+  days = 112
+): Promise<DailyActivityRow[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('daily_activity')
+    .select('user_id, day, xp_earned, seconds_active, items_completed, created_at, updated_at')
+    .eq('user_id', user.id)
+    .order('day', { ascending: false })
+    .limit(days);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data as DailyActivityRow[];
+}
+
 

@@ -148,16 +148,25 @@ export default function AdminDashboardPage() {
   const fetchCohortAnalytics = async () => {
     setIsLoadingCohort(true);
     try {
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const apiRes = await fetch(getApiUrl('/api/diagnostics/cohort-analytics'), { headers });
+      if (apiRes.ok) {
+        const apiData = await apiRes.json();
+        setCohortAnalytics(apiData);
+        return;
+      }
+
+      // Fallback if backend endpoint is temporarily unreachable
       const [
         profilesRes,
-        dauRes,
         errorsRes,
         mistakesRes,
         challengeRes,
         contribsCountRes
       ] = await Promise.all([
         supabase.from('profiles').select('id, nickname, total_xp, level, current_streak, created_at').order('created_at', { ascending: false }).limit(40),
-        supabase.from('v_kpi_daily_cohort_summary').select('*').order('day', { ascending: false }).limit(7),
         supabase.from('ingestion_errors').select('*').order('created_at', { ascending: false }).limit(10),
         supabase.from('mistake_notebook').select('id, box_level', { count: 'exact' }),
         supabase.from('cohort_challenges').select('*').eq('is_active', true).limit(1),
@@ -174,7 +183,11 @@ export default function AdminDashboardPage() {
         todayProfilesCount: todayProfiles.length,
         activeXpStudentsCount: activeXpStudents.length,
         profilesList: profiles,
-        dauList: dauRes.data || [],
+        dauList: [],
+        retentionList: [],
+        mistakeReviewStats: null,
+        timeToFirstActionList: [],
+        hardestQuestionsList: [],
         errorsList: errorsRes.data || [],
         mistakesCount: mistakesRes.count || 0,
         activeChallenge: challengeRes.data?.[0] || null,

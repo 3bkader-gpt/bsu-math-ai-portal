@@ -813,7 +813,184 @@ export default function AdminDiagnosticsModal({
                   <div className="text-2xl sm:text-3xl font-black text-purple-400">
                     {cohortAnalytics?.mistakesCount ?? 0}
                   </div>
-                  <div className="text-[11px] font-semibold text-gray-400">أسئلة محفوظة للمراجعة المتباعدة</div>
+                  <div className="text-[11px] font-semibold text-gray-400">
+                    {cohortAnalytics?.mistakeReviewStats
+                      ? `معدل الإنجاز ${cohortAnalytics.mistakeReviewStats.review_completion_pct ?? 0}% (${cohortAnalytics.mistakeReviewStats.mistakes_fully_mastered ?? 0} متقن)`
+                      : 'أسئلة محفوظة للمراجعة المتباعدة'}
+                  </div>
+                </div>
+              </div>
+
+              {/* KPI Views Row 1: Daily Cohort Summary (DAU/XP) & Cohort Retention (D1/D3/D7) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* v_kpi_daily_cohort_summary */}
+                <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-3">
+                  <h5 className="text-xs sm:text-sm font-black flex items-center justify-between" style={{ color: 'var(--text-primary)' }}>
+                    <span>📈 النشاط اليومي للدفعة (DAU & XP آخر 7 أيام)</span>
+                    <span className="text-[10px] font-mono text-teal-400">v_kpi_daily_cohort_summary</span>
+                  </h5>
+                  <div className="rounded-xl border border-[var(--border-subtle)] overflow-hidden">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-[var(--bg-surface)] text-gray-400 border-b border-[var(--border-subtle)]">
+                        <tr>
+                          <th className="py-2 px-2.5">اليوم</th>
+                          <th className="py-2 px-2.5">النشطون (DAU)</th>
+                          <th className="py-2 px-2.5">إجمالي XP</th>
+                          <th className="py-2 px-2.5">المهام المكتملة</th>
+                          <th className="py-2 px-2.5">الدقائق</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-surface)]">
+                        {!cohortAnalytics?.dauList || cohortAnalytics.dauList.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="py-4 text-center text-gray-500">
+                              لا توجد سجلات نشاط يومية بعد
+                            </td>
+                          </tr>
+                        ) : (
+                          cohortAnalytics.dauList.slice(0, 7).map((row: any, i: number) => (
+                            <tr key={row.day || i} className="hover:bg-white/5">
+                              <td className="py-2 px-2.5 font-mono font-bold text-[var(--text-primary)]">{String(row.day).slice(0, 10)}</td>
+                              <td className="py-2 px-2.5 text-cyan-400 font-bold">{row.active_students_dau ?? 0}</td>
+                              <td className="py-2 px-2.5 text-amber-400 font-bold">{row.total_xp_distributed ?? 0} XP</td>
+                              <td className="py-2 px-2.5 text-emerald-400">{row.total_learning_items_completed ?? 0}</td>
+                              <td className="py-2 px-2.5 text-gray-400">{row.total_active_minutes ?? 0} د</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* v_kpi_retention_d7 */}
+                <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-3">
+                  <h5 className="text-xs sm:text-sm font-black flex items-center justify-between" style={{ color: 'var(--text-primary)' }}>
+                    <span>🔄 معدل استبقاء الطلاب (Cohort Retention D1 / D3 / D7)</span>
+                    <span className="text-[10px] font-mono text-purple-400">v_kpi_retention_d7</span>
+                  </h5>
+                  <div className="rounded-xl border border-[var(--border-subtle)] overflow-hidden">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-[var(--bg-surface)] text-gray-400 border-b border-[var(--border-subtle)]">
+                        <tr>
+                          <th className="py-2 px-2.5">دفعة التسجيل</th>
+                          <th className="py-2 px-2.5">العدد</th>
+                          <th className="py-2 px-2.5">D1 (%)</th>
+                          <th className="py-2 px-2.5">D3</th>
+                          <th className="py-2 px-2.5">D7 (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-surface)]">
+                        {!cohortAnalytics?.retentionList || cohortAnalytics.retentionList.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="py-4 text-center text-gray-500">
+                              لا توجد بيانات احتفاظ كافية بعد
+                            </td>
+                          </tr>
+                        ) : (
+                          cohortAnalytics.retentionList.slice(0, 7).map((r: any, i: number) => (
+                            <tr key={r.signup_day || i} className="hover:bg-white/5">
+                              <td className="py-2 px-2.5 font-mono font-bold text-[var(--text-primary)]">{String(r.signup_day).slice(0, 10)}</td>
+                              <td className="py-2 px-2.5 font-bold">{r.cohort_size ?? 0}</td>
+                              <td className="py-2 px-2.5 text-emerald-400 font-bold">
+                                {r.retained_d1 ?? 0} ({r.d1_pct ?? 0}%)
+                              </td>
+                              <td className="py-2 px-2.5 text-cyan-400 font-bold">{r.retained_d3 ?? 0}</td>
+                              <td className="py-2 px-2.5 text-purple-400 font-bold">
+                                {r.retained_d7 ?? 0} ({r.d7_pct ?? 0}%)
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* KPI Views Row 2: Time to First Action & Hardest Cohort Questions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* v_kpi_time_to_first_action */}
+                <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-3">
+                  <h5 className="text-xs sm:text-sm font-black flex items-center justify-between" style={{ color: 'var(--text-primary)' }}>
+                    <span>⚡ سرعة أول تفاعل للطالب (Time-to-First-Action)</span>
+                    <span className="text-[10px] font-mono text-amber-400">v_kpi_time_to_first_action</span>
+                  </h5>
+                  <div className="rounded-xl border border-[var(--border-subtle)] overflow-hidden">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-[var(--bg-surface)] text-gray-400 border-b border-[var(--border-subtle)]">
+                        <tr>
+                          <th className="py-2 px-2.5">نوع التفاعل الأول</th>
+                          <th className="py-2 px-2.5">الجلسات</th>
+                          <th className="py-2 px-2.5">الوسيط (ث)</th>
+                          <th className="py-2 px-2.5">المتوسط (ث)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-surface)]">
+                        {!cohortAnalytics?.timeToFirstActionList || cohortAnalytics.timeToFirstActionList.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="py-4 text-center text-gray-500">
+                              لم تُسجّل جلسات تفاعل أولى بعد
+                            </td>
+                          </tr>
+                        ) : (
+                          cohortAnalytics.timeToFirstActionList.map((row: any, i: number) => (
+                            <tr key={row.first_action_type || i} className="hover:bg-white/5">
+                              <td className="py-2 px-2.5 font-mono font-bold text-[var(--text-primary)]">{row.first_action_type}</td>
+                              <td className="py-2 px-2.5 text-cyan-400 font-bold">{row.session_count ?? 0}</td>
+                              <td className="py-2 px-2.5 text-emerald-400 font-bold">{row.median_time_to_first_action_sec ?? 0}s</td>
+                              <td className="py-2 px-2.5 text-gray-400">{row.avg_time_to_first_action_sec ?? 0}s</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* v_question_cohort_stats */}
+                <div className="p-4 rounded-2xl border bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] space-y-3">
+                  <h5 className="text-xs sm:text-sm font-black flex items-center justify-between" style={{ color: 'var(--text-primary)' }}>
+                    <span>🔥 أصعب أسئلة الدفعة (Highest Failure Rate)</span>
+                    <span className="text-[10px] font-mono text-rose-400">v_question_cohort_stats</span>
+                  </h5>
+                  <div className="rounded-xl border border-[var(--border-subtle)] overflow-hidden max-h-[210px] overflow-y-auto">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-[var(--bg-surface)] text-gray-400 border-b border-[var(--border-subtle)] sticky top-0">
+                        <tr>
+                          <th className="py-2 px-2.5">السؤال / المقرر</th>
+                          <th className="py-2 px-2.5">المحاولات</th>
+                          <th className="py-2 px-2.5">نسبة الخطأ</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-surface)]">
+                        {!cohortAnalytics?.hardestQuestionsList || cohortAnalytics.hardestQuestionsList.length === 0 ? (
+                          <tr>
+                            <td colSpan={3} className="py-4 text-center text-gray-500">
+                              لا توجد إحصائيات تعثر أسئلة بعد
+                            </td>
+                          </tr>
+                        ) : (
+                          cohortAnalytics.hardestQuestionsList.map((q: any, i: number) => (
+                            <tr key={q.question_hash || i} className="hover:bg-white/5">
+                              <td className="py-2 px-2.5 max-w-[220px] truncate" title={q.question_text}>
+                                <div className="font-bold text-[var(--text-primary)] truncate">{q.question_text || q.question_hash}</div>
+                                <div className="text-[10px] text-gray-400 truncate">
+                                  {q.subject_name} • محاضرة {q.lecture_num}
+                                </div>
+                              </td>
+                              <td className="py-2 px-2.5 font-mono">
+                                {q.incorrect_attempts}/{q.total_attempts}
+                              </td>
+                              <td className="py-2 px-2.5 text-rose-400 font-black font-mono">
+                                {q.failure_rate_pct}%
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 

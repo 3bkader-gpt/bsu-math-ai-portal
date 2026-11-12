@@ -20,6 +20,12 @@ export interface Flashcard {
   answer: string;
 }
 
+export interface MindMapNode {
+  id: string;
+  name: string;
+  children: MindMapNode[];
+}
+
 export interface OriginalPdfInfo {
   id: number;
   isBook: boolean;
@@ -401,3 +407,109 @@ export const downloadPdfFile = async (
     setDownloading(null);
   }
 };
+
+/**
+ * Safely parses and normalizes a raw Mind Map JSON payload (`mind_map_json`)
+ * into a deterministic tree with bounded depth.
+ */
+export function parseMindMapJson(
+  raw: unknown,
+  maxDepth = 8
+): MindMapNode | null {
+  if (!raw) return null;
+
+  let parsed: unknown = raw;
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  }
+
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const normalizeNode = (
+    input: any,
+    path: string,
+    depth: number
+  ): MindMapNode | null => {
+    if (!input || typeof input !== 'object' || depth > maxDepth) {
+      return null;
+    }
+
+    const rawName =
+      typeof input.name === 'string'
+        ? input.name
+        : typeof input.title === 'string'
+        ? input.title
+        : typeof input.label === 'string'
+        ? input.label
+        : '';
+    const name = rawName.trim();
+
+    const rawChildren = Array.isArray(input.children)
+      ? input.children
+      : Array.isArray(input.nodes)
+      ? input.nodes
+      : [];
+
+    const children: MindMapNode[] = [];
+    if (depth < maxDepth) {
+      rawChildren.forEach((child: unknown, idx: number) => {
+        if (typeof child === 'string' && child.trim()) {
+          children.push({
+            id: `${path}-${idx}`,
+            name: child.trim(),
+            children: [],
+          });
+        } else {
+          const normalized = normalizeNode(child, `${path}-${idx}`, depth + 1);
+          if (normalized) children.push(normalized);
+        }
+      });
+    }
+
+    if (!name && children.length === 0) {
+      return null;
+    }
+
+    return {
+      id: path,
+      name: name || 'خريطة المفاهيم',
+      children,
+    };
+  };
+
+  if (Array.isArray(parsed)) {
+    if (parsed.length === 0) return null;
+    if (parsed.length === 1) {
+      return normalizeNode(parsed[0], 'root', 0);
+    }
+    const children = parsed
+      .map((item, idx) => normalizeNode(item, `root-${idx}`, 1))
+      .filter((n): n is MindMapNode => n !== null);
+    if (children.length === 0) return null;
+    return {
+      id: 'root',
+      name: 'خريطة المفاهيم الأساسية',
+      children,
+    };
+  }
+
+  return normalizeNode(parsed, 'root', 0);
+}
+
+/**
+ * Counts the total number of nodes in a normalized MindMapNode tree.
+ */
+export function countMindMapNodes(node: MindMapNode | null): number {
+  if (!node) return 0;
+  return (
+    1 +
+    node.children.reduce((acc, child) => acc + countMindMapNodes(child), 0)
+  );
+}
+

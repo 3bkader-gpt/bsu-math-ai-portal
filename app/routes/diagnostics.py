@@ -6,6 +6,7 @@ from collections import defaultdict
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 from fastapi import APIRouter, Depends, Query, Request, HTTPException, status
+from sqlalchemy import text
 from sqlalchemy.orm import Session, joinedload, selectinload
 from app.db.database import get_db
 from app.db.models import Subject, Lecture, MediaAsset, User
@@ -239,5 +240,188 @@ async def clear_system_logs(current_user: User = Depends(get_current_user)):
     log_handler.clear()
     logger.info(f"System logs buffer was cleared by admin user '{current_user.username}'.")
     return {"status": "cleared"}
+
+
+def _safe_query_dicts(db: Session, sql_str: str, params: Optional[dict] = None) -> list[dict]:
+    """
+    Executes a read-only SQL query inside a nested transaction (SAVEPOINT) so that
+    missing views in lightweight test DBs (e.g. SQLite) do not abort the session.
+    """
+    try:
+        with db.begin_nested():
+            result = db.execute(text(sql_str), params or {})
+            keys = list(result.keys())
+            rows = result.fetchall()
+            out = []
+            for r in rows:
+                row_dict = {}
+                for idx, k in enumerate(keys):
+                    val = r[idx]
+                    if hasattr(val, "isoformat"):
+                        val = val.isoformat()
+                    elif isinstance(val, (int, float, str, bool)) or val is None:
+                        pass
+                    else:
+                        try:
+                            val = float(val)
+                        except Exception:
+                            val = str(val)
+                    row_dict[k] = val
+                out.append(row_dict)
+            return out
+    except Exception as exc:
+        logger.debug(f" Analytics query skipped/fallback: {exc}")
+        return []
+
+
+@router.get("/cohort-analytics")
+async def get_admin_cohort_analytics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Returns comprehensive cohort & gamification KPI analytics for the Admin Dashboard.
+    Queries locked views (`v_kpi_*`) server-side via postgres/service_role connection
+    and enforces strict JWT admin authorization.
+    """
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="غير مصرح: تحليلات الدفعة مقتصرة على المشرفين فقط",
+        )
+
+    dau_list = _safe_query_dicts(
+        db,
+        """
+        SELECT day, active_students_dau, total_xp_distributed, avg_xp_per_student,
+               total_learning_items_completed, total_active_minutes
+        FROM public.v_kpi_daily_cohort_summary
+        ORDER BY day DESC
+        LIMIT 14;
+        """,
+    )
+
+    retention_list = _safe_query_dicts(
+        db,
+        """
+        SELECT signup_day, cohort_size, retained_d1, retained_d3, retained_d7, d1_pct, d7_pct
+        FROM public.v_kpi_retention_d7
+        ORDER BY signup_day DESC
+        LIMIT 10;
+        """,
+    )
+
+    mistake_review_rows = _safe_query_dicts(
+        db,
+        """
+        SELECT total_mistakes_recorded, mistakes_successfully_reviewed,
+               mistakes_fully_mastered, currently_due_count, review_completion_pct
+        FROM public.v_kpi_mistake_review_completion
+        LIMIT 1;
+        """,
+    )
+    mistake_review_stats = mistake_review_rows[0] if mistake_review_rows else {
+        "total_mistakes_recorded": 0,
+        "mistakes_successfully_reviewed": 0,
+        "mistakes_fully_mastered": 0,
+        "currently_due_count": 0,
+        "review_completion_pct": 0.0,
+    }
+
+    ttfa_list = _safe_query_dicts(
+        db,
+        """
+        SELECT first_action_type, session_count,
+               avg_time_to_first_action_sec, median_time_to_first_action_sec
+        FROM public.v_kpi_time_to_first_action
+        ORDER BY session_count DESC
+        LIMIT 10;
+        """,
+    )
+
+    hardest_questions = _safe_query_dicts(
+        db,
+        """
+        SELECT s.question_hash, s.lecture_id, s.question_text,
+               s.total_attempts, s.incorrect_attempts, s.failure_rate_pct,
+               sub.name AS subject_name, l.title AS lecture_title, l.lecture_num
+        FROM public.v_question_cohort_stats s
+        JOIN public.lectures l ON s.lecture_id = l.id
+        JOIN public.subjects sub ON l.subject_id = sub.id
+        WHERE s.incorrect_attempts > 0
+        ORDER BY s.failure_rate_pct DESC, s.total_attempts DESC
+        LIMIT 10;
+        """,
+    )
+
+    profiles_list = _safe_query_dicts(
+        db,
+        """
+        SELECT id, nickname, total_xp, level, current_streak, created_at
+        FROM public.profiles
+        ORDER BY created_at DESC
+        LIMIT 40;
+        """,
+    )
+
+    profile_counts = _safe_query_dicts(
+        db,
+        """
+        SELECT
+            COUNT(*) AS total_profiles,
+            COUNT(*) FILTER (WHERE (created_at AT TIME ZONE 'Africa/Cairo')::date = (now() AT TIME ZONE 'Africa/Cairo')::date) AS today_profiles,
+            COUNT(*) FILTER (WHERE total_xp > 0) AS active_xp_students
+        FROM public.profiles;
+        """,
+    )
+    counts_obj = profile_counts[0] if profile_counts else {}
+
+    errors_list = _safe_query_dicts(
+        db,
+        """
+        SELECT id, user_id, error_type, error_message, created_at
+        FROM public.ingestion_errors
+        ORDER BY created_at DESC
+        LIMIT 10;
+        """,
+    )
+
+    challenge_rows = _safe_query_dicts(
+        db,
+        """
+        SELECT id, title, description, target_count, xp_reward, is_active
+        FROM public.cohort_challenges
+        WHERE is_active = true
+        LIMIT 1;
+        """,
+    )
+    active_challenge = challenge_rows[0] if challenge_rows else None
+
+    contrib_rows = _safe_query_dicts(
+        db,
+        """
+        SELECT COUNT(*) AS cnt
+        FROM public.cohort_challenge_contributions;
+        """,
+    )
+    total_contribs = int((contrib_rows[0].get("cnt") if contrib_rows else 0) or 0)
+
+    return {
+        "status": "success",
+        "totalProfilesCount": int(counts_obj.get("total_profiles") or len(profiles_list)),
+        "todayProfilesCount": int(counts_obj.get("today_profiles") or 0),
+        "activeXpStudentsCount": int(counts_obj.get("active_xp_students") or 0),
+        "profilesList": profiles_list,
+        "dauList": dau_list,
+        "retentionList": retention_list,
+        "mistakeReviewStats": mistake_review_stats,
+        "timeToFirstActionList": ttfa_list,
+        "hardestQuestionsList": hardest_questions,
+        "errorsList": errors_list,
+        "mistakesCount": int(mistake_review_stats.get("total_mistakes_recorded") or 0),
+        "activeChallenge": active_challenge,
+        "totalContributions": total_contribs,
+    }
+
 
 
