@@ -70,17 +70,21 @@
 
 ---
 
-## 🔧 Technical Debt & Polish
+## 🔧 Technical Debt & Remaining Backlog (SSOT)
+
+> **المصدر الوحيد المعتمد (SSOT):** راجع [`docs/01_planning/UNBUILT_FEATURES_SSOT.md`](../01_planning/UNBUILT_FEATURES_SSOT.md) للتفاصيل الكاملة لكل الميزات غير المبنية (Micro-Tutor، عارض `MindMapViewer`، Slide RAG، Doctor Audio-to-Notes، Exam Cloning، لوحة تحليلات الأدمن، تفكيك `[OPT-FE-01]`، وتنظيف Git History).  
+> *(تم استبعاد PWA وPush Notifications وCustom Exam Builder والـ Formula Sheet لأنها تبيّن أنها مُنفذة بالفعل في الكود).*
 
 | Item | Priority | Notes |
 |---|---|---|
 | ~~`mistake_notebook` auto-ingest from quiz wrong answers~~ | ✅ Resolved 2026-10-24 | Restored via `20261024_fix_ingest_events_leitner_parity.sql` and verified live. |
 | ~~Hint Ladder `hintLevelUsed` field not wired in quiz events~~ | ✅ Resolved 2026-10-25 | Wired in Phase 3 and verified in telemetry. |
 | ~~Neighborhood leaderboard (10-peer)~~ | ✅ Resolved 2026-10-26 | Built in Phase 5 with actionable next-rank distance banner. |
-| PWA / offline support | Low | Future consideration |
-| Push notifications (1/day, student-chosen time) | Low | Requires service worker |
-| Admin dashboard gamification analytics | Low | KPI views exist in DB |
-| Git history still contains the old leaked PAT + admin password | Low | Harmless AFTER revocation/rotation (both done); optional `git filter-repo` rewrite if desired |
+| ~~PWA / offline support & Push notifications~~ | ✅ Built | Implemented (`public/manifest.json`, `public/sw.js`, `app/routes/notifications.py`). |
+| AI Micro-Tutor + `MindMapViewer` (`mind_map_json`) | High | See `UNBUILT_FEATURES_SSOT.md` §1.1–1.3 |
+| Admin dashboard gamification analytics | Medium | KPI SQL views exist in DB; UI charts pending |
+| Decompose monolithic `page.tsx` / `admin/dashboard/page.tsx` (`OPT-FE-01`) | Low | Working in prod; optional refactor |
+| Git history scrubbing (`git filter-repo`) | Low | Old PAT + admin pass already rotated/revoked |
 
 ---
 

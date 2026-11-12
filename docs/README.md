@@ -49,6 +49,7 @@ docs/
 | الملف | الوصف | الحالة |
 | :--- | :--- | :--- |
 | [PROJECT_PLAN.md](./01_planning/PROJECT_PLAN.md) | خطة المشروع الشاملة (5 مراحل) | 📋 Historical Roadmap |
+| [UNBUILT_FEATURES_SSOT.md](./01_planning/UNBUILT_FEATURES_SSOT.md) | **المرجع الوحيد المعتمد لكل الميزات غير المنفذة والديون التقنية** | 📌 SSOT (`2026-11-12`) |
 | [GAMIFICATION_ROADMAP.md](./01_planning/GAMIFICATION_ROADMAP.md) | خارطة طريق محرك الـ Gamification (Phases 0–6) | ✅ Complete |
 | [BEHAVIORAL_ARCHITECTURE_PLAN.md](./02_architecture/BEHAVIORAL_ARCHITECTURE_PLAN.md) | المعمارية السلوكية والنفسية الكاملة | 📋 Design Spec |
 | [SECURITY_AUDIT.md](./02_architecture/SECURITY_AUDIT.md) | Audit أمني شامل للـ Architecture | ✅ P0 Resolved |

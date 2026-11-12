@@ -93,6 +93,13 @@
 | System prompts (11 subjects) | `app/services/prompt_service.py`, `prompts/` |
 | Backend tests (70 tests) | `tests/test_hardening_cache.py`, `tests/test_typst_export.py`, `tests/test_cloud_fixes.py`, `tests/test_phase*.py` |
 
+### 📌 Planning & Backlog (Single Source of Truth)
+| Feature | File(s) |
+|---|---|
+| All unbuilt features & open tech debt (SSOT) | `docs/01_planning/UNBUILT_FEATURES_SSOT.md` |
+| Active sprint & execution backlog | `docs/00_agent_context/TASKING.md` |
+| Agent onboarding & ops runbook | `docs/00_agent_context/AI_HANDOFF.md` |
+
 ### 🚀 Deployment, Automation & Operations (AWS Lightsail)
 | Feature | File(s) |
 |---|---|
