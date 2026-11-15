@@ -57,10 +57,10 @@
 
 | **Academic PDF Export** | Compiled study-guide PDFs via Typst 3.9 + Pandoc (`Cache-Control` + `ETag` + NVMe cache) |
 | **Gamification Phases 3–6** | 3-tier hint ladder, compassionate diagnostic copy, pre-answer confidence rating, 10-peer neighborhood leaderboard, and collaborative cohort challenge |
+| **PWA & Scheduled Study Push** | Installable PWA (`manifest.json`, `sw.js`), lecture-release Web Push broadcasts, and daily personalized study reminders (`bsu-study-reminders.timer`) |
 
-### 📋 Future Backlog
-- Slide-aware AI tutor / doctor audio-to-slide alignment (from PhysioTalk competitive study)
-- PWA / offline support & scheduled study push notifications
+### 📋 Parked AI Backlog *(Isolated in `docs/99_parked_ai/PARKED_AI_FEATURES.md`)*
+- Slide-aware AI tutor / doctor audio-to-slide alignment (from PhysioTalk competitive study) — pending AI provider availability
 
 ---
 
@@ -114,4 +114,4 @@
 | Cairo timezone (not UTC) | University day boundary = Cairo midnight, not UTC midnight |
 | SECURITY DEFINER RPCs only | Prevents client-side XP manipulation; single source of truth |
 | No SM-2 algorithm | Replaced with deterministic Leitner boxes (transparent to students) |
-| No push notifications yet | Service worker complexity vs. benefit; planned post-MVP |
+| Web Push & Scheduled Study Push | Implemented via `sw.js`, VAPID Web Push (`/api/notifications`), and daily study reminder timer (`bsu-study-reminders.timer`) |

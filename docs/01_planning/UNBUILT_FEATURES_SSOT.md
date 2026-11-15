@@ -21,9 +21,9 @@
 > - بيئة التركيز والضوضاء الطبيعية (`Focus Ambience & Pomodoro`) ✅
 > - مسودة الكويز التفاعلية والآلة الحاسبة (`MathScratchpad & Calculator`) ✅
 > - كشكول مراجعاتي (`Student Highlight Binder`) ✅
-> - دعم PWA والإشعارات (`PWA & Push Notifications`) ✅
+> - دعم PWA والإشعارات وإشعارات التذكير اليومية المجدولة للمذاكرة (`PWA & Scheduled Study Push Reminders`) ✅
 > - ألعاب وتحفيز الدفعة (Gamification Phases 1–6) ✅
-> - تفكيك الصفحات الضخمة `[OPT-FE-01]` ✅
+> - تفكيك الصفحات الضخمة `[OPT-FE-01]` وتوحيد المسارات والـ Streaming (`[OPT-ENV-01]` و`[OPT-STR-01]`) ✅
 > - تنظيف تاريخ Git من بيانات الاعتماد القديمة (`git filter-repo`) ✅
 
 **النتيجة:** لا توجد أي ميزة تعليمية أو تقنية غير منجزة في قائمة الانتظار الحالية.

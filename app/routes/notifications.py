@@ -9,7 +9,7 @@ from app.config import settings
 from app.db.database import get_db
 from app.db.models import Notification, PushSubscription, User
 from app.services.auth_service import get_current_user
-from app.services.notification_service import dispatch_web_push_payload
+from app.services.notification_service import dispatch_web_push_payload, send_scheduled_study_reminders
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 
@@ -173,3 +173,18 @@ def test_push_notification(
             delivered += 1
 
     return {"success": True, "delivered": delivered, "total": len(subs)}
+
+
+@router.post("/send-study-reminders")
+def trigger_scheduled_study_reminders(
+    dry_run: bool = Query(False),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Triggers personalized daily study push reminders to subscribers. Restricted to admins."""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="غير مصرح: إرسال تذكيرات المذاكرة مقتصر على المشرفين فقط"
+        )
+    return send_scheduled_study_reminders(db, dry_run=dry_run)

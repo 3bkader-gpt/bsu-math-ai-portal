@@ -20,6 +20,12 @@ self.addEventListener('push', (event) => {
     };
   }
 
+  const tag =
+    (payload.data && payload.data.tag) ||
+    (payload.data?.lecture_id ? `lec-${payload.data.lecture_id}` : 'portal-update');
+  const actionTitle =
+    (payload.data && payload.data.actionTitle) || 'افتح المحاضرة 🚀';
+
   const title = payload.title || 'منصة تانية رياضيات 🌸';
   const options = {
     body: payload.body || 'محاضرة جديدة نزلت على المنصة، ادخل ذاكر بروقان!',
@@ -28,11 +34,11 @@ self.addEventListener('push', (event) => {
     vibrate: [150, 50, 150],
     dir: 'rtl',
     lang: 'ar',
-    tag: payload.data?.lecture_id ? `lec-${payload.data.lecture_id}` : 'portal-update',
+    tag,
     renotify: true,
     data: payload.data || { url: '/' },
     actions: [
-      { action: 'open', title: 'افتح المحاضرة 🚀' },
+      { action: 'open', title: actionTitle },
       { action: 'close', title: 'لاحقاً' }
     ]
   };

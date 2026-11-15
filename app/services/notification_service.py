@@ -8,7 +8,10 @@ and In-App Notification Center.
 import asyncio
 import json
 import logging
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List
+from zoneinfo import ZoneInfo
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.config import settings
 from app.db.database import SessionLocal
@@ -288,3 +291,196 @@ async def broadcast_new_lecture(lecture_id: int):
     delivered = sum(1 for r in results if r is True)
     logger.info("Web Push broadcast for lecture %s completed: %d/%d delivered",
                 lecture_id, delivered, len(subscriptions))
+
+
+def get_cairo_today(now_utc: Optional[datetime] = None) -> date:
+    """Returns today's calendar date in Africa/Cairo timezone."""
+    dt = now_utc or datetime.now(timezone.utc)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    try:
+        return dt.astimezone(ZoneInfo("Africa/Cairo")).date()
+    except Exception:
+        return (dt + timedelta(hours=2)).date()
+
+
+def compose_study_reminder_payload(
+    student_name: Optional[str],
+    persona: Optional[str],
+    current_streak: int,
+    due_mistakes_count: int,
+    cairo_today: date,
+    studied_today: bool,
+) -> Optional[dict]:
+    """Builds a personalized daily study reminder push payload, or None to skip spam."""
+    if studied_today and due_mistakes_count <= 0:
+        return None
+
+    is_girl = (persona or "").strip().lower() == "girls"
+    default_call = "يا دكتورة" if is_girl else "يا بطل"
+    greeting = student_name.strip() if student_name and student_name.strip() else default_call
+
+    if due_mistakes_count > 0:
+        title = f"🎯 عندك {due_mistakes_count} سؤال جاهز للمراجعة"
+        body = (
+            f"أهلاً {greeting}! فيه {due_mistakes_count} نقطة في كشكول أخطائك "
+            f"مستنية مراجعة سريعة النهارده عشان تثبت قبل الامتحان."
+        )
+        reason = "due_mistakes"
+    elif current_streak >= 2:
+        title = f"🔥 حافظ على سلسلة {current_streak} أيام، {greeting}!"
+        body = (
+            "5 دقايق مذاكرة أو حل كويز واحد دلوقتي هتحافظ على سلسلتك وتزود نقاطك."
+        )
+        reason = "streak_guard"
+    else:
+        title = f"☕ 5 دقايق روقان تفرق، {greeting}!"
+        body = (
+            "ادخل كمل محاضرة النهارده أو اسمع ملخص الزتونة الصوتية على البوابة."
+        )
+        reason = "daily_nudge"
+
+    return {
+        "title": title,
+        "body": body,
+        "icon": "/icons/icon-192.png",
+        "badge": "/icons/icon-192.png",
+        "data": {
+            "url": "/",
+            "type": "study_reminder",
+            "reason": reason,
+            "tag": f"study-reminder-{cairo_today.isoformat()}",
+            "actionTitle": "ابدأ المذاكرة 🚀",
+        },
+    }
+
+
+def _load_profile_and_due_maps(
+    db: Session,
+    user_ids: List[str],
+    cairo_today: date,
+) -> tuple[Dict[str, dict], Dict[str, int]]:
+    """Fetches profile streak info and due Leitner review counts safely."""
+    profile_map: Dict[str, dict] = {}
+    due_map: Dict[str, int] = {}
+    if not user_ids:
+        return profile_map, due_map
+
+    try:
+        with db.begin_nested():
+            rows = db.execute(
+                text(
+                    "SELECT id::text AS uid, nickname, persona, current_streak, last_active_date "
+                    "FROM public.profiles WHERE id::text = ANY(:uids)"
+                ),
+                {"uids": user_ids},
+            ).fetchall()
+            for r in rows:
+                profile_map[str(r[0])] = {
+                    "nickname": r[1],
+                    "persona": r[2],
+                    "current_streak": int(r[3] or 0),
+                    "last_active_date": r[4],
+                }
+    except Exception as exc:
+        logger.debug("Profile lookup skipped for study reminders: %s", exc)
+
+    try:
+        with db.begin_nested():
+            rows = db.execute(
+                text(
+                    "SELECT user_id::text AS uid, COUNT(*) AS due_cnt "
+                    "FROM public.mistake_notebook "
+                    "WHERE user_id::text = ANY(:uids) "
+                    "  AND is_mastered = false "
+                    "  AND next_review_date <= :today "
+                    "GROUP BY user_id"
+                ),
+                {"uids": user_ids, "today": cairo_today},
+            ).fetchall()
+            for r in rows:
+                due_map[str(r[0])] = int(r[1] or 0)
+    except Exception as exc:
+        logger.debug("Mistake notebook due-count skipped for study reminders: %s", exc)
+
+    return profile_map, due_map
+
+
+def send_scheduled_study_reminders(
+    db: Session,
+    dry_run: bool = False,
+    now_utc: Optional[datetime] = None,
+) -> Dict[str, Any]:
+    """Dispatches daily scheduled study reminders to active PWA/Web Push subscribers."""
+    cairo_today = get_cairo_today(now_utc)
+    subscriptions = (
+        db.query(PushSubscription)
+        .order_by(PushSubscription.id.desc())
+        .all()
+    )
+
+    user_ids = sorted({str(s.user_id).strip() for s in subscriptions if s.user_id and str(s.user_id).strip()})
+    profile_map, due_map = _load_profile_and_due_maps(db, user_ids, cairo_today)
+
+    seen_endpoints = set()
+    eligible = 0
+    skipped_already_studied = 0
+    delivered = 0
+    reasons: Dict[str, int] = {"due_mistakes": 0, "streak_guard": 0, "daily_nudge": 0}
+
+    for sub in subscriptions:
+        ep = (sub.endpoint or "").strip()
+        if not ep or ep in seen_endpoints:
+            continue
+        seen_endpoints.add(ep)
+
+        uid = str(sub.user_id).strip() if sub.user_id else ""
+        prof = profile_map.get(uid, {})
+        last_active = prof.get("last_active_date")
+        if isinstance(last_active, datetime):
+            last_active_date = last_active.date()
+        elif isinstance(last_active, str) and last_active:
+            try:
+                last_active_date = date.fromisoformat(last_active[:10])
+            except ValueError:
+                last_active_date = None
+        else:
+            last_active_date = last_active
+
+        studied_today = last_active_date == cairo_today
+        due_count = due_map.get(uid, 0)
+        streak = int(prof.get("current_streak") or 0)
+        display_name = sub.student_name or prof.get("nickname")
+        if display_name in ("عاشق الرياضيات", "عاشقة الرياضيات"):
+            display_name = None
+
+        payload = compose_study_reminder_payload(
+            student_name=display_name,
+            persona=prof.get("persona"),
+            current_streak=streak,
+            due_mistakes_count=due_count,
+            cairo_today=cairo_today,
+            studied_today=studied_today,
+        )
+        if payload is None:
+            skipped_already_studied += 1
+            continue
+
+        eligible += 1
+        r_key = payload["data"]["reason"]
+        reasons[r_key] = reasons.get(r_key, 0) + 1
+
+        if not dry_run:
+            if dispatch_web_push_payload(sub, payload):
+                delivered += 1
+
+    return {
+        "status": "ok",
+        "cairo_date": cairo_today.isoformat(),
+        "total_subscriptions": len(seen_endpoints),
+        "eligible": eligible,
+        "skipped_already_studied": skipped_already_studied,
+        "delivered": delivered,
+        "dry_run": dry_run,
+        "reasons": reasons,
+    }

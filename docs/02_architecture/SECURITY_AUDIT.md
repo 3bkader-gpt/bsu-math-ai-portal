@@ -28,8 +28,8 @@ Track remediation progress across three verified tiers:
 - [x] **[OPT-FE-01]** Refactor monolithic React components (`page.tsx`, `admin/dashboard/page.tsx`) into dedicated hooks and sub-components — *Stage 2 Completed (`cf46d0b`) & Verified*
 - [x] **[OPT-FE-02]** Prepare Semester 2 extensibility via dynamic subject merging and semester separation ([`page.tsx`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/frontend/src/app/page.tsx), [`supabase.ts`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/frontend/src/lib/supabase.ts), [`lectures.py`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/app/routes/lectures.py), [`models.py`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/app/db/models.py)) ΓÇö *Phase 3 Steps 1 & 2 Completed & Verified*
 - [x] **[OPT-DB-01]** Optimize diagnostic N+1 query loop using SQLAlchemy `joinedload` and `selectinload` ([`diagnostics.py:80-115`](file:///d:/╪º┘ä┘â┘ä┘è┘ç/BOT/app/routes/diagnostics.py)) ΓÇö *Phase 3 Step 3 Completed: 93.5% query reduction (31 -> 2 queries)*
-- [ ] **[OPT-ENV-01]** Standardize `D:\╪º┘ä┘â┘ä┘è┘ç` Windows path references for full container portability
-- [ ] **[OPT-STR-01]** Replace synchronous file reading in local fallback with non-blocking Starlette `FileResponse`
+- [x] **[OPT-ENV-01]** Standardize `D:\الكليه` Windows path references for full container portability (`config.py`, `upload.py`, `prompt_service.py`)
+- [x] **[OPT-STR-01]** Replace synchronous file reading in local fallback with non-blocking Starlette `FileResponse` (`stream.py`)
 
 ---
 

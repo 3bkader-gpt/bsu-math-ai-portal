@@ -8,7 +8,12 @@ class Settings(BaseSettings):
     
     # Paths
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
-    COLLEGE_DIR: Path = Path(r"D:\الكليه")
+    COLLEGE_DIR: Path = Path(
+        os.getenv(
+            "COLLEGE_DIR",
+            r"D:\الكليه" if os.name == "nt" else str(Path(__file__).resolve().parent.parent / "college_data"),
+        )
+    )
     MEDIA_DIR: Path = Path(__file__).resolve().parent.parent / "media_storage"
     
     # Database (SQLite by default, or Supabase PostgreSQL)
