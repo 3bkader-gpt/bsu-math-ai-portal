@@ -363,7 +363,7 @@ async def select_text_profile() -> str:
     non_exhausted = [q for q in quotas if q["available"] and q["remaining"] > 1.0]
     if non_exhausted:
         return max(non_exhausted, key=lambda q: q["remaining"])["profile"]
-    return "acc_mo"
+    return "default"
 
 
 async def artifact_state(nb_id: str, kind: str) -> str:
@@ -434,43 +434,65 @@ async def launch_media(nb_id: str, kind: str, prompt_path: str | None, preferred
     return False
 
 
+MAX_MEDIA_KICKOFFS = 4
+
+
 async def wait_for_media_ready(nb_id: str, prompt_path: str | None = None,
                                lecture_id: int | None = None) -> tuple[bool, bool]:
     audio_ready = False
     video_ready = False
+    audio_kickoffs = 0
+    video_kickoffs = 0
     last_action_time = time.monotonic()
 
     while True:
-        # Check audio
+        st_audio = "completed" if audio_ready else await artifact_state(nb_id, "audio")
         if not audio_ready:
-            st_audio = await artifact_state(nb_id, "audio")
             if st_audio == "completed":
                 audio_ready = True
                 logger.info("Audio artifact COMPLETED in Google (zero-download)")
             elif st_audio == "missing":
-                logger.info("Audio missing for notebook %s — attempting kickoff...", nb_id)
-                if await launch_media(nb_id, "audio", prompt_path):
-                    last_action_time = time.monotonic()
-                await asyncio.sleep(5)
+                if audio_kickoffs < MAX_MEDIA_KICKOFFS:
+                    audio_kickoffs += 1
+                    logger.info("Audio missing for notebook %s — attempting kickoff (%d/%d)...",
+                                nb_id, audio_kickoffs, MAX_MEDIA_KICKOFFS)
+                    if await launch_media(nb_id, "audio", prompt_path) and audio_kickoffs == 1:
+                        last_action_time = time.monotonic()
+                    await asyncio.sleep(5)
             elif st_audio == "in_progress":
                 last_action_time = time.monotonic()
 
-        # Check video
+        st_video = "completed" if video_ready else await artifact_state(nb_id, "video")
         if not video_ready:
-            st_video = await artifact_state(nb_id, "video")
             if st_video == "completed":
                 video_ready = True
                 logger.info("Video artifact COMPLETED in Google (zero-download)")
             elif st_video == "missing":
-                logger.info("Video missing for notebook %s — attempting kickoff...", nb_id)
-                if await launch_media(nb_id, "video", prompt_path):
-                    last_action_time = time.monotonic()
-                await asyncio.sleep(5)
+                if video_kickoffs < MAX_MEDIA_KICKOFFS:
+                    video_kickoffs += 1
+                    logger.info("Video missing for notebook %s — attempting kickoff (%d/%d)...",
+                                nb_id, video_kickoffs, MAX_MEDIA_KICKOFFS)
+                    if await launch_media(nb_id, "video", prompt_path) and video_kickoffs == 1:
+                        last_action_time = time.monotonic()
+                    await asyncio.sleep(5)
             elif st_video == "in_progress":
                 last_action_time = time.monotonic()
 
         if audio_ready and video_ready:
             break
+
+        audio_exhausted = (not audio_ready) and (st_audio == "missing") and (audio_kickoffs >= MAX_MEDIA_KICKOFFS)
+        video_exhausted = (not video_ready) and (st_video == "missing") and (video_kickoffs >= MAX_MEDIA_KICKOFFS)
+        if audio_ready and video_exhausted:
+            logger.warning("Video failed after %d kickoffs for notebook %s — proceeding with audio only",
+                           video_kickoffs, nb_id)
+            break
+        if video_ready and audio_exhausted:
+            logger.warning("Audio failed after %d kickoffs for notebook %s — proceeding with video only",
+                           audio_kickoffs, nb_id)
+            break
+        if audio_exhausted and video_exhausted:
+            raise RuntimeError("Both audio and video failed after maximum retry kickoffs")
 
         if lecture_id:
             st_a = "جاهز ✅" if audio_ready else "جاري التوليد / انتظار نافذة الكوتا السحابية ⏳"
@@ -486,6 +508,32 @@ async def wait_for_media_ready(nb_id: str, prompt_path: str | None = None,
     return audio_ready, video_ready
 
 
+def _strip_null_bytes(obj):
+    if isinstance(obj, str):
+        return obj.replace("\x00", "")
+    if isinstance(obj, list):
+        return [_strip_null_bytes(v) for v in obj]
+    if isinstance(obj, dict):
+        return {str(k).replace("\x00", ""): _strip_null_bytes(v) for k, v in obj.items()}
+    return obj
+
+
+def _sanitize_cookie_jar(jar: dict | None) -> dict | None:
+    """Strip binary/null-byte cookies and origins so Postgres JSONB accepts storage_state cleanly."""
+    if not isinstance(jar, dict):
+        return jar
+    cleaned_cookies = [
+        c for c in jar.get("cookies", [])
+        if isinstance(c, dict)
+        and "\x00" not in str(c.get("name", ""))
+        and "\x00" not in str(c.get("value", ""))
+    ]
+    out = {"cookies": _strip_null_bytes(cleaned_cookies)}
+    if "notebooklm" in jar:
+        out["notebooklm"] = _strip_null_bytes(jar["notebooklm"])
+    return out
+
+
 def create_handoff(lecture: dict, nb_id: str, audio_url: str | None, video_url: str | None,
                    subject_name: str) -> str:
     """Persist the credential-bearing handoff row (service-role RLS only)."""
@@ -493,7 +541,7 @@ def create_handoff(lecture: dict, nb_id: str, audio_url: str | None, video_url: 
     jar = None
     storage = _storage_state_path()
     if storage and storage.exists():
-        jar = json.loads(storage.read_text(encoding="utf-8"))
+        jar = _sanitize_cookie_jar(json.loads(storage.read_text(encoding="utf-8")))
     with SessionLocal() as db:
         row = db.execute(text("""
             INSERT INTO public.media_handoffs
@@ -755,7 +803,7 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
                             for acc in _active_pool_accounts()
                             if acc["profile"] not in (text_profile, "default", "acc_ali")
                         ),
-                        "acc_mo",
+                        "default",
                     )
                     await ensure_notebook_shared_with_profile(nb_id, fallback)
                     await asyncio.gather(*(run_cmd_async(["notebooklm", "-p", fallback, *cmd[3:]]) for _, cmd in failed_jobs))

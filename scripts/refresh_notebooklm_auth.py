@@ -11,10 +11,11 @@ from playwright.async_api import async_playwright
 ACCOUNTS = [
     ("acc_passplay", "Profile 1", 0, "passplay494@gmail.com"),
     ("default", "Default", 0, "medo.omar.salama@gmail.com"),
-    ("acc_ali", "Default", 1, "alisamaxn2003@gmail.com"),
-    ("acc_mo", "Default", 2, "mo2949042@gmail.com"),
-    ("acc_p1", "Default", 3, "pointsone111@gmail.com"),
-    ("acc_p2", "Default", 4, "pointstwo222@gmail.com"),
+    ("acc_ali", "Profile 2", 0, "alisamaxn2003@gmail.com"),
+    ("acc_p1", "Profile 4", 0, "pointsone111@gmail.com"),
+    # Disabled until signed in via dedicated Chrome profiles:
+    # ("acc_mo", "Profile 3", 0, "mo2949042@gmail.com"),
+    # ("acc_p2", "Profile 5", 0, "pointstwo222@gmail.com"),
 ]
 
 PROFILE_DIR = Path(os.getenv("CHROME_PROFILE_DIR", str(Path.home() / ".notebooklm-profile")))
@@ -140,12 +141,19 @@ async def _refresh_all():
         groups.setdefault(entry[1], []).append(entry)
 
     total_minted = 0
+    errors: list[str] = []
     async with async_playwright() as p:
         for chrome_prof, entries in groups.items():
-            total_minted += await _refresh_chrome_group(p, chrome_prof, entries)
+            try:
+                total_minted += await _refresh_chrome_group(p, chrome_prof, entries)
+            except Exception as exc:
+                msg = f"Chrome '{chrome_prof}' refresh failed: {exc}"
+                print(f"  [WARN] {msg}")
+                errors.append(msg)
 
     if total_minted == 0:
-        raise RuntimeError("No NotebookLM profiles could be minted from Chrome.")
+        detail = f" ({'; '.join(errors)})" if errors else ""
+        raise RuntimeError(f"No NotebookLM profiles could be minted from Chrome.{detail}")
 
 
 def main():

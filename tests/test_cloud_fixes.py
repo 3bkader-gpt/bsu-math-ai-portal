@@ -74,3 +74,23 @@ def test_get_subject_prompt_finds_portable_prompts_dir():
     assert prompt_file is not None
     assert Path(prompt_file).exists()
     assert Path(prompt_file).name == "ديناميكا 2.txt"
+
+
+def test_sanitize_cookie_jar_strips_null_bytes_and_origins():
+    import home_worker
+
+    dirty = {
+        "cookies": [
+            {"name": "SID", "value": "valid-sid", "domain": ".google.com"},
+            {"name": "bad.salt", "value": "abc\x00def", "domain": ".google.com"},
+        ],
+        "origins": [
+            {"origin": "https://example.com", "localStorage": [{"name": "x.salt", "value": "\x00"}]}
+        ],
+        "notebooklm": {"account": {"email": "medo@gmail.com"}},
+    }
+    clean = home_worker._sanitize_cookie_jar(dirty)
+    assert [c["name"] for c in clean["cookies"]] == ["SID"]
+    assert "origins" not in clean
+    assert "\x00" not in json.dumps(clean)
+    assert clean["notebooklm"]["account"]["email"] == "medo@gmail.com"
