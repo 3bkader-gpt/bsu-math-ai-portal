@@ -141,10 +141,41 @@ def is_clean_arabic_asset(asset_type: str, content: str | None) -> bool:
     return False
 
 
+_OWNER_MAP: dict[str, str] = {}
+_EDITOR_MAP: dict[str, str] = {}
+
+
+async def _build_owner_maps():
+    """Discovers true notebook ownership (`is_owner`) once across all active profiles."""
+    _OWNER_MAP.clear()
+    _EDITOR_MAP.clear()
+    for acc in home_worker._active_pool_accounts():
+        prof = acc["profile"]
+        rc, out = await run_cmd_async(["notebooklm", "-p", prof, "list", "--json"], timeout=45, max_retries=1)
+        if rc != 0 or not out:
+            continue
+        try:
+            for item in json.loads(out).get("notebooks", []):
+                nid = item.get("id")
+                if not nid:
+                    continue
+                if item.get("is_owner") or str(item.get("role", "")).lower() == "owner":
+                    _OWNER_MAP[nid] = prof
+                elif nid not in _EDITOR_MAP:
+                    _EDITOR_MAP[nid] = prof
+        except Exception:
+            pass
+    logger.info("Indexed notebook ownership: %d owned, %d shared-editor", len(_OWNER_MAP), len(_EDITOR_MAP))
+
+
 async def find_accessible_profile(nb_id: str) -> str | None:
-    """Finds which active local CLI profile owns or can read `nb_id`."""
+    """Finds the true owner profile (preferred) or editor profile for `nb_id`."""
     if not nb_id:
         return None
+    if nb_id in _OWNER_MAP:
+        return _OWNER_MAP[nb_id]
+    if nb_id in _EDITOR_MAP:
+        return _EDITOR_MAP[nb_id]
     for acc in home_worker._active_pool_accounts():
         prof = acc["profile"]
         rc, _ = await run_cmd_async(["notebooklm", "-p", prof, "source", "list", "--json", "-n", nb_id], timeout=45, max_retries=1)
@@ -356,24 +387,31 @@ async def regenerate_lecture(lecture_id: int, force_fresh_nb: bool, skip_av: boo
             nb_id = db_nb_id
             await ensure_readable_sources(nb_id, profile=owner_prof, work_dir=work_dir, subject_name=subject_name)
 
-        p_flag = ["-p", owner_prof]
+        is_true_owner = nb_id in _OWNER_MAP or force_fresh_nb
+        # Spread text load round-robin when the true owner can share; otherwise use the accessible editor directly
+        if is_true_owner and profile_hint and profile_hint != owner_prof:
+            shared = await home_worker.ensure_notebook_shared_with_profile(nb_id, profile_hint, creator_profile=owner_prof)
+            gen_prof = profile_hint if shared else owner_prof
+        else:
+            gen_prof = owner_prof
+        p_flag = ["-p", gen_prof]
 
         # 1. Regenerate non-Arabic text artifacts cleanly
         if needed_texts:
             cmd_map = {
                 "quiz_md": [
                     "notebooklm", *p_flag, "generate", "quiz", QUIZ_PROMPT_INSTRUCTIONS,
-                    "--quantity", "more", "--wait", "--retry", "3", "-n", nb_id,
+                    "--quantity", "more", "--wait", "--retry", "1", "-n", nb_id,
                 ],
                 "study_guide_md": [
                     "notebooklm", *p_flag, "generate", "report", "--format", "study-guide",
                     "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
                     "--append", build_study_guide_append(subject_name, doctor),
-                    "--wait", "--retry", "3", "-n", nb_id,
+                    "--wait", "--retry", "1", "-n", nb_id,
                 ],
                 "flashcards_md": [
                     "notebooklm", *p_flag, "generate", "flashcards", FLASHCARDS_PROMPT_INSTRUCTIONS,
-                    "--quantity", "more", "--wait", "--retry", "3", "-n", nb_id,
+                    "--quantity", "more", "--wait", "--retry", "1", "-n", nb_id,
                 ],
                 "mind_map_json": [
                     "notebooklm", *p_flag, "generate", "mind-map", "--kind", "interactive",
@@ -382,13 +420,21 @@ async def regenerate_lecture(lecture_id: int, force_fresh_nb: bool, skip_av: boo
                 ],
             }
             jobs = [(t, cmd_map[t]) for t in needed_texts]
-            results = await asyncio.gather(*(run_cmd_async(c, timeout=420) for _, c in jobs))
+            results = await asyncio.gather(*(run_cmd_async(c, timeout=360) for _, c in jobs))
             failed = [(t, c) for (t, c), (rc, _) in zip(jobs, results) if rc != 0]
-            if failed:
-                fb = next((a["profile"] for a in home_worker._active_pool_accounts() if a["profile"] != owner_prof), owner_prof)
-                if fb != owner_prof:
-                    await home_worker.ensure_notebook_shared_with_profile(nb_id, fb)
-                    await asyncio.gather(*(run_cmd_async(["notebooklm", "-p", fb, *c[3:]], timeout=420) for _, c in failed))
+            if failed and is_true_owner:
+                alt_profiles = [
+                    a["profile"] for a in home_worker._active_pool_accounts()
+                    if a["profile"] != gen_prof
+                ]
+                for fb in alt_profiles[:2]:
+                    if not failed:
+                        break
+                    if await home_worker.ensure_notebook_shared_with_profile(nb_id, fb, creator_profile=owner_prof):
+                        fb_res = await asyncio.gather(
+                            *(run_cmd_async(["notebooklm", "-p", fb, *c[3:]], timeout=360) for _, c in failed)
+                        )
+                        failed = [(t, c) for (t, c), (rc, _) in zip(failed, fb_res) if rc != 0]
 
             meta = {
                 "quiz_md": ("quiz", "quiz.md", "كويز المحاضرة", "📝 كويز تفاعلي وبنك الأسئلة الكامل"),
@@ -402,7 +448,12 @@ async def regenerate_lecture(lecture_id: int, force_fresh_nb: bool, skip_av: boo
                 dl_cmd = ["notebooklm", *p_flag, "download", kind, str(dest), "--force", "-n", nb_id]
                 if kind in ("quiz", "flashcards"):
                     dl_cmd[5:5] = ["--format", "markdown"]
-                await run_cmd_async(dl_cmd, timeout=120)
+                dl_rc, _ = await run_cmd_async(dl_cmd, timeout=120)
+                if (dl_rc != 0 or not dest.exists()) and gen_prof != owner_prof:
+                    alt_dl = ["notebooklm", "-p", owner_prof, "download", kind, str(dest), "--force", "-n", nb_id]
+                    if kind in ("quiz", "flashcards"):
+                        alt_dl[5:5] = ["--format", "markdown"]
+                    await run_cmd_async(alt_dl, timeout=120)
                 if not dest.exists():
                     logger.warning("Lec %s: %s download failed", lecture_id, atype)
                     continue
@@ -507,6 +558,8 @@ async def run_queue(args):
             targets.extend((i, False) for i in BATCH_C)
 
     profiles = [a["profile"] for a in home_worker._active_pool_accounts()] or ["default"]
+    if not args.dry_run:
+        await _build_owner_maps()
     sem = asyncio.Semaphore(max(1, args.concurrency))
 
     async def _worker(idx: int, lid: int, fresh: bool):
