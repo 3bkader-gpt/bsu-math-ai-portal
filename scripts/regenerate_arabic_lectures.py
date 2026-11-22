@@ -185,33 +185,48 @@ async def find_accessible_profile(nb_id: str) -> str | None:
 
 
 async def create_fresh_notebook_from_db(lecture_id: int, subject_name: str, lecture_num: int, doctor: str | None, profile: str, work_dir: Path) -> str:
-    """Downloads original_pdf assets for a lecture and creates a brand-new NotebookLM notebook."""
+    """Downloads original_pdf assets (HTTP URL, local file, or Telegram file_id) and creates a brand-new NotebookLM notebook."""
     with SessionLocal() as db:
         pdf_assets = db.query(MediaAsset).filter(
             MediaAsset.lecture_id == lecture_id,
             MediaAsset.asset_type == "original_pdf",
         ).order_by(MediaAsset.id).all()
-        sources = [
-            (a.local_file_path, a.title or f"source_{idx}.pdf")
+        raw_sources = [
+            (a.local_file_path, a.telegram_file_id, a.title or f"source_{idx}.pdf")
             for idx, a in enumerate(pdf_assets)
-            if a.local_file_path and a.local_file_path.startswith("http")
         ]
-    if not sources:
-        raise RuntimeError(f"Lecture {lecture_id} has no accessible HTTP original_pdf URLs")
+
+    resolved_sources: list[tuple[str | None, Path | None, str]] = []
+    for lp, tg_id, p_title in raw_sources:
+        if lp and str(lp).startswith("http"):
+            resolved_sources.append((str(lp), None, p_title))
+        elif lp and Path(str(lp)).exists():
+            resolved_sources.append((None, Path(str(lp)), p_title))
+        elif tg_id:
+            tg_url = await telegram_storage.get_direct_download_url(str(tg_id))
+            if tg_url:
+                resolved_sources.append((tg_url, None, p_title))
+
+    if not resolved_sources:
+        raise RuntimeError(f"Lecture {lecture_id} has no accessible HTTP/local/Telegram original_pdf sources")
 
     title = f"{subject_name} ({doctor}) - المحاضرة {lecture_num} [AR]" if doctor else f"{subject_name} - المحاضرة {lecture_num} [AR]"
     rc, out = await run_cmd_async(["notebooklm", "-p", profile, "create", title, "--json"], timeout=60)
     if rc != 0:
         raise RuntimeError(f"notebooklm create failed on {profile}: {out}")
     nb_id = json.loads(out)["notebook"]["id"]
+    _OWNER_MAP[nb_id] = profile
     logger.info("Lec %s: created fresh notebook %s on profile %s", lecture_id, nb_id, profile)
 
-    for idx, (url, p_title) in enumerate(sources):
+    for idx, (url, local_src, p_title) in enumerate(resolved_sources):
         clean_name = re.sub(r"[^a-zA-Z0-9._-]+", "_", p_title).strip("_") or "source.pdf"
         if not clean_name.lower().endswith(".pdf"):
             clean_name += ".pdf"
         dest = work_dir / f"src_{idx}_{clean_name}"
-        home_worker.download_pdf(url, dest)
+        if url:
+            home_worker.download_pdf(url, dest)
+        elif local_src:
+            shutil.copy2(local_src, dest)
         add_rc, add_out = await run_cmd_async(["notebooklm", "-p", profile, "source", "add", str(dest), "-n", nb_id], timeout=180)
         if add_rc != 0:
             raise RuntimeError(f"source add failed for {p_title}: {add_out}")
