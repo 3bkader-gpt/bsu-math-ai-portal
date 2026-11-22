@@ -283,21 +283,27 @@ def _title_has_arabic(art: dict | None) -> bool:
 _DONE_STATE_FILE = Path.home() / ".notebooklm" / "regen_ar_av_done.json"
 
 
-def _load_av_done() -> set[int]:
+def _load_av_done() -> dict[int, set[str]]:
+    """Loads completed Arabic A/V kinds per lecture ID, migrating legacy list format cleanly."""
     try:
         if _DONE_STATE_FILE.exists():
-            return set(int(x) for x in json.loads(_DONE_STATE_FILE.read_text(encoding="utf-8")))
+            raw = json.loads(_DONE_STATE_FILE.read_text(encoding="utf-8"))
+            if isinstance(raw, list):
+                return {int(x): {"audio", "video"} for x in raw}
+            if isinstance(raw, dict):
+                return {int(k): set(v) for k, v in raw.items()}
     except Exception:
         pass
-    return set()
+    return {}
 
 
-def _mark_av_done(lecture_id: int):
+def _mark_av_kind_done(lecture_id: int, kind: str):
     try:
         _DONE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
         done = _load_av_done()
-        done.add(int(lecture_id))
-        _DONE_STATE_FILE.write_text(json.dumps(sorted(done)), encoding="utf-8")
+        done.setdefault(int(lecture_id), set()).add(kind)
+        serializable = {str(k): sorted(v) for k, v in sorted(done.items())}
+        _DONE_STATE_FILE.write_text(json.dumps(serializable), encoding="utf-8")
     except Exception:
         pass
 
@@ -319,16 +325,18 @@ async def regenerate_lecture(lecture_id: int, force_fresh_nb: bool, skip_av: boo
         atype for atype in ("quiz_md", "study_guide_md", "flashcards_md", "mind_map_json")
         if not is_clean_arabic_asset(atype, assets.get(atype))
     ]
-    av_done = _load_av_done()
-    need_av = (not skip_av) and (lecture_id not in SKIP_AV_IDS) and (lecture_id not in av_done)
+    av_done_map = _load_av_done().get(lecture_id, set())
+    need_audio = (not skip_av) and (lecture_id not in SKIP_AV_IDS) and ("audio" not in av_done_map)
+    need_video = (not skip_av) and (lecture_id not in SKIP_AV_IDS) and ("video" not in av_done_map)
+    need_av = need_audio or need_video
 
     if not needed_texts and not need_av:
         logger.info("Lec %s (%s #%s): already 100%% clean Arabic!", lecture_id, subject_name, lecture_num)
         return
 
     logger.info(
-        "Plan Lec %2d | %s #%s | fresh_nb=%s | texts=%s | av=%s",
-        lecture_id, subject_name, lecture_num, force_fresh_nb, needed_texts, need_av,
+        "Plan Lec %2d | %s #%s | fresh_nb=%s | texts=%s | need_audio=%s | need_video=%s",
+        lecture_id, subject_name, lecture_num, force_fresh_nb, needed_texts, need_audio, need_video,
     )
     if dry_run:
         return
@@ -336,12 +344,16 @@ async def regenerate_lecture(lecture_id: int, force_fresh_nb: bool, skip_av: boo
     prompt_path = get_subject_prompt(subject_name)
     work_dir = Path(tempfile.mkdtemp(prefix=f"regen_{lecture_id}_"))
     try:
-        owner_prof = None if force_fresh_nb else await find_accessible_profile(db_nb_id or "")
-        nb_id = db_nb_id if owner_prof else None
-        if not nb_id:
+        owner_prof = await find_accessible_profile(db_nb_id or "")
+        # In Batch A reuse an already-newly-created Arabic notebook on our own pool so partial audio/video resumes cleanly
+        if force_fresh_nb and owner_prof and not needed_texts:
+            # Verify this notebook isn't one of the old uncleaned Batch A notebooks by checking DB assets already passed
+            nb_id = db_nb_id
+        elif force_fresh_nb or not owner_prof:
             owner_prof = profile_hint
             nb_id = await create_fresh_notebook_from_db(lecture_id, subject_name, lecture_num, doctor, owner_prof, work_dir)
         else:
+            nb_id = db_nb_id
             await ensure_readable_sources(nb_id, profile=owner_prof, work_dir=work_dir, subject_name=subject_name)
 
         p_flag = ["-p", owner_prof]
@@ -403,14 +415,21 @@ async def regenerate_lecture(lecture_id: int, force_fresh_nb: bool, skip_av: boo
                 upsert_asset(lecture_id, atype, asset_title, up, content_text=content)
                 logger.info("Lec %s: updated %s cleanly (%d chars)", lecture_id, atype, len(content))
 
-        # 2. Regenerate Audio + Video in Egyptian Arabic
+        # 2. Regenerate Audio + Video in Egyptian Arabic with real owner_prof sharing
         if need_av:
-            old_audio_ids = await list_artifact_ids(nb_id, owner_prof, "audio")
-            old_video_ids = await list_artifact_ids(nb_id, owner_prof, "video")
+            old_audio_ids = await list_artifact_ids(nb_id, owner_prof, "audio") if need_audio else set()
+            old_video_ids = await list_artifact_ids(nb_id, owner_prof, "video") if need_video else set()
 
-            audio_ok = await home_worker.launch_media(nb_id, "audio", prompt_path, preferred_profile=owner_prof)
-            await asyncio.sleep(15)
-            video_ok = await home_worker.launch_media(nb_id, "video", prompt_path, preferred_profile=owner_prof)
+            audio_ok = (
+                await home_worker.launch_media(nb_id, "audio", prompt_path, creator_profile=owner_prof)
+                if need_audio else False
+            )
+            if need_audio and need_video:
+                await asyncio.sleep(15)
+            video_ok = (
+                await home_worker.launch_media(nb_id, "video", prompt_path, creator_profile=owner_prof)
+                if need_video else False
+            )
 
             async def _fetch_upload(kind: str, old_ids: set[str], raw_name: str, asset_type: str, asset_title: str, tg_label: str) -> bool:
                 art = await wait_specific_media_artifact(nb_id, owner_prof, kind, old_ids, timeout_s=1800)
@@ -450,17 +469,16 @@ async def regenerate_lecture(lecture_id: int, force_fresh_nb: bool, skip_av: boo
                     logger.error("Lec %s: %s Telegram upload failed (%s)", lecture_id, kind, up)
                     return False
                 upsert_asset(lecture_id, asset_type, asset_title, up)
+                _mark_av_kind_done(lecture_id, kind)
                 logger.info("Lec %s: replaced %s cleanly (title=%r)", lecture_id, asset_type, art.get("title"))
                 return True
 
-            a_done, v_done = await asyncio.gather(
+            await asyncio.gather(
                 _fetch_upload("audio", old_audio_ids, "audio_overview.m4a", "audio", "بودكاست الشرح الصوتي", "🎧 بودكاست الشرح الصوتي بالمصرية")
                 if audio_ok else asyncio.sleep(0, result=False),
                 _fetch_upload("video", old_video_ids, "video_overview.mp4", "video", "فيديو الشرح التفاعلي", "🎬 فيديو الشرح المرئي التفاعلي")
                 if video_ok else asyncio.sleep(0, result=False),
             )
-            if a_done and v_done:
-                _mark_av_done(lecture_id)
 
         # Save new notebook_id if a fresh notebook was created
         if nb_id != db_nb_id:

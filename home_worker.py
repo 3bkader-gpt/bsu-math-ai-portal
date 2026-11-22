@@ -402,7 +402,13 @@ async def artifact_state(nb_id: str, kind: str) -> str:
     return "missing"
 
 
-async def launch_media(nb_id: str, kind: str, prompt_path: str | None, preferred_profile: str | None = None) -> bool:
+async def launch_media(
+    nb_id: str,
+    kind: str,
+    prompt_path: str | None,
+    preferred_profile: str | None = None,
+    creator_profile: str = "default",
+) -> bool:
     """Launch media generation with autonomous multi-account rotation and failover."""
     profiles_to_try = []
     if preferred_profile:
@@ -418,8 +424,8 @@ async def launch_media(nb_id: str, kind: str, prompt_path: str | None, preferred
             profiles_to_try.append(p)
 
     for profile in profiles_to_try:
-        # Ensure notebook is shared with this specific profile before invoking generation
-        await ensure_notebook_shared_with_profile(nb_id, profile)
+        # Ensure notebook is shared by its actual owner before invoking generation
+        await ensure_notebook_shared_with_profile(nb_id, profile, creator_profile=creator_profile)
 
         if kind == "audio":
             cmd = [
