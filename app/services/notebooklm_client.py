@@ -187,6 +187,7 @@ def run_notebooklm_cmd(args: list[str], timeout: int = 1800, max_retries: int = 
     env["NOTEBOOKLM_HEADLESS_REAUTH"] = "1"
     env["NOTEBOOKLM_REFRESH_CMD_MIDSESSION"] = "1"
     env["NOTEBOOKLM_REFRESH_CMD_USE_SHELL"] = "1"
+    env.setdefault("NOTEBOOKLM_HL", "ar_eg")
     if REFRESH_SCRIPT.exists():
         env["NOTEBOOKLM_REFRESH_CMD"] = f'"{sys.executable}" "{REFRESH_SCRIPT}"'
 

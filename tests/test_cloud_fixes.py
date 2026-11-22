@@ -94,3 +94,62 @@ def test_sanitize_cookie_jar_strips_null_bytes_and_origins():
     assert "origins" not in clean
     assert "\x00" not in json.dumps(clean)
     assert clean["notebooklm"]["account"]["email"] == "medo@gmail.com"
+
+
+def test_arabic_generation_helpers():
+    from app.services.notebooklm_service import (
+        DEFAULT_NOTEBOOKLM_LANGUAGE,
+        QUIZ_PROMPT_INSTRUCTIONS,
+        FLASHCARDS_PROMPT_INSTRUCTIONS,
+        MIND_MAP_INSTRUCTIONS,
+        _strip_fulltext_boilerplate,
+        _source_status_is_ready,
+        build_study_guide_append,
+    )
+
+    assert DEFAULT_NOTEBOOKLM_LANGUAGE == "ar_eg"
+    assert "Question N" in QUIZ_PROMPT_INSTRUCTIONS
+    assert "**Hint:**" in QUIZ_PROMPT_INSTRUCTIONS
+    assert "**Steps:**" in QUIZ_PROMPT_INSTRUCTIONS
+    assert "العربية" in FLASHCARDS_PROMPT_INSTRUCTIONS
+    assert "العربية" in MIND_MAP_INSTRUCTIONS
+    append_txt = build_study_guide_append("استاتيكا2", "د/ ايه")
+    assert "استاتيكا2" in append_txt
+    assert "د/ ايه" in append_txt
+    assert "العامية المصرية" in append_txt
+
+    raw_img_only = (
+        "Source: abc\nTitle: lec9.pdf\nCharacters: 1,195\n\nContent:\n"
+        "https://lh3.googleusercontent.com/notebooklm/AAA\n"
+        "https://lh3.googleusercontent.com/notebooklm/BBB\n"
+    )
+    assert _strip_fulltext_boilerplate(raw_img_only) == ""
+    assert _source_status_is_ready({"status": 2})
+    assert _source_status_is_ready({"status": "ready"})
+    assert not _source_status_is_ready({"status": "processing"})
+
+
+def test_is_clean_arabic_asset_gates():
+    from scripts.regenerate_arabic_lectures import is_clean_arabic_asset
+
+    assert not is_clean_arabic_asset("flashcards_md", '{"title": "Empty Flashcards", "cards": []}')
+    assert not is_clean_arabic_asset("mind_map_json", '{"name": "Empty Topic", "children": []}')
+    assert not is_clean_arabic_asset("quiz_md", "## Question 1\nIn virtual memory management...\n- [x] Paging")
+    assert is_clean_arabic_asset(
+        "mind_map_json",
+        json.dumps(
+            {
+                "name": "التحليل الاتجاهي",
+                "children": [
+                    {"name": "التدرج والمشتقة الاتجاهية", "children": []},
+                    {"name": "التباعد والدوران", "children": []},
+                ],
+            },
+            ensure_ascii=False,
+        ),
+    )
+    cards_md = "\n".join(
+        f"## Card {i}\n**Q:** ما هو تعريف المؤثر التفاضلي والمشتقة الاتجاهية في الفراغ الثلاثي؟\n**A:** هو معدل تغير الدالة القياسية في اتجاه متجه وحدة محدد"
+        for i in range(1, 4)
+    )
+    assert is_clean_arabic_asset("flashcards_md", cards_md)

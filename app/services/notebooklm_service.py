@@ -22,13 +22,177 @@ run_cmd = run_notebooklm_cmd
 run_cmd_async = run_notebooklm_cmd_async
 
 # Shared academic generation prompt instructions used across both local and Split-Plane pipelines
+DEFAULT_NOTEBOOKLM_LANGUAGE = "ar_eg"
+
 QUIZ_PROMPT_INSTRUCTIONS = (
-    "اختبار شامل مع تلميحات وشرح الإجابات. "
-    "لكل سؤال أضف بعد الخيارات سطر Hint بإجابة صغيرة، "
-    "وأسفل الهينت بلوك Steps فيه خطوات الحل النموذجي مرقمة (3 إلى 5 خطوات) "
-    "بحيث يتعلم الطالب من التدرج خطوة خطوة"
+    "اختبار شامل باللغة العربية المصرية الواضحة فقط (يُمنع تماماً كتابة الأسئلة أو الخيارات أو التلميحات أو الخطوات باللغة الإنجليزية؛ "
+    "يمكن استخدام رموز ومعادلات الـ LaTeX فقط للمقادير الرياضية). "
+    "لكل سؤال التزم بالتنسيق التالي: ابدأ بعنوان ## Question N، ثم اكتب نص السؤال بالعربية، "
+    "ثم الخيارات بصيغة - [ ] و - [x] للإجابة الصحيحة فقط، "
+    "ثم سطر **Hint:** متبوعاً بتلميح موجز بالعامية المصرية، "
+    "ثم سطر **Steps:** وتحته 3 إلى 5 خطوات مرقمة (1. 2. 3.) تشرح خطوات الحل النموذجي بالعامية المصرية الواضحة."
 )
-FLASHCARDS_PROMPT_INSTRUCTIONS = "أهم المفاهيم والقوانين والتعريفات"
+
+FLASHCARDS_PROMPT_INSTRUCTIONS = (
+    "أنشئ بطاقات استذكار شاملة لجميع المفاهيم والقوانين والتعريفات والمسائل الأساسية في المحاضرة "
+    "باللغة العربية والعامية المصرية العلمية الواضحة فقط (السؤال والإجابة باللغة العربية الكاملة مع معادلات LaTeX عند الحاجة، "
+    "ويُمنع تماماً كتابة البطاقات بالإنجليزية)."
+)
+
+MIND_MAP_INSTRUCTIONS = (
+    "أنشئ خريطة ذهنية منظمة وشاملة لمحتوى المحاضرة بالكامل باللغة العربية فقط (العقد الرئيسية والفرعية بالعربية الواضحة، "
+    "ويُمنع كتابة الفروع بالإنجليزية إلا للمصطلح العلمي المختصر داخل قوسين بجانب العربي)."
+)
+
+
+def build_study_guide_append(subject_name: str = "", doctor: str | None = None) -> str:
+    """Builds strict Egyptian Arabic & BSU-syllabus steering instructions for study guides."""
+    subj = f" لمادة ({subject_name})" if subject_name else ""
+    doc = f" - {doctor}" if doctor else ""
+    return (
+        f"اكتب الدليل الدراسي والملخص الشامل{subj}{doc} بالكامل باللغة العربية والعامية المصرية العلمية المبسطة "
+        "لطلبة الفرقة الثانية كلية التربية (شعبة الرياضيات). يُمنع تماماً كتابة فقرات شرح أو عناوين باللغة الإنجليزية. "
+        "اشرح التأسيس من الصفر، واكتب القوانين بالـ LaTeX، واحل جميع أمثلة ومسائل المحاضرة بالتفصيل خطوة بخطوة بدون قفز، "
+        "واختم بأهم فخاخ وأسئلة الامتحان."
+    )
+
+
+def _strip_fulltext_boilerplate(raw_fulltext: str) -> str:
+    """Removes NotebookLM fulltext headers and lh3 image URLs to inspect real extracted text."""
+    if not raw_fulltext:
+        return ""
+    body = raw_fulltext
+    marker = "\nContent:\n"
+    if marker in body:
+        body = body.split(marker, 1)[1]
+    body = re.sub(r"https?://lh\d*\.googleusercontent\.com/\S+", " ", body)
+    body = re.sub(r"\s+", " ", body).strip()
+    return body
+
+
+def _source_status_is_ready(src: dict) -> bool:
+    st = src.get("status")
+    return st == 2 or str(st).strip().lower() == "ready"
+
+
+async def wait_for_sources_ready(nb_id: str, profile: str | None = None, timeout_s: int = 90) -> list[dict]:
+    """Polls `notebooklm source list --json` until all sources report ready or timeout expires."""
+    p_flag = ["-p", profile] if profile else []
+    deadline = asyncio.get_running_loop().time() + timeout_s
+    last_sources: list[dict] = []
+    while asyncio.get_running_loop().time() < deadline:
+        rc, out = await run_cmd_async(["notebooklm", *p_flag, "source", "list", "--json", "-n", nb_id])
+        if rc == 0 and out:
+            try:
+                srcs = json.loads(out).get("sources", [])
+                if srcs:
+                    last_sources = srcs
+                    if all(_source_status_is_ready(s) for s in srcs):
+                        return srcs
+            except Exception:
+                pass
+        await asyncio.sleep(5)
+    return last_sources
+
+
+async def ensure_readable_sources(
+    nb_id: str,
+    profile: str | None = None,
+    work_dir: Path | None = None,
+    subject_name: str = "",
+) -> bool:
+    """
+    Blank-PDF guard: checks each uploaded source's indexed `fulltext`.
+    If a source is scanned/handwritten (only image URLs with < 200 chars of real text),
+    uses `notebooklm ask` (multimodal vision) to transcribe all pages into a rich UTF-8 Arabic
+    Markdown companion source and uploads it before audio/video/quiz generation runs.
+    Returns True if a companion transcript source was added and became ready.
+    """
+    p_flag = ["-p", profile] if profile else []
+    srcs = await wait_for_sources_ready(nb_id, profile=profile, timeout_s=90)
+    if not srcs:
+        return False
+
+    transcript_prefix = "تفريغ_المصادر_النصي"
+    if any(str(s.get("title") or "").startswith(transcript_prefix) and _source_status_is_ready(s) for s in srcs):
+        return False
+
+    image_only_sources: list[tuple[str, str]] = []
+    for src in srcs:
+        sid = src.get("id")
+        title = str(src.get("title") or "source")
+        if not sid or title.endswith((".md", ".txt")) or title.startswith(transcript_prefix):
+            continue
+        rc, ft = await run_cmd_async(["notebooklm", *p_flag, "source", "fulltext", sid, "-n", nb_id])
+        if rc != 0:
+            continue
+        meaningful = _strip_fulltext_boilerplate(ft)
+        if len(meaningful) < 250:
+            image_only_sources.append((sid, title))
+            logger.info(
+                "Source %s (%s) has only %d chars of indexed text (image URLs=%d); scheduling vision transcription",
+                sid[:8], title, len(meaningful), ft.count("lh3.googleusercontent.com"),
+            )
+
+    if not image_only_sources:
+        return False
+
+    subj_hint = f" في مادة ({subject_name})" if subject_name else ""
+    sections: list[str] = [
+        f"# التفريغ النصي والرياضي الكامل لمصادر المحاضرة{subj_hint}\n\n"
+        "> تم استخراج هذا التفريغ تلقائياً لضمان قراءة جميع صفحات الصور والسبورة بدقة كاملة باللغة العربية.\n"
+    ]
+    extracted_count = 0
+    for sid, title in image_only_sources:
+        prompt = (
+            f"اقرأ جميع صفحات هذا المصدر المرفق ({title}){subj_hint} قراءة بصرية دقيقة جداً، "
+            "واستخرج وانسخ باللغة العربية كل النصوص، العناوين، التعريفات، النظريات، الإثباتات، "
+            "وجميع المعادلات والرموز الرياضية بصيغة LaTeX، وكل مسألة أو مثال محلول بالكامل خطوة بخطوة كما ورد في الصور والسبورة والكتاب بدون أي اختصار."
+        )
+        rc, ans = await run_cmd_async(
+            ["notebooklm", *p_flag, "ask", "-s", sid, "-n", nb_id, prompt],
+            timeout=180,
+        )
+        if rc == 0 and ans:
+            cleaned = ans.strip()
+            if cleaned.startswith("Continuing conversation"):
+                cleaned = cleaned.split("\n", 1)[1].strip() if "\n" in cleaned else cleaned
+            if cleaned.startswith("Answer:"):
+                cleaned = cleaned[len("Answer:"):].strip()
+            lower_c = cleaned.lower()
+            is_refusal = (
+                len(cleaned) < 120
+                or "cannot find" in lower_c
+                or "does not contain" in lower_c
+                or "فارغ تماماً" in cleaned
+                or "لا يحتوي على أي نص" in cleaned
+            )
+            if not is_refusal:
+                sections.append(f"\n---\n\n## المصدر: {title}\n\n{cleaned}\n")
+                extracted_count += 1
+
+    if extracted_count == 0:
+        return False
+
+    own_tmp = False
+    if work_dir is None:
+        import tempfile
+        work_dir = Path(tempfile.mkdtemp(prefix="nb_ocr_"))
+        own_tmp = True
+
+    try:
+        md_path = work_dir / f"{transcript_prefix}.md"
+        md_path.write_text("\n".join(sections), encoding="utf-8")
+        add_rc, add_out = await run_cmd_async(["notebooklm", *p_flag, "source", "add", str(md_path), "-n", nb_id], timeout=120)
+        if add_rc != 0:
+            logger.warning("Failed to add vision transcript source to %s: %s", nb_id, (add_out or "")[:200])
+            return False
+        await wait_for_sources_ready(nb_id, profile=profile, timeout_s=60)
+        logger.info("Added companion Arabic transcription source (%d sections) to notebook %s", extracted_count, nb_id)
+        return True
+    finally:
+        if own_tmp:
+            shutil.rmtree(work_dir, ignore_errors=True)
 
 def make_telegram_caption(subject_name: str, lecture_num: int, title: str, doctor: str | None, asset_label: str, filename: str = "") -> str:
     """Formats structured, readable captions for Telegram storage channel."""
@@ -135,11 +299,19 @@ class NotebookLMPipeline:
                 ))
             db.commit()
 
+            # Ensure scanned/handwritten PDFs have searchable Arabic companion text before Studio runs
+            await ensure_readable_sources(nb_id, work_dir=temp_dir, subject_name=subject_name)
+
             # 3. Trigger Audio Overview early (can take ~3-5 mins in Google's cloud)
             lecture.stage_info = "جاري إطلاق توليد الشرح الصوتي والمخرجات الأكاديمية..."
             db.commit()
 
-            audio_cmd = ["notebooklm", "generate", "audio", "--length", "long", "-n", nb_id]
+            audio_cmd = [
+                "notebooklm", "generate", "audio",
+                "--length", "long",
+                "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
+                "-n", nb_id,
+            ]
             if prompt_path and Path(prompt_path).exists():
                 audio_cmd.extend(["--prompt-file", prompt_path])
             else:
@@ -149,7 +321,13 @@ class NotebookLMPipeline:
             await asyncio.sleep(15)  # Spacing cooldown before requesting video
 
             # Launch explainer video generation with rate-limit retry and backoff
-            video_cmd = ["notebooklm", "generate", "video", "--format", "explainer", "--retry", "3", "-n", nb_id]
+            video_cmd = [
+                "notebooklm", "generate", "video",
+                "--format", "explainer",
+                "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
+                "--retry", "3",
+                "-n", nb_id,
+            ]
             if prompt_path and Path(prompt_path).exists():
                 video_cmd.extend(["--prompt-file", prompt_path])
             else:
@@ -161,10 +339,27 @@ class NotebookLMPipeline:
             db.commit()
             db.close()
 
-            quiz_cmd = ["notebooklm", "generate", "quiz", QUIZ_PROMPT_INSTRUCTIONS, "--quantity", "more", "--wait", "--retry", "3", "-n", nb_id]
-            report_cmd = ["notebooklm", "generate", "report", "--format", "study-guide", "--wait", "--retry", "3", "-n", nb_id]
-            cards_cmd = ["notebooklm", "generate", "flashcards", FLASHCARDS_PROMPT_INSTRUCTIONS, "--quantity", "more", "--retry", "3", "-n", nb_id]
-            map_cmd = ["notebooklm", "generate", "mind-map", "--kind", "note-backed", "-n", nb_id]
+            quiz_cmd = [
+                "notebooklm", "generate", "quiz", QUIZ_PROMPT_INSTRUCTIONS,
+                "--quantity", "more", "--wait", "--retry", "3", "-n", nb_id,
+            ]
+            report_cmd = [
+                "notebooklm", "generate", "report", "--format", "study-guide",
+                "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
+                "--append", build_study_guide_append(subject_name, doctor),
+                "--wait", "--retry", "3", "-n", nb_id,
+            ]
+            cards_cmd = [
+                "notebooklm", "generate", "flashcards", FLASHCARDS_PROMPT_INSTRUCTIONS,
+                "--quantity", "more", "--wait", "--retry", "3", "-n", nb_id,
+            ]
+            map_cmd = [
+                "notebooklm", "generate", "mind-map",
+                "--kind", "interactive",
+                "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
+                "--instructions", MIND_MAP_INSTRUCTIONS,
+                "-n", nb_id,
+            ]
 
             await asyncio.gather(
                 run_cmd_async(quiz_cmd),

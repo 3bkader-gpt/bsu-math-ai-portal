@@ -40,10 +40,15 @@ load_dotenv(ROOT / ".env")
 from app.db.database import SessionLocal
 from app.db.models import Subject, Lecture, MediaAsset
 from app.services.notebooklm_service import (
-    NotebookLMPipeline,
-    make_telegram_caption,
-    QUIZ_PROMPT_INSTRUCTIONS,
+    DEFAULT_NOTEBOOKLM_LANGUAGE,
     FLASHCARDS_PROMPT_INSTRUCTIONS,
+    MIND_MAP_INSTRUCTIONS,
+    NotebookLMPipeline,
+    QUIZ_PROMPT_INSTRUCTIONS,
+    build_study_guide_append,
+    ensure_readable_sources,
+    make_telegram_caption,
+    wait_for_sources_ready,
 )
 from app.services.notebooklm_client import run_notebooklm_cmd_async as run_cmd_async
 from app.services.telegram_storage import telegram_storage
@@ -410,9 +415,17 @@ async def launch_media(nb_id: str, kind: str, prompt_path: str | None, preferred
         await ensure_notebook_shared_with_profile(nb_id, profile)
 
         if kind == "audio":
-            cmd = ["notebooklm", "-p", profile, "generate", "audio", "--length", "long", "--retry", "1", "-n", nb_id]
+            cmd = [
+                "notebooklm", "-p", profile, "generate", "audio",
+                "--length", "long", "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
+                "--retry", "1", "-n", nb_id,
+            ]
         else:
-            cmd = ["notebooklm", "-p", profile, "generate", "video", "--format", "explainer", "--retry", "1", "-n", nb_id]
+            cmd = [
+                "notebooklm", "-p", profile, "generate", "video",
+                "--format", "explainer", "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
+                "--retry", "1", "-n", nb_id,
+            ]
         if prompt_path:
             cmd.extend(["--prompt-file", prompt_path])
 
@@ -743,23 +756,15 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
                     db.commit()
 
                 for idx, (p_url, p_title) in enumerate(pdf_sources):
-                    clean_name = re.sub(r'[^a-zA-Z0-9._-]', '_', p_title)
+                    clean_name = re.sub(r'[^a-zA-Z0-9._-]+', '_', p_title).strip('_') or 'source.pdf'
                     dest = temp_dir / f"src_{idx}_{clean_name}"
                     download_pdf(p_url, dest)
                     logger.info("Adding source %d/%d (%s) to notebook %s...", idx + 1, len(pdf_sources), p_title, nb_id)
                     await NotebookLMPipeline.add_source(nb_id, dest)
 
-                # Wait up to 60s for Google to finish OCR/indexing all added sources before generating audio/video
-                for _ in range(12):
-                    s_code, s_out = await run_cmd_async(["notebooklm", "source", "list", "--json", "-n", nb_id])
-                    if s_code == 0 and s_out:
-                        try:
-                            srcs = json.loads(s_out).get("sources", [])
-                            if srcs and all(str(s.get("status", "")).lower() == "ready" for s in srcs):
-                                break
-                        except Exception:
-                            pass
-                    await asyncio.sleep(5)
+                # Wait up to 90s for Google to finish indexing, then inject Arabic vision OCR for scanned PDFs
+                await wait_for_sources_ready(nb_id, timeout_s=90)
+                await ensure_readable_sources(nb_id, work_dir=temp_dir, subject_name=subject_name)
 
                 # 2. Launch media generation in Google's cloud with on-demand multi-account rotation
                 set_stage(lecture_id, "processing",
@@ -775,6 +780,7 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
             set_stage(lecture_id, "processing", "جاري توليد الكويز والملخص والبطاقات الذكية ✍️")
             text_profile = await select_text_profile()
             await ensure_notebook_shared_with_profile(nb_id, text_profile)
+            await ensure_readable_sources(nb_id, profile=text_profile, work_dir=temp_dir, subject_name=subject_name)
             p_flag = ["-p", text_profile]
 
             gen_jobs = []
@@ -784,13 +790,19 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
                                              "--wait", "--retry", "3", "-n", nb_id]))
             if "study_guide_md" not in existing_types:
                 gen_jobs.append(("study_guide_md", ["notebooklm", *p_flag, "generate", "report", "--format", "study-guide",
+                                                    "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
+                                                    "--append", build_study_guide_append(subject_name, lecture.get("doctor")),
                                                     "--wait", "--retry", "3", "-n", nb_id]))
             if "flashcards_md" not in existing_types:
                 gen_jobs.append(("flashcards_md", ["notebooklm", *p_flag, "generate", "flashcards",
                                                    FLASHCARDS_PROMPT_INSTRUCTIONS, "--quantity", "more",
                                                    "--wait", "--retry", "3", "-n", nb_id]))
             if "mind_map_json" not in existing_types:
-                gen_jobs.append(("mind_map_json", ["notebooklm", *p_flag, "generate", "mind-map", "--kind", "note-backed", "-n", nb_id]))
+                gen_jobs.append(("mind_map_json", ["notebooklm", *p_flag, "generate", "mind-map",
+                                                   "--kind", "interactive",
+                                                   "--language", DEFAULT_NOTEBOOKLM_LANGUAGE,
+                                                   "--instructions", MIND_MAP_INSTRUCTIONS,
+                                                   "-n", nb_id]))
 
             if gen_jobs:
                 results = await asyncio.gather(*(run_cmd_async(cmd) for _, cmd in gen_jobs))
@@ -818,12 +830,12 @@ async def process_lecture(lecture: dict, wait_for_media: bool = False):
                     continue
                 dest = temp_dir / filename
                 cmd = ["notebooklm", *p_flag, "download", kind, str(dest), "--force", "-n", nb_id]
-                if kind == "quiz":
+                if kind in ("quiz", "flashcards"):
                     cmd[5:5] = ["--format", "markdown"]
                 dl_code, _ = await run_cmd_async(cmd)
                 if (dl_code != 0 or not dest.exists()) and text_profile != "default":
                     alt_cmd = ["notebooklm", "download", kind, str(dest), "--force", "-n", nb_id]
-                    if kind == "quiz":
+                    if kind in ("quiz", "flashcards"):
                         alt_cmd[3:3] = ["--format", "markdown"]
                     await run_cmd_async(alt_cmd)
                 if not dest.exists():
