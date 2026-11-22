@@ -230,10 +230,17 @@ def _effective_profile_email(profile_name: str, fallback_email: str = "") -> str
 
 
 def _active_pool_accounts() -> list[dict]:
-    """Returns ACCOUNT_POOL deduplicated by active email so aliased profiles aren't double-counted."""
+    """Returns ACCOUNT_POOL deduplicated by active email and restricted to authenticated profiles."""
+    profiles_dir = Path.home() / ".notebooklm" / "profiles"
+    has_any_storage = any(
+        (profiles_dir / acc["profile"] / "storage_state.json").exists()
+        for acc in ACCOUNT_POOL
+    )
     seen_emails: set[str] = set()
     active: list[dict] = []
     for acc in ACCOUNT_POOL:
+        if has_any_storage and not (profiles_dir / acc["profile"] / "storage_state.json").exists():
+            continue
         eff_email = _effective_profile_email(acc["profile"], acc["email"]).lower()
         if eff_email and eff_email in seen_emails:
             continue

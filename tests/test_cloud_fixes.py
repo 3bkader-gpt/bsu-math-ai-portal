@@ -153,3 +153,20 @@ def test_is_clean_arabic_asset_gates():
         for i in range(1, 4)
     )
     assert is_clean_arabic_asset("flashcards_md", cards_md)
+
+
+def test_active_pool_filters_unauthenticated_when_storage_exists(tmp_path, monkeypatch):
+    import home_worker
+
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    profiles = tmp_path / ".notebooklm" / "profiles"
+    for name in ("default", "acc_ali", "acc_p1", "acc_passplay"):
+        d = profiles / name
+        d.mkdir(parents=True)
+        (d / "storage_state.json").write_text("{}", encoding="utf-8")
+    # Unauthenticated retired profile with context.json only
+    (profiles / "acc_mo").mkdir(parents=True)
+    (profiles / "acc_mo" / "context.json").write_text('{"email": "mo2949042@gmail.com"}', encoding="utf-8")
+
+    active_names = [a["profile"] for a in home_worker._active_pool_accounts()]
+    assert active_names == ["default", "acc_p1", "acc_ali", "acc_passplay"]
